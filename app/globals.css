@@ -120,3 +120,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+.fredoka-font {
+  font-family: var(--font-fredoka), sans-serif;
+}
+
+/* Or make it available globally */
+.font-fredoka {
+  font-family: var(--font-fredoka), sans-serif;
+}

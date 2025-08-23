@@ -105,7 +105,7 @@ export default function LandingPage() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <Link href="/login" border-b border-white rounded-full className="text-white hover:text-blue-400">
+              <Link href="/login" className="text-white hover:text-blue-400">
                 Sign In
               </Link>
               <Link 
