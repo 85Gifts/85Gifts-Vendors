@@ -80,42 +80,42 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center space-x-8">
               <button
                 onClick={() => scrollToSection("features")}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="text-black hover:text-blue-400 transition-colors"
               >
                 Features
               </button>
               <button
                 onClick={() => scrollToSection("pricing")}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="text-black hover:text-blue-400 transition-colors"
               >
                 Pricing
               </button>
               <button
                 onClick={() => scrollToSection("testimonials")}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="text-black hover:text-blue-400 transition-colors"
               >
                 Reviews
               </button>
               <button
                 onClick={() => scrollToSection("contact")}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="text-black hover:text-blue-400 transition-colors"
               >
                 Contact
               </button>
             </div>
 
             <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-white hover:text-blue-400">
+              <Link href="/login" className="text-black hover:text-blue-400">
                 Sign In
               </Link>
               <Link 
               href="/dashboard" 
-            className="bg-white from-blue-500 to-blue-400 text-sm text-blue-500 hover:bg-white rounded-md p-2 hover:text-blue-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            className="bg-white from-blue-500 to-blue-400 text-md text-blue-600 hover:bg-white rounded-md p-2 hover:text-blue-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >Start Selling</Link>
 
               {/* Mobile menu button */}
               <button
-                className="md:hidden text-white hover:text-blue-300 transition-colors"
+                className="md:hidden text-black hover:text-blue-300 transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 ☰
@@ -129,37 +129,37 @@ export default function LandingPage() {
               <div className="px-4 py-6 space-y-4">
                 <button
                   onClick={() => scrollToSection("features")}
-                  className="block text-white hover:text-blue-200 transition-colors py-2"
+                  className="block text-black hover:text-blue-200 transition-colors py-2"
                 >
                   Features
-                </button>for
+                </button>
                 <button
                   onClick={() => scrollToSection("pricing")}
-                  className="block text-white hover:text-blue-200 transition-colors py-2"
+                  className="block text-black hover:text-blue-200 transition-colors py-2"
                 >
                   Pricing
                 </button>
                 <button
                   onClick={() => scrollToSection("testimonials")}
-                  className="block text-white hover:text-blue-200 transition-colors py-2"
+                  className="block text-black hover:text-blue-200 transition-colors py-2"
                 >
                   Reviews
                 </button>
                 <button
                   onClick={() => scrollToSection("contact")}
-                  className="block text-white hover:text-blue-200 transition-colors py-2"
+                  className="block text-black hover:text-blue-200 transition-colors py-2"
                 >
                   Contact
                 </button>
                 <div className="pt-4 border-t border-white/20 gap-4">
                   <Link
                     href="/login"
-                  className="text-white hover:shadow-2xl  duration-300">
+                  className="text-black hover:shadow-2xl  duration-300">
                     Sign In
                   </Link>
                   <Link  
                    href="/dashboard"
-                  className="bg-white from-blue-500 to-blue-400 text-blue-500 hover:bg-white hover:text-blue-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                  className="bg-white from-blue-500 to-blue-400 text-blue-500 mx-4 p-2 rounded-md hover:bg-white hover:text-blue-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                   >Start Selling</Link>
                 </div>
               </div>
@@ -356,7 +356,6 @@ export default function LandingPage() {
             <h2 className="text-4xl font-bold mb-4">Trusted by Gift Retailers Worldwide</h2>
             <p className="text-xl text-purple-100">Join the growing community of successful gift vendors</p>
           </div>
-                       
             {/* data to be filled as company grows  */}
           {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-8"> */}
           {/*   <div className="text-center"> */}
