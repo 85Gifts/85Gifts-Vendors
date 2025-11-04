@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fredoka } from "next/font/google";
 import "./globals.css";
-
+import { Toaster } from "@/components/ui/toaster"
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -26,6 +26,7 @@ export default function RootLayout({
         className={`${fredoka.variable} antialiased`}
       >
         {children}
+        <Toaster /> 
       </body>
     </html>
   );

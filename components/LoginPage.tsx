@@ -159,6 +159,15 @@ const handleSubmit = async (e: React.FormEvent) => {
           });
           return;
         }
+        if (response.status === 401) {
+          toast({
+            title: "Invalid credentials",
+            description: "Please check your credentials and try again",
+            variant: "destructive",
+          });
+          console.log("Invalid credentials")
+          return;
+        }
   
         if (!response.ok) {
           const errorText = await response.text();
@@ -178,7 +187,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           description: isLogin
             ? "You have successfully logged in."
             : "Your vendor account has been created successfully.",
-          variant: "default",
+          variant: "success",
         });
   
         // 🔹 Store token in a cookie
@@ -186,7 +195,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         expires: 1, // 1 day
         sameSite: "strict",
       });
-        console.log("authToken:", data.data.data.tokens.accessToken,);
         console.log("✅ Success:", data);
   
         // You can redirect here after success

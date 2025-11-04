@@ -23,6 +23,8 @@ import {
 import { Button } from "./ui/button"
 import Cookies from "js-cookie"
 import { useRouter } from "next/navigation";
+import { useToast } from "../components/ui/use-toast";
+
 
 // Define Product type
 interface Product {
@@ -94,9 +96,15 @@ export default function DashBoard() {
   const [filterCategory, setFilterCategory] = useState("all")
   const router = useRouter();
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const { toast } = useToast();
 
   const handleLogout = () => {
     Cookies.remove("authToken");
+    toast({
+            title: "Log Out",
+            description: "You have successfully log out.",
+            variant: "success",
+          });
     router.push("/login");
   };
 
