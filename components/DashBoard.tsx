@@ -19,6 +19,9 @@ import {
   XCircle,
   Save,
   X,
+  Calendar,
+  MapPin,
+  Ticket,
 } from "lucide-react"
 
 // Define Product type
@@ -34,6 +37,21 @@ interface Product {
   rating: number
   giftCategory: string
   description?: string // Add optional description field
+}
+
+interface EventItem {
+  id: number
+  title: string
+  category: string
+  date: string
+  time: string
+  location: string
+  price: number
+  capacity: number
+  attendees: number
+  status: "upcoming" | "ongoing" | "completed" | "cancelled"
+  image: string
+  description?: string
 }
 
 // Define Order type
@@ -58,6 +76,18 @@ interface NewProduct {
   stock: string
   description: string
   giftCategory: string
+  image: string
+}
+
+interface NewEvent {
+  title: string
+  category: string
+  date: string
+  time: string
+  location: string
+  price: string
+  capacity: string
+  description: string
   image: string
 }
 
@@ -210,11 +240,101 @@ export default function DashBoard() {
     image: "",
   })
 
+  const [events, setEvents] = useState<EventItem[]>([
+    {
+      id: 1,
+      title: "Holiday Pop-Up Experience",
+      category: "Pop-up Shop",
+      date: "2025-12-10",
+      time: "14:00",
+      location: "Lagos Experience Center",
+      price: 15000,
+      capacity: 120,
+      attendees: 86,
+      status: "upcoming",
+      image: "🎄",
+      description: "Exclusive holiday gift showcase with live customizations and tastings.",
+    },
+    {
+      id: 2,
+      title: "Corporate Gifting Workshop",
+      category: "Workshop",
+      date: "2025-11-18",
+      time: "10:30",
+      location: "Virtual",
+      price: 0,
+      capacity: 200,
+      attendees: 158,
+      status: "ongoing",
+      image: "💼",
+      description: "Interactive webinar helping teams curate thoughtful corporate gifting bundles.",
+    },
+    {
+      id: 3,
+      title: "Valentine Launch Party",
+      category: "Launch Event",
+      date: "2025-02-01",
+      time: "18:00",
+      location: "Abuja Flagship Store",
+      price: 25000,
+      capacity: 80,
+      attendees: 80,
+      status: "completed",
+      image: "❤️",
+      description: "Red carpet evening unveiling the new season of luxury couple experiences.",
+    },
+  ])
+  const [showAddEvent, setShowAddEvent] = useState(false)
+  const [showEditEvent, setShowEditEvent] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null)
+  const [eventSearchTerm, setEventSearchTerm] = useState("")
+  const [eventFilterStatus, setEventFilterStatus] = useState<EventItem["status"] | "all">("all")
+  const [newEvent, setNewEvent] = useState<NewEvent>({
+    title: "",
+    category: "",
+    date: "",
+    time: "",
+    location: "",
+    price: "",
+    capacity: "",
+    description: "",
+    image: "",
+  })
+
+  const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        maximumFractionDigits: 0,
+        currencyDisplay: "narrowSymbol",
+      }),
+    []
+  )
+
   const categories = ["Gift Sets", "Food & Treats", "Personalized", "Electronics", "Home & Garden", "Fashion"]
   const giftCategories = ["Birthday", "Anniversary", "Wedding", "Corporate", "Holiday", "Thank You"]
+  const eventCategories = [
+    "Pop-up Shop",
+    "Workshop",
+    "Launch Event",
+    "Virtual Experience",
+    "Corporate Showcase",
+    "Seasonal Campaign",
+  ]
+  const eventStatuses: EventItem["status"][] = ["upcoming", "ongoing", "completed", "cancelled"]
 
-  const getStatusColor = (status: Product['status'] | Order['status']): string => {
+  const getStatusColor = (status: Product["status"] | Order["status"] | EventItem["status"]): string => {
     switch (status) {
+      case "upcoming":
+        return "text-blue-600 bg-blue-100"
+      case "ongoing":
+        return "text-purple-600 bg-purple-100"
+      case "completed":
+        return "text-green-600 bg-green-100"
+      case "cancelled":
+        return "text-red-600 bg-red-100"
       case "active":
       case "delivered":
         return "text-green-600 bg-green-100"
@@ -285,6 +405,60 @@ export default function DashBoard() {
     setProducts(products.filter((p) => p.id !== id))
   }
 
+  const handleAddEvent = () => {
+    if (newEvent.title && newEvent.date && newEvent.time && newEvent.location) {
+      const event: EventItem = {
+        id: Date.now(),
+        title: newEvent.title,
+        category: newEvent.category || "General Event",
+        date: newEvent.date,
+        time: newEvent.time,
+        location: newEvent.location,
+        price: newEvent.price ? Number.parseFloat(newEvent.price) : 0,
+        capacity: newEvent.capacity ? Number.parseInt(newEvent.capacity, 10) : 0,
+        attendees: 0,
+        status: "upcoming",
+        image: newEvent.image || "🎉",
+        description: newEvent.description,
+      }
+      setEvents([...events, event])
+      setNewEvent({
+        title: "",
+        category: "",
+        date: "",
+        time: "",
+        location: "",
+        price: "",
+        capacity: "",
+        description: "",
+        image: "",
+      })
+      setShowAddEvent(false)
+    }
+  }
+
+  const handleEditEvent = () => {
+    if (!selectedEvent) return
+
+    setEvents(
+      events.map((event) =>
+        event.id === selectedEvent.id
+          ? {
+              ...selectedEvent,
+              price: Number.parseFloat(selectedEvent.price.toString()),
+              capacity: Number.parseInt(selectedEvent.capacity.toString(), 10),
+            }
+          : event
+      )
+    )
+    setShowEditEvent(false)
+    setSelectedEvent(null)
+  }
+
+  const handleDeleteEvent = (id: number) => {
+    setEvents(events.filter((event) => event.id !== id))
+  }
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -292,6 +466,94 @@ export default function DashBoard() {
       return matchesSearch && matchesCategory
     })
   }, [products, searchTerm, filterCategory])
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const search = eventSearchTerm.toLowerCase()
+      const matchesSearch =
+        event.title.toLowerCase().includes(search) ||
+        event.category.toLowerCase().includes(search) ||
+        event.location.toLowerCase().includes(search)
+      const matchesStatus = eventFilterStatus === "all" || event.status === eventFilterStatus
+      return matchesSearch && matchesStatus
+    })
+  }, [events, eventSearchTerm, eventFilterStatus])
+
+  const eventStats = useMemo(() => {
+    const totalEvents = events.length
+    const upcomingEvents = events.filter((event) => event.status === "upcoming").length
+    const registeredAttendees = events.reduce((sum, event) => sum + (event.attendees || 0), 0)
+    const totalCapacity = events.reduce((sum, event) => sum + (event.capacity || 0), 0)
+    const averageFillRate =
+      totalCapacity > 0 ? Math.round((registeredAttendees / totalCapacity) * 100) : 0
+
+    return {
+      totalEvents,
+      upcomingEvents,
+      registeredAttendees,
+      averageFillRate,
+    }
+  }, [events])
+
+  const eventAnalytics = useMemo(() => {
+    if (events.length === 0) {
+      return {
+        totalRevenue: 0,
+        averageTicketPrice: 0,
+        averageAttendance: 0,
+        capacityUtilization: 0,
+        topEvent: null as EventItem | null,
+        statusBreakdown: eventStatuses.map((status) => ({ status, count: 0, percentage: 0 })),
+      }
+    }
+
+    const totalRevenue = events.reduce((sum, event) => sum + event.price * (event.attendees || 0), 0)
+    const paidEvents = events.filter((event) => event.price > 0)
+    const averageTicketPrice =
+      paidEvents.length > 0
+        ? Math.round(
+            paidEvents.reduce((sum, event) => sum + event.price, 0) / paidEvents.length
+          )
+        : 0
+    const averageAttendance = Math.round(
+      events.reduce((sum, event) => sum + (event.attendees || 0), 0) / events.length
+    )
+    const totalCapacity = events.reduce((sum, event) => sum + (event.capacity || 0), 0)
+    const capacityUtilization =
+      totalCapacity > 0
+        ? Math.round(
+            (events.reduce((sum, event) => sum + (event.attendees || 0), 0) / totalCapacity) * 100
+          )
+        : 0
+    const topEvent = events.reduce<EventItem | null>(
+      (prev, current) => {
+        if (!prev) return current
+        return current.attendees > prev.attendees ? current : prev
+      },
+      null
+    )
+    const statusCounts = events.reduce<Record<EventItem["status"], number>>((acc, event) => {
+      acc[event.status] = (acc[event.status] || 0) + 1
+      return acc
+    }, {} as Record<EventItem["status"], number>)
+    const statusBreakdown = eventStatuses.map((status) => {
+      const count = statusCounts[status] || 0
+      return {
+        status,
+        count,
+        percentage: Math.round((count / events.length) * 100) || 0,
+      }
+    })
+
+    return {
+      totalRevenue,
+      averageTicketPrice,
+      averageAttendance,
+      capacityUtilization,
+      topEvent,
+      statusBreakdown,
+    }
+  }, [events])
 
   const DashboardTab = () => (
     <div className="space-y-6">
@@ -311,7 +573,7 @@ export default function DashBoard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Monthly Revenue</p>
-              <p className="text-3xl font-bold">₦{dashboardStats.monthlyRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{currencyFormatter.format(dashboardStats.monthlyRevenue)}</p>
             </div>
             <Wallet className="w-8 h-8 text-green-200" />
           </div>
@@ -374,7 +636,7 @@ export default function DashBoard() {
                     <div className="font-medium">{order.recipientName}</div>
                     <div className="text-sm text-gray-500">Delivery: {order.deliveryDate}</div>
                   </td>
-                  <td className="px-6 py-4 font-medium">₦{order.total}</td>
+                  <td className="px-6 py-4 font-medium">{currencyFormatter.format(order.total)}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -524,13 +786,280 @@ export default function DashBoard() {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-blue-600">₦{product.price}</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {currencyFormatter.format(product.price)}
+                </span>
                 <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.giftCategory}</span>
               </div>
             </div>
           </div>
         ))}
       </div>
+    </div>
+  )
+
+  const EventsTab = () => (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-2xl font-bold">Event Experiences</h2>
+        <button
+          onClick={() => setShowAddEvent(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Schedule Event
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          {
+            label: "Total Events",
+            value: numberFormatter.format(eventStats.totalEvents),
+            gradient: "from-indigo-500 to-indigo-600",
+            accent: "text-indigo-100",
+            iconAccent: "text-indigo-200",
+            icon: Calendar,
+          },
+          {
+            label: "Upcoming Events",
+            value: numberFormatter.format(eventStats.upcomingEvents),
+            gradient: "from-blue-500 to-blue-600",
+            accent: "text-blue-100",
+            iconAccent: "text-blue-200",
+            icon: Clock,
+          },
+          {
+            label: "Confirmed Guests",
+            value: numberFormatter.format(eventStats.registeredAttendees),
+            gradient: "from-pink-500 to-pink-600",
+            accent: "text-pink-100",
+            iconAccent: "text-pink-200",
+            icon: Users,
+          },
+          {
+            label: "Avg Fill Rate",
+            value: `${eventStats.averageFillRate}%`,
+            gradient: "from-emerald-500 to-emerald-600",
+            accent: "text-emerald-100",
+            iconAccent: "text-emerald-200",
+            icon: TrendingUp,
+          },
+        ].map((metric) => {
+          const Icon = metric.icon
+          return (
+            <div
+              key={metric.label}
+              className={`bg-gradient-to-r ${metric.gradient} rounded-xl p-6 text-white`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`${metric.accent} text-sm`}>{metric.label}</p>
+                  <p className="text-3xl font-bold">{metric.value}</p>
+                </div>
+                <Icon className={`w-8 h-8 ${metric.iconAccent}`} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search events by name, location or type..."
+            value={eventSearchTerm}
+            onChange={(e) => setEventSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <select
+          value={eventFilterStatus}
+          onChange={(e) => setEventFilterStatus(e.target.value as EventItem["status"] | "all")}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
+        >
+          <option value="all">All statuses</option>
+          {eventStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {filteredEvents.length === 0 ? (
+        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
+          No events match your filters. Try adjusting your search or add a new experience.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => (
+            <div key={event.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-4xl">{event.image}</div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{event.title}</h3>
+                      <p className="text-sm text-gray-500">{event.category}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedEvent({ ...event })
+                        setShowEditEvent(true)
+                      }}
+                      className="text-gray-400 hover:text-blue-600 transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteEvent(event.id)}
+                      className="text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {event.date} • {event.time}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span>{event.location}</span>
+                </div>
+
+                {event.description && (
+                  <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
+                )}
+
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>
+                      {event.attendees}/{event.capacity} attending
+                    </span>
+                  </div>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                      event.status
+                    )}`}
+                  >
+                    {event.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{event.category}</span>
+                  <span className="flex items-center gap-2 text-xl font-semibold text-blue-600">
+                    <Ticket className="w-4 h-4" />
+                    {event.price > 0 ? currencyFormatter.format(event.price) : "Free RSVP"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Event Performance</h3>
+          <div className="space-y-4">
+            {eventAnalytics.statusBreakdown.map(({ status, count, percentage }) => {
+              const [statusTextClass] = getStatusColor(status).split(" ")
+              const progressColor = statusTextClass ? statusTextClass.replace("text-", "bg-") : "bg-blue-500"
+              return (
+                <div key={status} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm text-gray-600 capitalize">
+                    <span>{status}</span>
+                    <span>
+                      {count} • {percentage}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${progressColor}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Revenue Insights</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">Total Event Revenue</div>
+              <div className="text-xl font-semibold text-blue-600">
+                {currencyFormatter.format(eventAnalytics.totalRevenue)}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Average Ticket Price</span>
+              <span>{currencyFormatter.format(eventAnalytics.averageTicketPrice)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Average Attendance</span>
+              <span>{numberFormatter.format(eventAnalytics.averageAttendance)} guests</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Capacity Utilization</span>
+              <span>{eventAnalytics.capacityUtilization}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Engagement Highlights</h3>
+          {eventAnalytics.topEvent ? (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="text-3xl">{eventAnalytics.topEvent.image}</div>
+                <div>
+                  <h4 className="font-semibold text-lg">{eventAnalytics.topEvent.title}</h4>
+                  <p className="text-sm text-gray-500">{eventAnalytics.topEvent.category}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {eventAnalytics.topEvent.date} • {eventAnalytics.topEvent.time}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Users className="w-4 h-4" />
+                <span>{eventAnalytics.topEvent.attendees} guests confirmed</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span>{eventAnalytics.topEvent.location}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Ticket className="w-4 h-4" />
+                <span>
+                  {eventAnalytics.topEvent.price > 0
+                    ? `${currencyFormatter.format(eventAnalytics.topEvent.price)} tickets`
+                    : "Free RSVP"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Add events to unlock engagement insights.</p>
+          )}
+        </div>
+      </div>
+
     </div>
   )
 
@@ -575,7 +1104,7 @@ export default function DashBoard() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-lg">₦{order.total}</div>
+                    <div className="font-bold text-lg">{currencyFormatter.format(order.total)}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -834,6 +1363,303 @@ export default function DashBoard() {
       </div>
     )
 
+  const AddEventModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Schedule New Event</h3>
+            <button onClick={() => setShowAddEvent(false)} className="text-gray-400 hover:text-gray-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Event Title</label>
+            <input
+              type="text"
+              value={newEvent.title}
+              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter event name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Experience Type</label>
+            <select
+              value={newEvent.category}
+              onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select event type</option>
+              {eventCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input
+                type="date"
+                value={newEvent.date}
+                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Time</label>
+              <input
+                type="time"
+                value={newEvent.time}
+                onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Location</label>
+            <input
+              type="text"
+              value={newEvent.location}
+              onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Physical address or virtual link"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Ticket Price</label>
+              <input
+                type="number"
+                value={newEvent.price}
+                onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0 for free"
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Capacity</label>
+              <input
+                type="number"
+                value={newEvent.capacity}
+                onChange={(e) => setNewEvent({ ...newEvent, capacity: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Event Icon / Emoji</label>
+            <input
+              type="text"
+              value={newEvent.image}
+              onChange={(e) => setNewEvent({ ...newEvent, image: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Use an emoji to represent the event"
+              maxLength={2}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
+              value={newEvent.description}
+              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              placeholder="What should attendees expect?"
+            />
+          </div>
+        </div>
+
+        <div className="p-6 border-t bg-gray-50 flex gap-3">
+          <button
+            onClick={() => setShowAddEvent(false)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAddEvent}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          >
+            <Save className="w-4 h-4" />
+            Add Event
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  const EditEventModal = () =>
+    selectedEvent && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Update Event Details</h3>
+              <button
+                onClick={() => {
+                  setShowEditEvent(false)
+                  setSelectedEvent(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Event Title</label>
+              <input
+                type="text"
+                value={selectedEvent.title}
+                onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Experience Type</label>
+              <select
+                value={selectedEvent.category}
+                onChange={(e) => setSelectedEvent({ ...selectedEvent, category: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {eventCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Date</label>
+                <input
+                  type="date"
+                  value={selectedEvent.date}
+                  onChange={(e) => setSelectedEvent({ ...selectedEvent, date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Time</label>
+                <input
+                  type="time"
+                  value={selectedEvent.time}
+                  onChange={(e) => setSelectedEvent({ ...selectedEvent, time: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Location</label>
+              <input
+                type="text"
+                value={selectedEvent.location}
+                onChange={(e) => setSelectedEvent({ ...selectedEvent, location: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Ticket Price</label>
+                <input
+                  type="number"
+                  value={selectedEvent.price}
+                  onChange={(e) => setSelectedEvent({ ...selectedEvent, price: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Capacity</label>
+                <input
+                  type="number"
+                  value={selectedEvent.capacity}
+                  onChange={(e) => setSelectedEvent({ ...selectedEvent, capacity: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min="0"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Current Status</label>
+              <select
+                value={selectedEvent.status}
+                onChange={(e) =>
+                  setSelectedEvent({
+                    ...selectedEvent,
+                    status: e.target.value as EventItem["status"],
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {eventStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Event Icon / Emoji</label>
+              <input
+                type="text"
+                value={selectedEvent.image}
+                onChange={(e) => setSelectedEvent({ ...selectedEvent, image: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                maxLength={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                value={selectedEvent.description}
+                onChange={(e) => setSelectedEvent({ ...selectedEvent, description: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className="p-6 border-t bg-gray-50 flex gap-3">
+            <button
+              onClick={() => {
+                setShowEditEvent(false)
+                setSelectedEvent(null)
+              }}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditEvent}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -856,6 +1682,7 @@ export default function DashBoard() {
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
+              { id: "events", label: "Events", icon: Calendar },
               { id: "orders", label: "Orders", icon: ShoppingBag },
             ].map((tab) => {
               const Icon = tab.icon
@@ -882,12 +1709,15 @@ export default function DashBoard() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {activeTab === "dashboard" && <DashboardTab />}
         {activeTab === "products" && <ProductsTab />}
+        {activeTab === "events" && <EventsTab />}
         {activeTab === "orders" && <OrdersTab />}
       </main>
 
       {/* Modals */}
       {showAddProduct && <AddProductModal />}
       {showEditProduct && <EditProductModal />}
+      {showAddEvent && <AddEventModal />}
+      {showEditEvent && <EditEventModal />}
     </div>
   )
 }
