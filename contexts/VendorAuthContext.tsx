@@ -14,22 +14,53 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
+  // Helper function to refresh token if needed
+  const refreshTokenIfNeeded = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/refresh-tokens', {
+        method: 'POST',
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/vendors');
+      const response = await fetch('/api/profile');
+      
+      // If unauthorized, try to refresh token
+      if (response.status === 401) {
+        const refreshed = await refreshTokenIfNeeded();
+        if (refreshed) {
+          // Retry the profile fetch after refresh
+          const retryResponse = await fetch('/api/profile');
+          if (retryResponse.ok) {
+            const data = await retryResponse.json();
+            setVendor(data);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setVendor(data);
+      } else {
+        setVendor(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      setVendor(null);
     } finally {
       setLoading(false);
     }
   };
 
   const register = async (userData: RegisterData) => {
-    const response = await fetch('/api/vendors', {
+    const response = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
@@ -43,7 +74,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/vendors', {
+    const response = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -53,13 +84,17 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     if (!response.ok) {
       throw new Error(data.error || 'Login failed');
     }
-    setVendor(data.vendor);
+    
+    // The API route returns { success: true, vendor: {...}, message: '...' }
+    if (data.vendor) {
+      setVendor(data.vendor);
+    }
     return data;
   };
 
   const logout = async () => {
     try {
-      await fetch('/api/vendors/logout', { method: 'POST' });
+      await fetch('/api/logout', { method: 'POST' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -69,7 +104,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (updates: Partial<Vendor>) => {
-    const response = await fetch('/api/vendors', {
+    const response = await fetch('/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -79,13 +114,17 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     if (!response.ok) {
       throw new Error(data.error || 'Update failed');
     }
-    setVendor(data);
+    
+    // Update vendor state with the updated data
+    if (data) {
+      setVendor(data);
+    }
     return data;
   };
 
-  // Add the resetPassword function
+  // Forgot password (sends reset email)
   const resetPassword = async (email: string) => {
-    const response = await fetch('/api/auth/reset-password', {
+    const response = await fetch('/api/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),

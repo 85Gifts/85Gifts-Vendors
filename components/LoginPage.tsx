@@ -671,7 +671,7 @@ export default function AuthPage() {
             <p className="text-gray-600">
               {activeTab === 'login' ? (
                 <>
-                  Don't have an account?
+                  Don&apos;t have an account?
                   <button
                     onClick={() => setActiveTab('signup')}
                     className="ml-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"

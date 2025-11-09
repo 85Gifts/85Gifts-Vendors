@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${process.env.API_URL}/api/vendors/refresh-tokens`, {
+    const response = await fetch(`${process.env.API_URL}/api/vendors/refresh-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
