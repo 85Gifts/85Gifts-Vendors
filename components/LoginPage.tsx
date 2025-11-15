@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { useToast } from "../components/ui/use-toast";
-import { Mail, Lock, User, Eye, EyeOff, Gift, ArrowRight, Home, BriefcaseBusiness, Phone, MapPinHouse   } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Gift, ArrowRight, Home, BriefcaseBusiness, Phone, MapPinHouse, Loader2  } from 'lucide-react';
 import Cookies from "js-cookie";
+import { config } from "@/config";
 
 
 export default function AuthPage(){
@@ -33,6 +34,7 @@ export default function AuthPage(){
     address?: string;
   }>({});
   const [valid, setValid] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
 
@@ -84,17 +86,32 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   let isValid = true;
     const validationErrors: {
-      firstName?: string;
-      lastName?: string;
+      name?: string;
       email?: string;
       password?: string;
       confirmPassword?: string;
+      businessName?: string;
+      phone?: string;
+      address?: string;
     } = {};
 
-    // Only validate name for registration
-    if (!isLogin && !formData.name.trim()) {
-      isValid = false;
-      validationErrors.firstName = "First Name is required";
+    if (!isLogin) {
+      if (!formData.name.trim()) {
+        isValid = false;
+        validationErrors.name = "Name is required";
+      }
+      if (!formData.businessName.trim()) {
+        isValid = false;
+        validationErrors.businessName = "Business name is required";
+      }
+      if (!formData.phone.trim()) {
+        isValid = false;
+        validationErrors.phone = "Phone number is required";
+      }
+      if (!formData.address.trim()) {
+        isValid = false;
+        validationErrors.address = "Address is required";
+      }
     }
     
     if (!formData.email.trim()) {
@@ -113,35 +130,35 @@ const handleSubmit = async (e: React.FormEvent) => {
       validationErrors.password = "Password must be at least 6 characters long";
     }
     
-    // Only validate confirmPassword for registration
     if (!isLogin && formData.confirmPassword !== formData.password) {
       isValid = false;
-      validationErrors.confirmPassword = "Password do not match";
+      validationErrors.confirmPassword = "Passwords do not match";
     }
     
     setErrors(validationErrors);
     setValid(isValid);
 
+    if (!isValid) {
+      return;
+    }
 
 
-    if (isValid) {
-      try {
-        const url = isLogin
-          ? "/api/vendors/login"
-          : "/api/vendors/register";
+
+    try {
+      setIsSubmitting(true);
+        const url = `${config.BACKEND_URL}/api/vendors/${isLogin ? "login" : "register"}`;
   
         
   
         const payload = isLogin
           ? { email: formData.email, password: formData.password }
           : {
-              name: formData.name,
-              email: formData.email,
+              name: formData.name.trim(),
+              businessName: formData.businessName.trim(),
+              email: formData.email.trim(),
+              phone: formData.phone.trim(),
+              address: formData.address.trim(),
               password: formData.password,
-              confirmPassword: formData.confirmPassword,
-              businessName: formData.businessName,
-              phone: formData.phone,
-              address: formData.address,
             };
   
         const response = await fetch(url, {
@@ -180,6 +197,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         }
   
         const data = await response.json();
+        const responseData = data?.data;
   
         // 🔹 Success feedback
         toast({
@@ -191,14 +209,27 @@ const handleSubmit = async (e: React.FormEvent) => {
         });
   
         // 🔹 Store token in a cookie
-      Cookies.set("authToken", data.data.data.tokens.accessToken, {
-        expires: 1, // 1 day
-        sameSite: "strict",
-      });
+      if (isLogin) {
+        const tokens = responseData?.data?.tokens;
+        const accessToken = tokens?.accessToken;
+
+        if (!accessToken) {
+          throw new Error("Missing access token in login response");
+        }
+
+        Cookies.set("authToken", accessToken, {
+          expires: 1, // 1 day
+          sameSite: "strict",
+        });
+      }
         console.log("✅ Success:", data);
   
         // You can redirect here after success
-        router.push(isLogin ?  "/dashboard" : `/verifyEmail?email=${encodeURIComponent(formData.email)}&verificationCode=${encodeURIComponent(data.data.verificationCode)}`);
+        router.push(
+          isLogin
+            ? "/dashboard"
+            : `/verifyEmail?email=${encodeURIComponent(formData.email)}&verificationCode=${encodeURIComponent(responseData?.verificationCode ?? "")}`
+        );
       } catch (error) {
         console.error("❌ Error:", error);
         toast({
@@ -206,8 +237,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           description: "We couldn’t complete your request. Please try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsSubmitting(false);
       }
-    }
 };
 const handleReset = async (e: React.FormEvent) =>{
   e.preventDefault();
@@ -352,12 +384,14 @@ const handleReset = async (e: React.FormEvent) =>{
                 <div className="relative">
                   <BriefcaseBusiness  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    id="business_name"
+                    type="text"
+                    id="businessName"
                     name="businessName"
                     value={formData.businessName}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your business name"
+                    required
                   />
                 </div>
               </div>
@@ -378,6 +412,7 @@ const handleReset = async (e: React.FormEvent) =>{
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your phone number"
+                    required
                   />
                 </div>
               </div>
@@ -391,12 +426,14 @@ const handleReset = async (e: React.FormEvent) =>{
                 <div className="relative">
                   <MapPinHouse   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
+                    type="text"
                     id="address"
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your business address"
+                    required
                   />
                 </div>
               </div>
@@ -474,10 +511,20 @@ const handleReset = async (e: React.FormEvent) =>{
               <Button
                 type="submit"
                 onClick={handleSubmit}
-                className="w-full bg-linear-to-r from-blue-500 to-blue-400 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                disabled={isSubmitting}
+                className={`w-full bg-linear-to-r from-blue-500 to-blue-400 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${isSubmitting ? 'opacity-80 cursor-not-allowed hover:scale-100' : ''}`}
               >
-                {isLogin ? 'Sign In' : 'Create Account'}
-                <ArrowRight className="w-5 h-5 ml-2" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    {isLogin ? 'Signing you in...' : 'Creating account...'}
+                  </>
+                ) : (
+                  <>
+                    {isLogin ? 'Sign In' : 'Create Account'}
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
 

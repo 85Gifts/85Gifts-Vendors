@@ -1727,7 +1727,8 @@ export default function DashBoard() {
       {/* Navigation */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <div className="overflow-x-auto">
+            <nav className="flex min-w-max space-x-4 sm:space-x-8">
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
@@ -1750,7 +1751,8 @@ export default function DashBoard() {
                 </button>
               )
             })}
-          </nav>
+            </nav>
+          </div>
         </div>
       </div>
 

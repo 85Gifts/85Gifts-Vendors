@@ -361,14 +361,15 @@ import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Input } from "@/components/ui/input";
+import { Gift, Mail, ShieldCheck, Loader2, ArrowRight, Home } from "lucide-react";
+import { config } from "@/config";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  const email = searchParams.get("email");
+  const email = searchParams.get("email") || "";
   const codeFromQuery = searchParams.get("verificationCode") || "";
 
   const [code, setCode] = useState(codeFromQuery);
@@ -377,10 +378,10 @@ export default function VerifyEmailPage() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !code) {
+    if (!code.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please provide both email and verification code.",
+        title: "Missing verification code",
+        description: "Please enter the code we sent to your email.",
         variant: "destructive",
       });
       return;
@@ -388,36 +389,31 @@ export default function VerifyEmailPage() {
 
     try {
       setLoading(true);
-     
-      const response = await fetch("/api/vendors/verify-email", {
+
+      const response = await fetch(`${config.BACKEND_URL}/api/vendors/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code }),
+        body: JSON.stringify({ code: code.trim() }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        toast({
-          title: "Verification Failed",
-          description: data.message || "Invalid or expired verification code.",
-          variant: "destructive",
-        });
-        return;
+        throw new Error(data?.message || "Invalid or expired verification code.");
       }
 
-      // ✅ Success
       toast({
-        title: "Email Verified 🎉",
+        title: "Email verified 🎉",
         description: "Your account has been verified successfully. You can now log in.",
+        variant: "success",
       });
 
-      router.push("/dashboard"); // Redirect to login page (your AuthPage)
-    } catch (error) {
+      router.push("/login");
+    } catch (error: any) {
       console.error("❌ Error verifying email:", error);
       toast({
-        title: "Network Error",
-        description: "Unable to verify your email. Please try again.",
+        title: "Verification failed",
+        description: error.message || "Unable to verify your email. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -426,46 +422,145 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <form
-        onSubmit={handleVerify}
-        className="bg-white shadow-md rounded-xl p-6 w-full max-w-md space-y-5"
-      >
-        <h2 className="text-2xl font-bold text-center">Verify Your Email</h2>
+    <div className="min-h-screen w-full flex bg-linear-to-br from-blue-50 via-blue-50 to-blue-50">
+      {/* Left Side - Illustration */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center relative">
+          <div className="absolute inset-0 bg-linear-to-br from-blue-300 to-blue-50" />
+          <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-200 rounded-full opacity-30 animate-pulse" />
+          <div className="absolute bottom-32 right-16 w-24 h-24 bg-blue-200 rounded-full opacity-40 animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-8 w-16 h-16 bg-green-200 rounded-full opacity-35 animate-bounce delay-2000" />
 
-        <p className="text-sm text-gray-600 text-center">
-          We sent a verification code to <span className="font-semibold">{email}</span>
-        </p>
+          <div className="relative z-10 text-center">
+            <div className="w-72 h-72 bg-white rounded-full flex items-center justify-center relative overflow-hidden shadow-2xl mb-8">
+              <div className="text-8xl animate-bounce">📬</div>
+              <div className="absolute top-4 left-8 text-3xl animate-pulse opacity-70">✨</div>
+              <div className="absolute top-12 right-6 text-2xl animate-bounce delay-300 opacity-80">⭐</div>
+              <div className="absolute bottom-8 left-6 text-2xl animate-pulse delay-500 opacity-70">📨</div>
+              <div className="absolute bottom-4 right-8 text-3xl animate-bounce delay-700 opacity-80">🔐</div>
+              <div className="absolute inset-4 border-2 border-blue-200 rounded-full opacity-40" />
+              <div className="absolute inset-8 border-2 border-purple-200 rounded-full opacity-50" />
+            </div>
 
-        <Input
-          type="text"
-          name="code"
-          placeholder="Enter verification code"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="text-center tracking-widest"
-          required
-        />
+            <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent mb-4">
+              Verify & Celebrate
+            </h2>
+            <p className="text-lg text-gray-600 max-w-sm">
+              Secure your vendor account in just one step and start delighting customers.
+            </p>
+          </div>
+        </div>
+      </div>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading}
-        >
-          {loading ? "Verifying..." : "Verify Email"}
-        </Button>
+      {/* Right Side - Verification Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Gift className="w-4 h-4" />
+              <span>Email Confirmation</span>
+            </div>
 
-        <p className="text-center text-sm text-gray-500">
-          Didn’t get the code?{" "}
-          <button
-            type="button"
-            onClick={() => toast({ title: "Resend not implemented yet" })}
-            className="text-blue-600 underline"
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Verify Email</h1>
+            <p className="text-gray-600">
+              Enter the verification code we sent to your inbox to activate your account.
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleVerify}
+            className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
           >
-            Resend
-          </button>
-        </p>
-      </form>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    readOnly
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="code" className="text-sm font-medium text-gray-700">
+                  Verification Code
+                </label>
+                <div className="relative">
+                  <ShieldCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    id="code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 tracking-[0.4em] text-center"
+                    placeholder="123456"
+                    maxLength={6}
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-linear-to-r from-blue-500 to-blue-400 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Verify Email
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
+              </Button>
+
+              <p className="text-center text-sm text-gray-500">
+                Didn’t get the code?{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    toast({
+                      title: "Hang tight!",
+                      description: "Resend verification is coming soon.",
+                    })
+                  }
+                  className="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
+                >
+                  Resend
+                </button>
+              </p>
+            </div>
+          </form>
+
+          <div className="text-center mt-6">
+            <button
+              onClick={() => router.push("/")}
+              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              <Home className="w-4 h-4 mr-1" />
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="lg:hidden fixed top-4 right-4 text-4xl animate-bounce opacity-20">
+        🎁
+      </div>
+      <div className="lg:hidden fixed bottom-4 left-4 text-3xl animate-pulse opacity-20 delay-1000">
+        💝
+      </div>
     </div>
   );
 }
