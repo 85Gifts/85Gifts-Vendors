@@ -23,6 +23,11 @@ import {
   MapPin,
   Ticket,
 } from "lucide-react"
+import { Button } from "./ui/button"
+import Cookies from "js-cookie"
+import { useRouter } from "next/navigation";
+import { useToast } from "../components/ui/use-toast";
+
 
 // Define Product type
 interface Product {
@@ -119,6 +124,20 @@ export default function DashBoard() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
+  const router = useRouter();
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    Cookies.remove("authToken");
+    toast({
+            title: "Log Out",
+            description: "You have successfully log out.",
+            variant: "success",
+          });
+    router.push("/login");
+  };
+
 
   // Mock data
   const [vendorProfile] = useState<VendorProfile>({
@@ -405,6 +424,7 @@ export default function DashBoard() {
     setProducts(products.filter((p) => p.id !== id))
   }
 
+
   const handleAddEvent = () => {
     if (newEvent.title && newEvent.date && newEvent.time && newEvent.location) {
       const event: EventItem = {
@@ -559,7 +579,7 @@ export default function DashBoard() {
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+        <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm">Total Products</p>
@@ -569,7 +589,7 @@ export default function DashBoard() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+        <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Monthly Revenue</p>
@@ -579,7 +599,7 @@ export default function DashBoard() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+        <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm">Active Orders</p>
@@ -589,7 +609,7 @@ export default function DashBoard() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+        <div className="bg-linear-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-100 text-sm">Total Customers</p>
@@ -1362,6 +1382,31 @@ export default function DashBoard() {
         </div>
       </div>
     )
+  
+  const LogOut = () => {
+  return (
+    <div className="fixed inset-0 flex z-50 items-center justify-center bg-black bg-opacity-30">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+        <h2 className="text-lg font-semibold mb-4">Are you sure you want to logout?</h2>
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={() => setShowLogoutPopup(false)}
+            className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
   const AddEventModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -1670,7 +1715,11 @@ export default function DashBoard() {
               <Gift className="w-8 h-8 text-blue-600" />
               <h1 className="text-xl font-bold text-gray-900">Vendor Dashboard</h1>
             </div>
-            <div className="flex items-center gap-4"></div>
+            <div className="flex items-center gap-4">
+              <Button onClick={() => setShowLogoutPopup(true)}>
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -1716,6 +1765,9 @@ export default function DashBoard() {
       {/* Modals */}
       {showAddProduct && <AddProductModal />}
       {showEditProduct && <EditProductModal />}
+
+      {/* Logout Confirmation Popup */}
+      {showLogoutPopup && <LogOut />}
       {showAddEvent && <AddEventModal />}
       {showEditEvent && <EditEventModal />}
     </div>

@@ -1,18 +1,40 @@
 'use client'
 import React, { useState } from 'react';
+import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
-import { Mail, Lock, User, Eye, EyeOff, Gift, ArrowRight, Home } from 'lucide-react';
+import { useToast } from "../components/ui/use-toast";
+import { Mail, Lock, User, Eye, EyeOff, Gift, ArrowRight, Home, BriefcaseBusiness, Phone, MapPinHouse   } from 'lucide-react';
+import Cookies from "js-cookie";
 
 
 export default function AuthPage(){
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
     name: '',
-    confirmPassword: ''
+    email: '',
+    businessName: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+    address: '',
   });
+
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    businessName?: string;
+    password?: string;
+    confirmPassword?: string;
+    phone?: string;
+    address?: string;
+  }>({});
+  const [valid, setValid] = useState(true);
+
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -21,33 +43,210 @@ export default function AuthPage(){
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // console.log('Form submitted:', formData);
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  console.log("🟢 Form submitted in mode:", isLogin ? "Login" : "Register");
 
-  const toggleAuthMode = () => {
-    setIsLogin(!isLogin);
-    setFormData({
-      email: '',
-      password: '',
-      name: '',
-      confirmPassword: ''
-    });
-  };
+  e.preventDefault();
+
+  //  let isValid = true;
+  //   const validationErrors: {
+  //     firstName?: string;
+  //     lastName?: string;
+  //     email?: string;
+  //     password?: string;
+  //     confirmPassword?: string;
+  //   } = {};
+
+  //   if (!formData.name.trim()) {
+  //     isValid = false;
+  //     validationErrors.firstName = "First Name is required";
+  //   }
+  //   if (!formData.email.trim()) {
+  //     isValid = false;
+  //     validationErrors.email = "Email is required";
+  //   } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+  //     isValid = false;
+  //     validationErrors.email = "Invalid email format";
+  //   }
+  //   if (!formData.password.trim()) {
+  //     isValid = false;
+  //     validationErrors.password = "Password required";
+  //   } else if (formData.password.length < 6) {
+  //     isValid = false;
+  //     validationErrors.password = "Password must be at least 6 characters long";
+  //   }
+  //   if (!isLogin && formData.confirmPassword !== formData.password) {
+  //     isValid = false;
+  //     validationErrors.confirmPassword = "Password do not match";
+  //   }
+  //   setErrors(validationErrors);
+  //   setValid(isValid);
+
+  let isValid = true;
+    const validationErrors: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
+
+    // Only validate name for registration
+    if (!isLogin && !formData.name.trim()) {
+      isValid = false;
+      validationErrors.firstName = "First Name is required";
+    }
+    
+    if (!formData.email.trim()) {
+      isValid = false;
+      validationErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      isValid = false;
+      validationErrors.email = "Invalid email format";
+    }
+    
+    if (!formData.password.trim()) {
+      isValid = false;
+      validationErrors.password = "Password required";
+    } else if (formData.password.length < 6) {
+      isValid = false;
+      validationErrors.password = "Password must be at least 6 characters long";
+    }
+    
+    // Only validate confirmPassword for registration
+    if (!isLogin && formData.confirmPassword !== formData.password) {
+      isValid = false;
+      validationErrors.confirmPassword = "Password do not match";
+    }
+    
+    setErrors(validationErrors);
+    setValid(isValid);
+
+
+
+    if (isValid) {
+      try {
+        const url = isLogin
+          ? "/api/vendors/login"
+          : "/api/vendors/register";
+  
+        
+  
+        const payload = isLogin
+          ? { email: formData.email, password: formData.password }
+          : {
+              name: formData.name,
+              email: formData.email,
+              password: formData.password,
+              confirmPassword: formData.confirmPassword,
+              businessName: formData.businessName,
+              phone: formData.phone,
+              address: formData.address,
+            };
+  
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+  
+        // 🔹 Custom error messages
+        if (response.status === 409) {
+          toast({
+            title: "Email already registered",
+            description: "Please sign in instead of creating a new account.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (response.status === 401) {
+          toast({
+            title: "Invalid credentials",
+            description: "Please check your credentials and try again",
+            variant: "destructive",
+          });
+          console.log("Invalid credentials")
+          return;
+        }
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          toast({
+            title: "Registration failed",
+            description: errorText || "Please check your inputs and try again.",
+            variant: "destructive",
+          });
+          throw new Error("Request failed");
+        }
+  
+        const data = await response.json();
+  
+        // 🔹 Success feedback
+        toast({
+          title: isLogin ? "Welcome back!" : "Account created 🎉",
+          description: isLogin
+            ? "You have successfully logged in."
+            : "Your vendor account has been created successfully.",
+          variant: "success",
+        });
+  
+        // 🔹 Store token in a cookie
+      Cookies.set("authToken", data.data.data.tokens.accessToken, {
+        expires: 1, // 1 day
+        sameSite: "strict",
+      });
+        console.log("✅ Success:", data);
+  
+        // You can redirect here after success
+        router.push(isLogin ?  "/dashboard" : `/verifyEmail?email=${encodeURIComponent(formData.email)}&verificationCode=${encodeURIComponent(data.data.verificationCode)}`);
+      } catch (error) {
+        console.error("❌ Error:", error);
+        toast({
+          title: "Something went wrong",
+          description: "We couldn’t complete your request. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+};
+const handleReset = async (e: React.FormEvent) =>{
+  e.preventDefault();
+
+  router.push("/reset-password")
+}
+
+
+
+  const toggleAuthMode = () => setIsLogin((prev) => !prev);
+
+  // const toggleAuthMode = () => {
+  //   setIsLogin(!isLogin);
+  //   setFormData({
+  //     name: '',
+  //     email: '',
+  //     businessName: '',
+  //     password: '',
+  //     confirmPassword: '',
+  //     phone: '',
+  //     address: ''
+  //   });
+  // };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   return (
 
-    <div className="min-h-screen w-full flex bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50">
+    <div className="min-h-screen w-full flex bg-linear-to-br from-blue-50 via-blue-50 to-blue-50">
     {/* Left Side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <div className="w-full h-full flex items-center justify-center relative">
           {/* Background decorative elements */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-300 to-blue-50"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-blue-300 to-blue-50"></div>
           <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-200 rounded-full opacity-30 animate-pulse"></div>
           <div className="absolute bottom-32 right-16 w-24 h-24 bg-blue-200 rounded-full opacity-40 animate-pulse delay-1000"></div>
           <div className="absolute top-1/2 left-8 w-16 h-16 bg-green-200 rounded-full opacity-35 animate-bounce delay-2000"></div>
@@ -69,7 +268,7 @@ export default function AuthPage(){
               <div className="absolute inset-8 border-2 border-red-200 rounded-full opacity-50"></div>
             </div>
             
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent mb-4">
+            <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent mb-4">
               Welcome to 85Gifts
             </h2>
             <p className="text-lg text-gray-600 max-w-sm">
@@ -84,10 +283,10 @@ export default function AuthPage(){
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            {isLogin ? <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Gift className="w-4 h-4" />
-              <span>{isLogin ? 'Welcome Back!' : 'Join Our Community'}</span>
-            </div>
+              <span>Welcome Back</span>
+            </div>: " "}
             
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               {isLogin ? 'Sign In' : 'Create Account'}
@@ -107,7 +306,7 @@ export default function AuthPage(){
               {!isLogin && (
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                    Full Name
+                    Name
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -118,7 +317,7 @@ export default function AuthPage(){
                       value={formData.name}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Enter your full name"
+                      placeholder="Enter your name"
                       required={!isLogin}
                     />
                   </div>
@@ -144,6 +343,64 @@ export default function AuthPage(){
                   />
                 </div>
               </div>
+
+              {/* Business Name field */}
+              {!isLogin && (<div className="space-y-2">
+                <label htmlFor="businessName" className="text-sm font-medium text-gray-700">
+                  Business Name
+                </label>
+                <div className="relative">
+                  <BriefcaseBusiness  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="business_name"
+                    name="businessName"
+                    value={formData.businessName}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter your business name"
+                  />
+                </div>
+              </div>
+              )}
+
+              {/* Phone number field */}
+              {!isLogin && (<div className="space-y-2">
+                <label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+              </div>
+              )}
+
+              {/* Address field */}
+              {!isLogin && (<div className="space-y-2">
+                <label htmlFor="address" className="text-sm font-medium text-gray-700">
+                  Address
+                </label>
+                <div className="relative">
+                  <MapPinHouse   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter your business address"
+                  />
+                </div>
+              </div>
+              )}
 
               {/* Password field */}
               <div className="space-y-2">
@@ -171,34 +428,41 @@ export default function AuthPage(){
                   </button>
                 </div>
               </div>
-
-              {/* Confirm Password field (only for signup) */}
-              {!isLogin && (
-                <div className="space-y-2">
+              
+              {/* Confirm Password field (only for signup) */} 
+              {!isLogin && ( 
+                <div className="space-y-2"> 
                   <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
                     Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="password"
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Confirm your password"
-                      required={!isLogin}
-                    />
+                  </label> 
+                  <div className="relative"> 
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" /> 
+                    <input 
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirmPassword" 
+                      name="confirmPassword" 
+                      value={formData.confirmPassword} 
+                      onChange={handleInputChange} 
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200" 
+                      placeholder="Confirm your password" 
+                      required={!isLogin} />
+
+                    <button
+                      type="button"
+                      onClick={toggleConfirmPasswordVisibility}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                   </div>
-                </div>
-              )}
+                </div> )}
 
               {/* Forgot Password (only for login) */}
               {isLogin && (
                 <div className="flex justify-end">
                   <button
                     type="button"
+                    onClick={handleReset}
                     className="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200"
                   >
                     Forgot password?
@@ -208,8 +472,9 @@ export default function AuthPage(){
 
               {/* Submit Button */}
               <Button
+                type="submit"
                 onClick={handleSubmit}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="w-full bg-linear-to-r from-blue-500 to-blue-400 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 {isLogin ? 'Sign In' : 'Create Account'}
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -260,7 +525,7 @@ export default function AuthPage(){
                 onClick={toggleAuthMode}
                 className="ml-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
               >
-                {isLogin ? 'Sign up' : 'Sign in'}
+                {isLogin ? 'Sign Up' : 'Sign In'}
               </button>
             </p>
           </div>
