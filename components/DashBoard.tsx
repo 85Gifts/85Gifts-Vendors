@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Package,
   Plus,
@@ -27,6 +27,7 @@ import { Button } from "./ui/button"
 import Cookies from "js-cookie"
 import { useRouter } from "next/navigation";
 import { useToast } from "../components/ui/use-toast";
+import { config } from "../config"
 
 
 // Define Product type
@@ -46,6 +47,7 @@ interface Product {
 
 interface EventItem {
   id: number
+  backendId?: string
   title: string
   category: string
   date: string
@@ -259,66 +261,12 @@ export default function DashBoard() {
     image: "",
   })
 
-  const [events, setEvents] = useState<EventItem[]>([
-    {
-      id: 1,
-      title: "Holiday Pop-Up Experience",
-      category: "Pop-up Shop",
-      date: "2025-12-10",
-      time: "14:00",
-      location: "Lagos Experience Center",
-      price: 15000,
-      capacity: 120,
-      attendees: 86,
-      status: "upcoming",
-      image: "🎄",
-      description: "Exclusive holiday gift showcase with live customizations and tastings.",
-    },
-    {
-      id: 2,
-      title: "Corporate Gifting Workshop",
-      category: "Workshop",
-      date: "2025-11-18",
-      time: "10:30",
-      location: "Virtual",
-      price: 0,
-      capacity: 200,
-      attendees: 158,
-      status: "ongoing",
-      image: "💼",
-      description: "Interactive webinar helping teams curate thoughtful corporate gifting bundles.",
-    },
-    {
-      id: 3,
-      title: "Valentine Launch Party",
-      category: "Launch Event",
-      date: "2025-02-01",
-      time: "18:00",
-      location: "Abuja Flagship Store",
-      price: 25000,
-      capacity: 80,
-      attendees: 80,
-      status: "completed",
-      image: "❤️",
-      description: "Red carpet evening unveiling the new season of luxury couple experiences.",
-    },
-  ])
-  const [showAddEvent, setShowAddEvent] = useState(false)
-  const [showEditEvent, setShowEditEvent] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null)
+  const [events, setEvents] = useState<EventItem[]>([])
+  const [eventsLoading, setEventsLoading] = useState<boolean>(false)
+  const [eventsError, setEventsError] = useState<string>("")
+
   const [eventSearchTerm, setEventSearchTerm] = useState("")
   const [eventFilterStatus, setEventFilterStatus] = useState<EventItem["status"] | "all">("all")
-  const [newEvent, setNewEvent] = useState<NewEvent>({
-    title: "",
-    category: "",
-    date: "",
-    time: "",
-    location: "",
-    price: "",
-    capacity: "",
-    description: "",
-    image: "",
-  })
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
   const currencyFormatter = useMemo(
@@ -425,59 +373,130 @@ export default function DashBoard() {
   }
 
 
-  const handleAddEvent = () => {
-    if (newEvent.title && newEvent.date && newEvent.time && newEvent.location) {
-      const event: EventItem = {
-        id: Date.now(),
-        title: newEvent.title,
-        category: newEvent.category || "General Event",
-        date: newEvent.date,
-        time: newEvent.time,
-        location: newEvent.location,
-        price: newEvent.price ? Number.parseFloat(newEvent.price) : 0,
-        capacity: newEvent.capacity ? Number.parseInt(newEvent.capacity, 10) : 0,
-        attendees: 0,
-        status: "upcoming",
-        image: newEvent.image || "🎉",
-        description: newEvent.description,
-      }
-      setEvents([...events, event])
-      setNewEvent({
-        title: "",
-        category: "",
-        date: "",
-        time: "",
-        location: "",
-        price: "",
-        capacity: "",
-        description: "",
-        image: "",
+
+
+
+
+  const handleDeleteEvent = async (event: EventItem) => {
+    const eventId = String(event.backendId || event.id)
+    try {
+      setEventsLoading(true)
+      setEventsError("")
+      const token = Cookies.get("authToken")
+      const res = await fetch(`${config.BACKEND_URL}/api/vendor/events/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
       })
-      setShowAddEvent(false)
+      if (!res.ok) {
+        const msg = await res.text()
+        throw new Error(msg || "Failed to delete event")
+      }
+      setEvents((prev) => prev.filter((e) => String(e.backendId || e.id) !== eventId))
+      toast({
+        title: "Event deleted",
+        description: `"${event.title}" was removed successfully.`,
+        variant: "success",
+      })
+    } catch (err: any) {
+      setEventsError(err?.message || "Failed to delete event")
+      toast({
+        title: "Delete failed",
+        description: err?.message || "Unable to delete event",
+        variant: "destructive",
+      })
+    } finally {
+      setEventsLoading(false)
     }
   }
 
-  const handleEditEvent = () => {
-    if (!selectedEvent) return
+  useEffect(() => {
+    const computeStatus = (startIso?: string, endIso?: string): EventItem["status"] => {
+      if (!startIso) return "upcoming"
+      const now = new Date()
+      const start = new Date(startIso)
+      const end = endIso ? new Date(endIso) : undefined
+      if (end && now > end) return "completed"
+      if (now >= start && (!end || now <= end)) return "ongoing"
+      return "upcoming"
+    }
 
-    setEvents(
-      events.map((event) =>
-        event.id === selectedEvent.id
-          ? {
-              ...selectedEvent,
-              price: Number.parseFloat(selectedEvent.price.toString()),
-              capacity: Number.parseInt(selectedEvent.capacity.toString(), 10),
-            }
-          : event
-      )
-    )
-    setShowEditEvent(false)
-    setSelectedEvent(null)
-  }
+    const toDate = (iso?: string) => {
+      if (!iso) return { date: "", time: "" }
+      const d = new Date(iso)
+      const yyyy = d.getFullYear()
+      const mm = String(d.getMonth() + 1).padStart(2, "0")
+      const dd = String(d.getDate()).padStart(2, "0")
+      const hh = String(d.getHours()).padStart(2, "0")
+      const mi = String(d.getMinutes()).padStart(2, "0")
+      return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${mi}` }
+    }
 
-  const handleDeleteEvent = (id: number) => {
-    setEvents(events.filter((event) => event.id !== id))
-  }
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true)
+        setEventsError("")
+        const token = Cookies.get("authToken")
+        const res = await fetch(`${config.BACKEND_URL}/api/vendor/events`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: "include",
+        })
+        if (!res.ok) {
+          const msg = await res.text()
+          throw new Error(msg || "Failed to load events")
+        }
+        const json = await res.json()
+        // Normalize events array from various possible shapes
+        const apiEvents =
+          json?.data?.data?.events ||
+          json?.data?.events ||
+          json?.events ||
+          (Array.isArray(json) ? json : [])
+
+        const mapped: EventItem[] = apiEvents.map((e: any) => {
+          const { date, time } = toDate(e.startAt)
+          const status = computeStatus(e.startAt, e.endAt)
+          const tiers = Array.isArray(e.tiers) ? e.tiers : []
+          const minPrice = tiers.length ? Math.min(...tiers.map((t: any) => Number(t.price || 0))) : 0
+          const totalCapacity = tiers.length ? tiers.reduce((s: number, t: any) => s + Number(t.capacity || 0), 0) : 0
+          const location =
+            e?.location?.venue ||
+            e?.location?.address ||
+            [e?.location?.city, e?.location?.state].filter(Boolean).join(", ") ||
+            "TBA"
+          return {
+            id: Number(e.id || e._id ? undefined : Date.now() + Math.random() * 1000) || Date.now(),
+            backendId: String(e._id || e.id || ""),
+            title: e.name || "Untitled Event",
+            category: e.category || "other",
+            date,
+            time,
+            location,
+            price: minPrice,
+            capacity: Number(e.totalCapacity ?? totalCapacity ?? 0),
+            attendees: Number(e.totalSold ?? e.attendees ?? 0),
+            status,
+            image: e.emoji || "🎉",
+            description: e.description || "",
+          }
+        })
+        setEvents(mapped)
+      } catch (err: any) {
+        setEventsError(err?.message || "Failed to load events")
+      } finally {
+        setEventsLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [])
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -823,7 +842,7 @@ export default function DashBoard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold">Event Experiences</h2>
         <button
-          onClick={() => setShowAddEvent(true)}
+          onClick={() => router.push("/dashboard/events/schedule")}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -909,7 +928,15 @@ export default function DashBoard() {
         </select>
       </div>
 
-      {filteredEvents.length === 0 ? (
+      {eventsLoading ? (
+        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
+          Loading events...
+        </div>
+      ) : eventsError ? (
+        <div className="bg-white border border-dashed border-red-300 rounded-xl p-12 text-center text-red-600">
+          {eventsError}
+        </div>
+      ) : filteredEvents.length === 0 ? (
         <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
           No events match your filters. Try adjusting your search or add a new experience.
         </div>
@@ -929,15 +956,14 @@ export default function DashBoard() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
-                        setSelectedEvent({ ...event })
-                        setShowEditEvent(true)
+                        router.push(`/dashboard/events/${event.backendId || event.id}/edit`)
                       }}
                       className="text-gray-400 hover:text-blue-600 transition-colors"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteEvent(event.id)}
+                      onClick={() => handleDeleteEvent(event)}
                       className="text-gray-400 hover:text-red-600 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1408,301 +1434,9 @@ export default function DashBoard() {
 };
 
 
-  const AddEventModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Schedule New Event</h3>
-            <button onClick={() => setShowAddEvent(false)} className="text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Event Title</label>
-            <input
-              type="text"
-              value={newEvent.title}
-              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter event name"
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Experience Type</label>
-            <select
-              value={newEvent.category}
-              onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select event type</option>
-              {eventCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Date</label>
-              <input
-                type="date"
-                value={newEvent.date}
-                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Time</label>
-              <input
-                type="time"
-                value={newEvent.time}
-                onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Location</label>
-            <input
-              type="text"
-              value={newEvent.location}
-              onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Physical address or virtual link"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Ticket Price</label>
-              <input
-                type="number"
-                value={newEvent.price}
-                onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0 for free"
-                min="0"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Capacity</label>
-              <input
-                type="number"
-                value={newEvent.capacity}
-                onChange={(e) => setNewEvent({ ...newEvent, capacity: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0"
-                min="0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Event Icon / Emoji</label>
-            <input
-              type="text"
-              value={newEvent.image}
-              onChange={(e) => setNewEvent({ ...newEvent, image: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Use an emoji to represent the event"
-              maxLength={2}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={newEvent.description}
-              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={3}
-              placeholder="What should attendees expect?"
-            />
-          </div>
-        </div>
-
-        <div className="p-6 border-t bg-gray-50 flex gap-3">
-          <button
-            onClick={() => setShowAddEvent(false)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleAddEvent}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            Add Event
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
-  const EditEventModal = () =>
-    selectedEvent && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Update Event Details</h3>
-              <button
-                onClick={() => {
-                  setShowEditEvent(false)
-                  setSelectedEvent(null)
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Event Title</label>
-              <input
-                type="text"
-                value={selectedEvent.title}
-                onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Experience Type</label>
-              <select
-                value={selectedEvent.category}
-                onChange={(e) => setSelectedEvent({ ...selectedEvent, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {eventCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Date</label>
-                <input
-                  type="date"
-                  value={selectedEvent.date}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Time</label>
-                <input
-                  type="time"
-                  value={selectedEvent.time}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, time: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Location</label>
-              <input
-                type="text"
-                value={selectedEvent.location}
-                onChange={(e) => setSelectedEvent({ ...selectedEvent, location: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Ticket Price</label>
-                <input
-                  type="number"
-                  value={selectedEvent.price}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, price: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Capacity</label>
-                <input
-                  type="number"
-                  value={selectedEvent.capacity}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, capacity: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="0"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Current Status</label>
-              <select
-                value={selectedEvent.status}
-                onChange={(e) =>
-                  setSelectedEvent({
-                    ...selectedEvent,
-                    status: e.target.value as EventItem["status"],
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {eventStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Event Icon / Emoji</label>
-              <input
-                type="text"
-                value={selectedEvent.image}
-                onChange={(e) => setSelectedEvent({ ...selectedEvent, image: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                maxLength={2}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={selectedEvent.description}
-                onChange={(e) => setSelectedEvent({ ...selectedEvent, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <button
-              onClick={() => {
-                setShowEditEvent(false)
-                setSelectedEvent(null)
-              }}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleEditEvent}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              <Save className="w-4 h-4" />
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    )
 
 
   return (
@@ -1770,8 +1504,6 @@ export default function DashBoard() {
 
       {/* Logout Confirmation Popup */}
       {showLogoutPopup && <LogOut />}
-      {showAddEvent && <AddEventModal />}
-      {showEditEvent && <EditEventModal />}
     </div>
   )
 }
