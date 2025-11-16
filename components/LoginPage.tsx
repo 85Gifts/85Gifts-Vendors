@@ -24,7 +24,7 @@ export default function AuthPage(){
     address: '',
   });
 
-  const [errors, setErrors] = useState<{
+  const [, setErrors] = useState<{
     name?: string;
     email?: string;
     businessName?: string;
@@ -33,7 +33,7 @@ export default function AuthPage(){
     phone?: string;
     address?: string;
   }>({});
-  const [valid, setValid] = useState(true);
+  const [, setValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 

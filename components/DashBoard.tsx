@@ -85,19 +85,6 @@ interface NewProduct {
   giftCategory: string
   image: string
 }
-
-interface NewEvent {
-  title: string
-  category: string
-  date: string
-  time: string
-  location: string
-  price: string
-  capacity: string
-  description: string
-  image: string
-}
-
 // Define VendorProfile type
 interface VendorProfile {
   name: string

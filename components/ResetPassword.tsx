@@ -228,9 +228,9 @@ export default function ResetPasswordPage() {
                     </p>
             
                     <Input
-                        type={togglePasswordVisibility ? "text" : "password"}
+                        type={showPassword ? "text" : "password"}
                         name="password"
-                        value={formData.password}
+                        value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Input your new password"
                         className="text-center tracking-widest"

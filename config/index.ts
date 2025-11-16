@@ -1,5 +1,5 @@
 const config = {
-    BACKEND_URL: "https://eight5giftsvendorsapp.onrender.com"
+    BACKEND_URL: "http://localhost:5500"
 }
 
 export { config }
