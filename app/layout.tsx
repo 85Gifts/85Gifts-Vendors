@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Fredoka } from "next/font/google";
 import "./globals.css";
 import { VendorAuthProvider } from '@/contexts/VendorAuthContext';
 
+import { Toaster } from "@/components/ui/toaster"
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -28,7 +29,8 @@ export default function RootLayout({
         className={`${fredoka.variable} antialiased`}
       >
      <VendorAuthProvider>
-         {children}
+        {children}
+        <Toaster /> 
      </VendorAuthProvider>
       </body>
     </html>

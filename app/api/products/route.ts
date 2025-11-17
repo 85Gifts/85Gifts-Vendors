@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${process.env.API_URL}/api/products`, {
+    const response = await fetch(`${process.env.API_URL}/api/vendors/products`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -52,22 +52,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get form data (for file uploads)
-    const formData = await request.formData();
+    // Get JSON body instead of FormData
+    const body = await request.json();
 
-    const response = await fetch(`${process.env.API_URL}/api/products`, {
+    const response = await fetch(`${process.env.API_URL}/api/vendors/products`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json', // Send as JSON
       },
-      body: formData, // Send as FormData for file uploads
+      body: JSON.stringify(body), // Send JSON instead of FormData
     });
 
     const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: data.message || 'Failed to create product' },
+        { error: data.message || data.error || 'Failed to create product' },
         { status: response.status }
       );
     }

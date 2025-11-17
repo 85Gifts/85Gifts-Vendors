@@ -39,6 +39,16 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
           if (retryResponse.ok) {
             const data = await retryResponse.json();
             setVendor(data);
+            
+            // Save vendor _id and name to localStorage
+            const vendorId = data._id || data.id;
+            if (vendorId) {
+              localStorage.setItem('vendorId', vendorId);
+            }
+            if (data.name) {
+              localStorage.setItem('vendorName', data.name);
+            }
+            
             setLoading(false);
             return;
           }
@@ -48,8 +58,20 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setVendor(data);
+        
+        // Save vendor _id and name to localStorage on auth check
+        const vendorId = data._id || data.id;
+        if (vendorId) {
+          localStorage.setItem('vendorId', vendorId);
+        }
+        if (data.name) {
+          localStorage.setItem('vendorName', data.name);
+        }
       } else {
         setVendor(null);
+        // Clear vendor data from localStorage if not authenticated
+        localStorage.removeItem('vendorId');
+        localStorage.removeItem('vendorName');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -88,6 +110,15 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     // The API route returns { success: true, vendor: {...}, message: '...' }
     if (data.vendor) {
       setVendor(data.vendor);
+      
+      // Save vendor _id and name to localStorage
+      const vendorId = data.vendor._id || data.vendor.id;
+      if (vendorId) {
+        localStorage.setItem('vendorId', vendorId);
+      }
+      if (data.vendor.name) {
+        localStorage.setItem('vendorName', data.vendor.name);
+      }
     }
     return data;
   };
@@ -99,6 +130,9 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', error);
     } finally {
       setVendor(null);
+      // Clear vendor data from localStorage on logout
+      localStorage.removeItem('vendorId');
+      localStorage.removeItem('vendorName');
       router.push('/login');
     }
   };
@@ -123,8 +157,8 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Forgot password (sends reset email)
-  const resetPassword = async (email: string) => {
-    const response = await fetch('/api/reset-password', {
+  const forgotPassword = async (email: string) => {
+    const response = await fetch('/api/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -146,7 +180,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         updateProfile,
-        resetPassword, // Add this line
+        forgotPassword, // Add this line
         isAuthenticated: !!vendor,
       }}
     >

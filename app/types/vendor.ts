@@ -16,7 +16,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<Vendor>) => Promise<any>;
-  resetPassword: (email: string) => Promise<any>;
+  forgotPassword: (email: string) => Promise<any>;
   isAuthenticated: boolean;
 }
 
