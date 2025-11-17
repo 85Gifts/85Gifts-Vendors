@@ -20,12 +20,16 @@ import {
   XCircle,
   Save,
   X,
+  Calendar,
+  MapPin,
+  Ticket,
 } from "lucide-react"
 import { Button } from "./ui/button"
 import Cookies from "js-cookie"
 // import { cookies } from 'next/headers';
 import { useRouter } from "next/navigation";
 import { useToast } from "../components/ui/use-toast";
+import { config } from "../config"
 
 
 // Define Product type (for display)
@@ -59,6 +63,22 @@ interface BackendProduct {
   updatedAt?: string
 }
 
+interface EventItem {
+  id: number
+  backendId?: string
+  title: string
+  category: string
+  date: string
+  time: string
+  location: string
+  price: number
+  capacity: number
+  attendees: number
+  status: "upcoming" | "ongoing" | "completed" | "cancelled"
+  image: string
+  description?: string
+}
+
 // Define Order type
 interface Order {
   id: string
@@ -83,7 +103,6 @@ interface NewProduct {
   giftCategory: string
   image: string
 }
-
 // Define VendorProfile type
 interface VendorProfile {
   name: string
@@ -283,11 +302,47 @@ export default function DashBoard() {
     image: "",
   })
 
+  const [events, setEvents] = useState<EventItem[]>([])
+  const [eventsLoading, setEventsLoading] = useState<boolean>(false)
+  const [eventsError, setEventsError] = useState<string>("")
+
+  const [eventSearchTerm, setEventSearchTerm] = useState("")
+  const [eventFilterStatus, setEventFilterStatus] = useState<EventItem["status"] | "all">("all")
+
+  const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        maximumFractionDigits: 0,
+        currencyDisplay: "narrowSymbol",
+      }),
+    []
+  )
+
   const categories = ["Gift Sets", "Food & Treats", "Personalized", "Electronics", "Home & Garden", "Fashion"]
   const giftCategories = ["Birthday", "Anniversary", "Wedding", "Corporate", "Holiday", "Thank You"]
+  const eventCategories = [
+    "Pop-up Shop",
+    "Workshop",
+    "Launch Event",
+    "Virtual Experience",
+    "Corporate Showcase",
+    "Seasonal Campaign",
+  ]
+  const eventStatuses: EventItem["status"][] = ["upcoming", "ongoing", "completed", "cancelled"]
 
-  const getStatusColor = (status: Product['status'] | Order['status']): string => {
+  const getStatusColor = (status: Product["status"] | Order["status"] | EventItem["status"]): string => {
     switch (status) {
+      case "upcoming":
+        return "text-blue-600 bg-blue-100"
+      case "ongoing":
+        return "text-purple-600 bg-purple-100"
+      case "completed":
+        return "text-green-600 bg-green-100"
+      case "cancelled":
+        return "text-red-600 bg-red-100"
       case "active":
       case "delivered":
         return "text-green-600 bg-green-100"
@@ -371,6 +426,130 @@ export default function DashBoard() {
 
 
 
+
+
+
+  const handleDeleteEvent = async (event: EventItem) => {
+    const eventId = String(event.backendId || event.id)
+    try {
+      setEventsLoading(true)
+      setEventsError("")
+      const token = Cookies.get("authToken")
+      const res = await fetch(`${config.BACKEND_URL}/api/vendor/events/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
+      })
+      if (!res.ok) {
+        const msg = await res.text()
+        throw new Error(msg || "Failed to delete event")
+      }
+      setEvents((prev) => prev.filter((e) => String(e.backendId || e.id) !== eventId))
+      toast({
+        title: "Event deleted",
+        description: `"${event.title}" was removed successfully.`,
+        variant: "success",
+      })
+    } catch (err: any) {
+      setEventsError(err?.message || "Failed to delete event")
+      toast({
+        title: "Delete failed",
+        description: err?.message || "Unable to delete event",
+        variant: "destructive",
+      })
+    } finally {
+      setEventsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const computeStatus = (startIso?: string, endIso?: string): EventItem["status"] => {
+      if (!startIso) return "upcoming"
+      const now = new Date()
+      const start = new Date(startIso)
+      const end = endIso ? new Date(endIso) : undefined
+      if (end && now > end) return "completed"
+      if (now >= start && (!end || now <= end)) return "ongoing"
+      return "upcoming"
+    }
+
+    const toDate = (iso?: string) => {
+      if (!iso) return { date: "", time: "" }
+      const d = new Date(iso)
+      const yyyy = d.getFullYear()
+      const mm = String(d.getMonth() + 1).padStart(2, "0")
+      const dd = String(d.getDate()).padStart(2, "0")
+      const hh = String(d.getHours()).padStart(2, "0")
+      const mi = String(d.getMinutes()).padStart(2, "0")
+      return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${mi}` }
+    }
+
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true)
+        setEventsError("")
+        const token = Cookies.get("authToken")
+        const res = await fetch(`${config.BACKEND_URL}/api/vendor/events`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: "include",
+        })
+        if (!res.ok) {
+          const msg = await res.text()
+          throw new Error(msg || "Failed to load events")
+        }
+        const json = await res.json()
+        // Normalize events array from various possible shapes
+        const apiEvents =
+          json?.data?.data?.events ||
+          json?.data?.events ||
+          json?.events ||
+          (Array.isArray(json) ? json : [])
+
+        const mapped: EventItem[] = apiEvents.map((e: any) => {
+          const { date, time } = toDate(e.startAt)
+          const status = computeStatus(e.startAt, e.endAt)
+          const tiers = Array.isArray(e.tiers) ? e.tiers : []
+          const minPrice = tiers.length ? Math.min(...tiers.map((t: any) => Number(t.price || 0))) : 0
+          const totalCapacity = tiers.length ? tiers.reduce((s: number, t: any) => s + Number(t.capacity || 0), 0) : 0
+          const location =
+            e?.location?.venue ||
+            e?.location?.address ||
+            [e?.location?.city, e?.location?.state].filter(Boolean).join(", ") ||
+            "TBA"
+          return {
+            id: Number(e.id || e._id ? undefined : Date.now() + Math.random() * 1000) || Date.now(),
+            backendId: String(e._id || e.id || ""),
+            title: e.name || "Untitled Event",
+            category: e.category || "other",
+            date,
+            time,
+            location,
+            price: minPrice,
+            capacity: Number(e.totalCapacity ?? totalCapacity ?? 0),
+            attendees: Number(e.totalSold ?? e.attendees ?? 0),
+            status,
+            image: e.emoji || "🎉",
+            description: e.description || "",
+          }
+        })
+        setEvents(mapped)
+      } catch (err: any) {
+        setEventsError(err?.message || "Failed to load events")
+      } finally {
+        setEventsLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [])
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -378,6 +557,94 @@ export default function DashBoard() {
       return matchesSearch && matchesCategory
     })
   }, [products, searchTerm, filterCategory])
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const search = eventSearchTerm.toLowerCase()
+      const matchesSearch =
+        event.title.toLowerCase().includes(search) ||
+        event.category.toLowerCase().includes(search) ||
+        event.location.toLowerCase().includes(search)
+      const matchesStatus = eventFilterStatus === "all" || event.status === eventFilterStatus
+      return matchesSearch && matchesStatus
+    })
+  }, [events, eventSearchTerm, eventFilterStatus])
+
+  const eventStats = useMemo(() => {
+    const totalEvents = events.length
+    const upcomingEvents = events.filter((event) => event.status === "upcoming").length
+    const registeredAttendees = events.reduce((sum, event) => sum + (event.attendees || 0), 0)
+    const totalCapacity = events.reduce((sum, event) => sum + (event.capacity || 0), 0)
+    const averageFillRate =
+      totalCapacity > 0 ? Math.round((registeredAttendees / totalCapacity) * 100) : 0
+
+    return {
+      totalEvents,
+      upcomingEvents,
+      registeredAttendees,
+      averageFillRate,
+    }
+  }, [events])
+
+  const eventAnalytics = useMemo(() => {
+    if (events.length === 0) {
+      return {
+        totalRevenue: 0,
+        averageTicketPrice: 0,
+        averageAttendance: 0,
+        capacityUtilization: 0,
+        topEvent: null as EventItem | null,
+        statusBreakdown: eventStatuses.map((status) => ({ status, count: 0, percentage: 0 })),
+      }
+    }
+
+    const totalRevenue = events.reduce((sum, event) => sum + event.price * (event.attendees || 0), 0)
+    const paidEvents = events.filter((event) => event.price > 0)
+    const averageTicketPrice =
+      paidEvents.length > 0
+        ? Math.round(
+            paidEvents.reduce((sum, event) => sum + event.price, 0) / paidEvents.length
+          )
+        : 0
+    const averageAttendance = Math.round(
+      events.reduce((sum, event) => sum + (event.attendees || 0), 0) / events.length
+    )
+    const totalCapacity = events.reduce((sum, event) => sum + (event.capacity || 0), 0)
+    const capacityUtilization =
+      totalCapacity > 0
+        ? Math.round(
+            (events.reduce((sum, event) => sum + (event.attendees || 0), 0) / totalCapacity) * 100
+          )
+        : 0
+    const topEvent = events.reduce<EventItem | null>(
+      (prev, current) => {
+        if (!prev) return current
+        return current.attendees > prev.attendees ? current : prev
+      },
+      null
+    )
+    const statusCounts = events.reduce<Record<EventItem["status"], number>>((acc, event) => {
+      acc[event.status] = (acc[event.status] || 0) + 1
+      return acc
+    }, {} as Record<EventItem["status"], number>)
+    const statusBreakdown = eventStatuses.map((status) => {
+      const count = statusCounts[status] || 0
+      return {
+        status,
+        count,
+        percentage: Math.round((count / events.length) * 100) || 0,
+      }
+    })
+
+    return {
+      totalRevenue,
+      averageTicketPrice,
+      averageAttendance,
+      capacityUtilization,
+      topEvent,
+      statusBreakdown,
+    }
+  }, [events])
 
   const DashboardTab = () => (
     <div className="space-y-6">
@@ -397,7 +664,7 @@ export default function DashBoard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Monthly Revenue</p>
-              <p className="text-3xl font-bold">₦{dashboardStats.monthlyRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{currencyFormatter.format(dashboardStats.monthlyRevenue)}</p>
             </div>
             <Wallet className="w-8 h-8 text-green-200" />
           </div>
@@ -460,7 +727,7 @@ export default function DashBoard() {
                     <div className="font-medium">{order.recipientName}</div>
                     <div className="text-sm text-gray-500">Delivery: {order.deliveryDate}</div>
                   </td>
-                  <td className="px-6 py-4 font-medium">₦{order.total}</td>
+                  <td className="px-6 py-4 font-medium">{currencyFormatter.format(order.total)}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -657,7 +924,9 @@ export default function DashBoard() {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-blue-600">₦{product.price}</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {currencyFormatter.format(product.price)}
+                </span>
                 <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.giftCategory}</span>
               </div>
             </div>
@@ -666,6 +935,278 @@ export default function DashBoard() {
           )}
         </div>
       )}
+    </div>
+  )
+
+  const EventsTab = () => (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-2xl font-bold">Event Experiences</h2>
+        <button
+          onClick={() => router.push("/dashboard/events/schedule")}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Schedule Event
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          {
+            label: "Total Events",
+            value: numberFormatter.format(eventStats.totalEvents),
+            gradient: "from-indigo-500 to-indigo-600",
+            accent: "text-indigo-100",
+            iconAccent: "text-indigo-200",
+            icon: Calendar,
+          },
+          {
+            label: "Upcoming Events",
+            value: numberFormatter.format(eventStats.upcomingEvents),
+            gradient: "from-blue-500 to-blue-600",
+            accent: "text-blue-100",
+            iconAccent: "text-blue-200",
+            icon: Clock,
+          },
+          {
+            label: "Confirmed Guests",
+            value: numberFormatter.format(eventStats.registeredAttendees),
+            gradient: "from-pink-500 to-pink-600",
+            accent: "text-pink-100",
+            iconAccent: "text-pink-200",
+            icon: Users,
+          },
+          {
+            label: "Avg Fill Rate",
+            value: `${eventStats.averageFillRate}%`,
+            gradient: "from-emerald-500 to-emerald-600",
+            accent: "text-emerald-100",
+            iconAccent: "text-emerald-200",
+            icon: TrendingUp,
+          },
+        ].map((metric) => {
+          const Icon = metric.icon
+          return (
+            <div
+              key={metric.label}
+              className={`bg-gradient-to-r ${metric.gradient} rounded-xl p-6 text-white`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`${metric.accent} text-sm`}>{metric.label}</p>
+                  <p className="text-3xl font-bold">{metric.value}</p>
+                </div>
+                <Icon className={`w-8 h-8 ${metric.iconAccent}`} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search events by name, location or type..."
+            value={eventSearchTerm}
+            onChange={(e) => setEventSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <select
+          value={eventFilterStatus}
+          onChange={(e) => setEventFilterStatus(e.target.value as EventItem["status"] | "all")}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
+        >
+          <option value="all">All statuses</option>
+          {eventStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {eventsLoading ? (
+        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
+          Loading events...
+        </div>
+      ) : eventsError ? (
+        <div className="bg-white border border-dashed border-red-300 rounded-xl p-12 text-center text-red-600">
+          {eventsError}
+        </div>
+      ) : filteredEvents.length === 0 ? (
+        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
+          No events match your filters. Try adjusting your search or add a new experience.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => (
+            <div key={event.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-4xl">{event.image}</div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{event.title}</h3>
+                      <p className="text-sm text-gray-500">{event.category}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        router.push(`/dashboard/events/${event.backendId || event.id}/edit`)
+                      }}
+                      className="text-gray-400 hover:text-blue-600 transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteEvent(event)}
+                      className="text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {event.date} • {event.time}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span>{event.location}</span>
+                </div>
+
+                {event.description && (
+                  <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
+                )}
+
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>
+                      {event.attendees}/{event.capacity} attending
+                    </span>
+                  </div>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                      event.status
+                    )}`}
+                  >
+                    {event.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{event.category}</span>
+                  <span className="flex items-center gap-2 text-xl font-semibold text-blue-600">
+                    <Ticket className="w-4 h-4" />
+                    {event.price > 0 ? currencyFormatter.format(event.price) : "Free RSVP"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Event Performance</h3>
+          <div className="space-y-4">
+            {eventAnalytics.statusBreakdown.map(({ status, count, percentage }) => {
+              const [statusTextClass] = getStatusColor(status).split(" ")
+              const progressColor = statusTextClass ? statusTextClass.replace("text-", "bg-") : "bg-blue-500"
+              return (
+                <div key={status} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm text-gray-600 capitalize">
+                    <span>{status}</span>
+                    <span>
+                      {count} • {percentage}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${progressColor}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Revenue Insights</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">Total Event Revenue</div>
+              <div className="text-xl font-semibold text-blue-600">
+                {currencyFormatter.format(eventAnalytics.totalRevenue)}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Average Ticket Price</span>
+              <span>{currencyFormatter.format(eventAnalytics.averageTicketPrice)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Average Attendance</span>
+              <span>{numberFormatter.format(eventAnalytics.averageAttendance)} guests</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Capacity Utilization</span>
+              <span>{eventAnalytics.capacityUtilization}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Engagement Highlights</h3>
+          {eventAnalytics.topEvent ? (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="text-3xl">{eventAnalytics.topEvent.image}</div>
+                <div>
+                  <h4 className="font-semibold text-lg">{eventAnalytics.topEvent.title}</h4>
+                  <p className="text-sm text-gray-500">{eventAnalytics.topEvent.category}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {eventAnalytics.topEvent.date} • {eventAnalytics.topEvent.time}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Users className="w-4 h-4" />
+                <span>{eventAnalytics.topEvent.attendees} guests confirmed</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span>{eventAnalytics.topEvent.location}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Ticket className="w-4 h-4" />
+                <span>
+                  {eventAnalytics.topEvent.price > 0
+                    ? `${currencyFormatter.format(eventAnalytics.topEvent.price)} tickets`
+                    : "Free RSVP"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Add events to unlock engagement insights.</p>
+          )}
+        </div>
+      </div>
+
     </div>
   )
 
@@ -710,7 +1251,7 @@ export default function DashBoard() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-lg">₦{order.total}</div>
+                    <div className="font-bold text-lg">{currencyFormatter.format(order.total)}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -768,6 +1309,11 @@ export default function DashBoard() {
 };
 
 
+
+
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -790,10 +1336,12 @@ export default function DashBoard() {
       {/* Navigation */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <div className="overflow-x-auto">
+            <nav className="flex min-w-max space-x-4 sm:space-x-8">
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
+              { id: "events", label: "Events", icon: Calendar },
               { id: "orders", label: "Orders", icon: ShoppingBag },
             ].map((tab) => {
               const Icon = tab.icon
@@ -812,7 +1360,8 @@ export default function DashBoard() {
                 </button>
               )
             })}
-          </nav>
+            </nav>
+          </div>
         </div>
       </div>
 
@@ -820,6 +1369,7 @@ export default function DashBoard() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {activeTab === "dashboard" && <DashboardTab />}
         {activeTab === "products" && <ProductsTab />}
+        {activeTab === "events" && <EventsTab />}
         {activeTab === "orders" && <OrdersTab />}
       </main>
 

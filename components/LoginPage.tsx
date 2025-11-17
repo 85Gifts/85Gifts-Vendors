@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useVendorAuth } from "@/contexts/VendorAuthContext";
 import Link from "next/link";
 import { useToast } from "../components/ui/use-toast";
+import { config } from "@/config";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "signup" | "forgot">(
@@ -53,7 +54,7 @@ export default function AuthPage() {
   const { login, register, forgotPassword } = useVendorAuth();
   const forms = ["login", "signup", "forgot"] as const;
 
-  const [errors, setErrors] = useState<{
+  const [, setErrors] = useState<{
     name?: string;
     email?: string;
     businessName?: string;
@@ -62,7 +63,8 @@ export default function AuthPage() {
     phone?: string;
     address?: string;
   }>({});
-  const [valid, setValid] = useState(true);
+  const [, setValid] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handlers for Login Form
   const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +142,9 @@ export default function AuthPage() {
       email?: string;
       password?: string;
       confirmPassword?: string;
+      businessName?: string;
+      phone?: string;
+      address?: string;
     } = {};
 
     // Only validate name for registration
@@ -167,7 +172,7 @@ export default function AuthPage() {
     // Only validate confirmPassword for registration
     if (signupFormData.confirmPassword !== signupFormData.password) {
       isValid = false;
-      validationErrors.confirmPassword = "Password do not match";
+      validationErrors.confirmPassword = "Passwords do not match";
     }
 
     setError("");
@@ -221,7 +226,6 @@ export default function AuthPage() {
         }
 
         const data = await response.json();
-
         // 🔹 Success feedback
         toast({
           title: "Account created 🎉",
