@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import {  Fredoka } from "next/font/google";
 import "./globals.css";
+import { VendorAuthProvider } from '@/contexts/VendorAuthContext';
+
 import { Toaster } from "@/components/ui/toaster"
 
 const fredoka = Fredoka({
@@ -11,7 +13,8 @@ const fredoka = Fredoka({
 
 export const metadata: Metadata = {
   title: "85Gifts Vendors",
-  description: "85Gifts Vendors App",
+  description: "85Gifts Vendors App, Manage your products and profile",
+
 };
 
 export default function RootLayout({
@@ -25,8 +28,10 @@ export default function RootLayout({
       <body
         className={`${fredoka.variable} antialiased`}
       >
+     <VendorAuthProvider>
         {children}
         <Toaster /> 
+     </VendorAuthProvider>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import ProductForm from "@/components/ProductForm"
 import {
   Package,
   Plus,
@@ -25,24 +26,41 @@ import {
 } from "lucide-react"
 import { Button } from "./ui/button"
 import Cookies from "js-cookie"
+// import { cookies } from 'next/headers';
 import { useRouter } from "next/navigation";
 import { useToast } from "../components/ui/use-toast";
 import { config } from "../config"
 
 
-// Define Product type
+// Define Product type (for display)
 interface Product {
-  id: number
+  id: string | number
   name: string
   category: string
   price: number
   stock: number
   status: "active" | "out_of_stock" | "inactive"
   image: string
+  images?: string[] // Store all images for editing
   sales: number
   rating: number
   giftCategory: string
-  description?: string // Add optional description field
+  description?: string
+}
+
+// Define Backend Product type (from API)
+interface BackendProduct {
+  _id?: string
+  id?: string
+  name: string
+  category: string
+  price: number
+  stock: number
+  images?: string[]
+  description?: string
+  vendorId?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 interface EventItem {
@@ -115,15 +133,19 @@ export default function DashBoard() {
   const [filterCategory, setFilterCategory] = useState("all")
   const router = useRouter();
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  // const [showAddProduct, setShowAddProduct] = useState(false);
   const { toast } = useToast();
+  // const cookieStore = await cookies();
 
   const handleLogout = () => {
-    Cookies.remove("authToken");
+    Cookies.remove('accessToken');
+    Cookies.remove('refreshToken');
     toast({
-            title: "Log Out",
-            description: "You have successfully log out.",
-            variant: "success",
-          });
+      title: "✅ Logged Out Successfully",
+      description: "You have been signed out of your account.",
+      variant: "success",
+    });
+
     router.push("/login");
   };
 
@@ -148,56 +170,88 @@ export default function DashBoard() {
     avgRating: 4.8,
   })
 
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Luxury Gift Box Set",
-      category: "Gift Sets",
-      price: 8000.0,
-      stock: 25,
-      status: "active",
-      image: "🎁",
-      sales: 156,
-      rating: 4.9,
-      giftCategory: "Birthday",
-    },
-    {
-      id: 2,
-      name: "Artisan Chocolate Collection",
-      category: "Food & Treats",
-      price: 3400.0,
-      stock: 0,
-      status: "out_of_stock",
-      image: "🍫",
-      sales: 203,
-      rating: 4.7,
-      giftCategory: "Anniversary",
-    },
-    {
-      id: 3,
-      name: "Personalized Photo Frame",
-      category: "Personalized",
-      price: 5000.0,
-      stock: 42,
-      status: "active",
-      image: "🖼️",
-      sales: 89,
-      rating: 4.6,
-      giftCategory: "Wedding",
-    },
-    {
-      id: 4,
-      name: "Premium Wine & Cheese Set",
-      category: "Food & Treats",
-      price: 10000.0,
-      stock: 15,
-      status: "active",
-      image: "🍷",
-      sales: 67,
-      rating: 4.8,
-      giftCategory: "Corporate",
-    },
-  ])
+  const [products, setProducts] = useState<Product[]>([])
+  const [productsLoading, setProductsLoading] = useState<boolean>(true)
+  const [productsError, setProductsError] = useState<string>("")
+
+  // Fetch products from backend
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setProductsLoading(true)
+      setProductsError("")
+      
+      const response = await fetch('/api/products')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch products')
+      }
+
+      // Handle different API response formats
+      let productsData = data
+      if (data.data) {
+        productsData = Array.isArray(data.data) ? data.data : data.data.products || []
+      } else if (!Array.isArray(data)) {
+        productsData = []
+      }
+
+      // Transform backend products to display format
+      const transformedProducts: Product[] = (Array.isArray(productsData) ? productsData : []).map((product: BackendProduct) => {
+        // Determine status based on stock
+        let status: "active" | "out_of_stock" | "inactive" = "active"
+        if (product.stock === 0) {
+          status = "out_of_stock"
+        } else if (product.stock < 0) {
+          status = "inactive"
+        }
+
+        // Get first image or use default emoji based on category
+        const getDefaultImage = (category: string): string => {
+          const categoryImages: Record<string, string> = {
+            "Gift Sets": "🎁",
+            "Food & Treats": "🍫",
+            "Personalized": "🖼️",
+            "Electronics": "📱",
+            "Clothing": "👕",
+            "Home & Living": "🏠",
+            "Books": "📚",
+            "Toys": "🧸",
+          }
+          return categoryImages[category] || "🎁"
+        }
+
+        const imageUrl = product.images && product.images.length > 0 
+          ? product.images[0] 
+          : getDefaultImage(product.category)
+
+        return {
+          id: product._id || product.id || "",
+          name: product.name,
+          category: product.category,
+          price: product.price,
+          stock: product.stock || 0,
+          status: status,
+          image: imageUrl,
+          images: product.images || [], // Store all images for editing
+          sales: 0, // Default value - can be updated if backend provides this
+          rating: 0, // Default value - can be updated if backend provides this
+          giftCategory: product.category, // Using category as giftCategory for now
+          description: product.description,
+        }
+      })
+
+      setProducts(transformedProducts)
+    } catch (err) {
+      setProductsError(err instanceof Error ? err.message : 'Failed to fetch products')
+      console.error('Error fetching products:', err)
+    } finally {
+      setProductsLoading(false)
+    }
+  }
 
   const [orders] = useState<Order[]>([
     {
@@ -337,26 +391,37 @@ export default function DashBoard() {
     }
   }
 
-  const handleEditProduct = () => {
-    if (!selectedProduct) return
 
-    setProducts(
-      products.map((p) =>
-        p.id === selectedProduct.id
-          ? {
-              ...selectedProduct,
-              price: Number.parseFloat(selectedProduct.price.toString()),
-              stock: Number.parseInt(selectedProduct.stock.toString()),
-            }
-          : p
-      )
-    )
-    setShowEditProduct(false)
-    setSelectedProduct(null)
-  }
+  const handleDeleteProduct = async (id: string | number) => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return
+    }
 
-  const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter((p) => p.id !== id))
+    try {
+      const response = await fetch(`/api/productId`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete product')
+      }
+
+      // Refresh products list after deletion
+      await fetchProducts()
+      
+      toast({
+        title: "Product deleted",
+        description: "The product has been successfully deleted.",
+        variant: "success",
+      })
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : 'Failed to delete product',
+        variant: "destructive",
+      })
+    }
   }
 
 
@@ -767,13 +832,60 @@ export default function DashBoard() {
         </select>
       </div>
 
+      {/* Loading State */}
+      {productsLoading && (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-600">Loading products...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {productsError && !productsLoading && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p className="font-semibold">Error loading products</p>
+          <p className="text-sm">{productsError}</p>
+          <button
+            onClick={fetchProducts}
+            className="mt-2 text-sm underline hover:no-underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
+      {!productsLoading && !productsError && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg">No products found</p>
+              <p className="text-gray-500 text-sm mt-2">Add your first product to get started</p>
+            </div>
+          ) : (
+            filteredProducts.map((product) => (
           <div key={product.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
-                <div className="text-4xl">{product.image}</div>
+                <div className="text-4xl">
+                  {product.image.startsWith('http') ? (
+                    <div className="relative w-16 h-16 rounded overflow-hidden">
+                      {/* <Image 
+                        src={product.image} 
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        onError={(e) => {
+                          // Fallback to emoji if image fails to load
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      /> */}
+                    </div>
+                  ) : (
+                    <span>{product.image}</span>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
@@ -819,8 +931,10 @@ export default function DashBoard() {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   )
 
@@ -1168,233 +1282,7 @@ export default function DashBoard() {
     </div>
   )
 
-  const AddProductModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Add New Gift Product</h3>
-            <button onClick={() => setShowAddProduct(false)} className="text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Product Name</label>
-            <input
-              type="text"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter product name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <select
-              value={newProduct.category}
-              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Gift Category</label>
-            <select
-              value={newProduct.giftCategory}
-              onChange={(e) => setNewProduct({ ...newProduct, giftCategory: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select gift category</option>
-              {giftCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Price ($)</label>
-              <input
-                type="number"
-                value={newProduct.price}
-                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0.00"
-                step="0.01"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Stock</label>
-              <input
-                type="number"
-                value={newProduct.stock}
-                onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={newProduct.description}
-              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={3}
-              placeholder="Enter product description"
-            />
-          </div>
-        </div>
-
-        <div className="p-6 border-t bg-gray-50 flex gap-3">
-          <button
-            onClick={() => setShowAddProduct(false)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleAddProduct}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            Add Product
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
-  const EditProductModal = () =>
-    selectedProduct && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Edit Product</h3>
-              <button onClick={() => setShowEditProduct(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Product Name</label>
-              <input
-                type="text"
-                value={selectedProduct.name}
-                onChange={(e) => setSelectedProduct({ ...selectedProduct, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
-              <select
-                value={selectedProduct.category}
-                onChange={(e) => setSelectedProduct({ ...selectedProduct, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Gift Category</label>
-              <select
-                value={selectedProduct.giftCategory}
-                onChange={(e) => setSelectedProduct({ ...selectedProduct, giftCategory: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {giftCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Price ($)</label>
-                <input
-                  type="number"
-                  value={selectedProduct.price}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, price: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  step="0.01"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Stock</label>
-                <input
-                  type="number"
-                  value={selectedProduct.stock}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, stock: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
-              <select
-                value={selectedProduct.status}
-                onChange={(e) =>
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    status: e.target.value as Product["status"],
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="active">Active</option>
-                <option value="out_of_stock">Out of Stock</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <button
-              onClick={() => {
-                setShowEditProduct(false)
-                setSelectedProduct(null)
-              }}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleEditProduct}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              <Save className="w-4 h-4" />
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    )
   
   const LogOut = () => {
   return (
@@ -1486,8 +1374,37 @@ export default function DashBoard() {
       </main>
 
       {/* Modals */}
-      {showAddProduct && <AddProductModal />}
-      {showEditProduct && <EditProductModal />}
+      {showAddProduct && (
+        <ProductForm 
+          onclose={() => {
+            setShowAddProduct(false)
+            fetchProducts() // Refresh products after closing
+          }} 
+          isEdit={false}
+        />
+      )}
+      {showEditProduct && selectedProduct && (
+        <ProductForm 
+          product={{
+            id: selectedProduct.id.toString(),
+            name: selectedProduct.name,
+            description: selectedProduct.description || '',
+            price: selectedProduct.price,
+            category: selectedProduct.category,
+            stock: selectedProduct.stock,
+            // Pass all images as comma-separated string, or single image if no array
+            images: selectedProduct.images && selectedProduct.images.length > 0
+              ? selectedProduct.images.join(',')
+              : (selectedProduct.image.startsWith('http') ? selectedProduct.image : ''),
+          }}
+          onclose={() => {
+            setShowEditProduct(false)
+            setSelectedProduct(null)
+            fetchProducts() // Refresh products after closing
+          }} 
+          isEdit={true}
+        />
+      )}
 
       {/* Logout Confirmation Popup */}
       {showLogoutPopup && <LogOut />}

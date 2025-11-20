@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
+    "axios": "^1.13.1",
     "@radix-ui/react-toast": "^1.2.15",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.541.0",
-    "next": "15.5.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-router-dom": "^7.8.2",
     "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.1"
