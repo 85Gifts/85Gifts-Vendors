@@ -177,15 +177,6 @@ export async function POST(request: NextRequest) {
         { status: response.status }
       );
     }
-    if (response.status === 401) {
-          // toast({
-          //   title: "Invalid credentials",
-          //   description: "Please check your credentials and try again",
-          //   variant: "destructive",
-          // });
-          console.log("Invalid credentials")
-          return;
-        }
 
     // Type guard to ensure we have success response
     const successData = data as LoginSuccessResponse;
