@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import ProductForm from "@/components/ProductForm"
+import EventsTab from "@/components/events/EventsTab"
 import {
   Package,
   Plus,
@@ -332,7 +333,7 @@ export default function DashBoard() {
     "Corporate Showcase",
     "Seasonal Campaign",
   ]
-  const eventStatuses: EventItem["status"][] = ["upcoming", "ongoing", "completed", "cancelled"]
+  // eventStatuses moved to EventsTab component
 
   const getStatusColor = (status: Product["status"] | Order["status"] | EventItem["status"]): string => {
     switch (status) {
@@ -555,93 +556,7 @@ export default function DashBoard() {
     })
   }, [products, searchTerm, filterCategory])
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      const search = eventSearchTerm.toLowerCase()
-      const matchesSearch =
-        event.title.toLowerCase().includes(search) ||
-        event.category.toLowerCase().includes(search) ||
-        event.location.toLowerCase().includes(search)
-      const matchesStatus = eventFilterStatus === "all" || event.status === eventFilterStatus
-      return matchesSearch && matchesStatus
-    })
-  }, [events, eventSearchTerm, eventFilterStatus])
-
-  const eventStats = useMemo(() => {
-    const totalEvents = events.length
-    const upcomingEvents = events.filter((event) => event.status === "upcoming").length
-    const registeredAttendees = events.reduce((sum, event) => sum + (event.attendees || 0), 0)
-    const totalCapacity = events.reduce((sum, event) => sum + (event.capacity || 0), 0)
-    const averageFillRate =
-      totalCapacity > 0 ? Math.round((registeredAttendees / totalCapacity) * 100) : 0
-
-    return {
-      totalEvents,
-      upcomingEvents,
-      registeredAttendees,
-      averageFillRate,
-    }
-  }, [events])
-
-  const eventAnalytics = useMemo(() => {
-    if (events.length === 0) {
-      return {
-        totalRevenue: 0,
-        averageTicketPrice: 0,
-        averageAttendance: 0,
-        capacityUtilization: 0,
-        topEvent: null as EventItem | null,
-        statusBreakdown: eventStatuses.map((status) => ({ status, count: 0, percentage: 0 })),
-      }
-    }
-
-    const totalRevenue = events.reduce((sum, event) => sum + event.price * (event.attendees || 0), 0)
-    const paidEvents = events.filter((event) => event.price > 0)
-    const averageTicketPrice =
-      paidEvents.length > 0
-        ? Math.round(
-            paidEvents.reduce((sum, event) => sum + event.price, 0) / paidEvents.length
-          )
-        : 0
-    const averageAttendance = Math.round(
-      events.reduce((sum, event) => sum + (event.attendees || 0), 0) / events.length
-    )
-    const totalCapacity = events.reduce((sum, event) => sum + (event.capacity || 0), 0)
-    const capacityUtilization =
-      totalCapacity > 0
-        ? Math.round(
-            (events.reduce((sum, event) => sum + (event.attendees || 0), 0) / totalCapacity) * 100
-          )
-        : 0
-    const topEvent = events.reduce<EventItem | null>(
-      (prev, current) => {
-        if (!prev) return current
-        return current.attendees > prev.attendees ? current : prev
-      },
-      null
-    )
-    const statusCounts = events.reduce<Record<EventItem["status"], number>>((acc, event) => {
-      acc[event.status] = (acc[event.status] || 0) + 1
-      return acc
-    }, {} as Record<EventItem["status"], number>)
-    const statusBreakdown = eventStatuses.map((status) => {
-      const count = statusCounts[status] || 0
-      return {
-        status,
-        count,
-        percentage: Math.round((count / events.length) * 100) || 0,
-      }
-    })
-
-    return {
-      totalRevenue,
-      averageTicketPrice,
-      averageAttendance,
-      capacityUtilization,
-      topEvent,
-      statusBreakdown,
-    }
-  }, [events])
+  // Event computed values moved to EventsTab component
 
   const DashboardTab = () => (
     <div className="space-y-6">
@@ -935,277 +850,7 @@ export default function DashBoard() {
     </div>
   )
 
-  const EventsTab = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold">Event Experiences</h2>
-        <button
-          onClick={() => router.push("/dashboard/events/schedule")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Schedule Event
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          {
-            label: "Total Events",
-            value: numberFormatter.format(eventStats.totalEvents),
-            gradient: "from-indigo-500 to-indigo-600",
-            accent: "text-indigo-100",
-            iconAccent: "text-indigo-200",
-            icon: Calendar,
-          },
-          {
-            label: "Upcoming Events",
-            value: numberFormatter.format(eventStats.upcomingEvents),
-            gradient: "from-blue-500 to-blue-600",
-            accent: "text-blue-100",
-            iconAccent: "text-blue-200",
-            icon: Clock,
-          },
-          {
-            label: "Confirmed Guests",
-            value: numberFormatter.format(eventStats.registeredAttendees),
-            gradient: "from-pink-500 to-pink-600",
-            accent: "text-pink-100",
-            iconAccent: "text-pink-200",
-            icon: Users,
-          },
-          {
-            label: "Avg Fill Rate",
-            value: `${eventStats.averageFillRate}%`,
-            gradient: "from-emerald-500 to-emerald-600",
-            accent: "text-emerald-100",
-            iconAccent: "text-emerald-200",
-            icon: TrendingUp,
-          },
-        ].map((metric) => {
-          const Icon = metric.icon
-          return (
-            <div
-              key={metric.label}
-              className={`bg-gradient-to-r ${metric.gradient} rounded-xl p-6 text-white`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`${metric.accent} text-sm`}>{metric.label}</p>
-                  <p className="text-3xl font-bold">{metric.value}</p>
-                </div>
-                <Icon className={`w-8 h-8 ${metric.iconAccent}`} />
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search events by name, location or type..."
-            value={eventSearchTerm}
-            onChange={(e) => setEventSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <select
-          value={eventFilterStatus}
-          onChange={(e) => setEventFilterStatus(e.target.value as EventItem["status"] | "all")}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
-        >
-          <option value="all">All statuses</option>
-          {eventStatuses.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {eventsLoading ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
-          Loading events...
-        </div>
-      ) : eventsError ? (
-        <div className="bg-white border border-dashed border-red-300 rounded-xl p-12 text-center text-red-600">
-          {eventsError}
-        </div>
-      ) : filteredEvents.length === 0 ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
-          No events match your filters. Try adjusting your search or add a new experience.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
-              <div className="p-6 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="text-4xl">{event.image}</div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{event.title}</h3>
-                      <p className="text-sm text-gray-500">{event.category}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        router.push(`/dashboard/events/${event.backendId || event.id}/edit`)
-                      }}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteEvent(event)}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    {event.date} • {event.time}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MapPin className="w-4 h-4" />
-                  <span>{event.location}</span>
-                </div>
-
-                {event.description && (
-                  <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
-                )}
-
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>
-                      {event.attendees}/{event.capacity} attending
-                    </span>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                      event.status
-                    )}`}
-                  >
-                    {event.status}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{event.category}</span>
-                  <span className="flex items-center gap-2 text-xl font-semibold text-blue-600">
-                    <Ticket className="w-4 h-4" />
-                    {event.price > 0 ? currencyFormatter.format(event.price) : "Free RSVP"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Event Performance</h3>
-          <div className="space-y-4">
-            {eventAnalytics.statusBreakdown.map(({ status, count, percentage }) => {
-              const [statusTextClass] = getStatusColor(status).split(" ")
-              const progressColor = statusTextClass ? statusTextClass.replace("text-", "bg-") : "bg-blue-500"
-              return (
-                <div key={status} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm text-gray-600 capitalize">
-                    <span>{status}</span>
-                    <span>
-                      {count} • {percentage}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full ${progressColor}`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Revenue Insights</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">Total Event Revenue</div>
-              <div className="text-xl font-semibold text-blue-600">
-                {currencyFormatter.format(eventAnalytics.totalRevenue)}
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Average Ticket Price</span>
-              <span>{currencyFormatter.format(eventAnalytics.averageTicketPrice)}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Average Attendance</span>
-              <span>{numberFormatter.format(eventAnalytics.averageAttendance)} guests</span>
-            </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Capacity Utilization</span>
-              <span>{eventAnalytics.capacityUtilization}%</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Engagement Highlights</h3>
-          {eventAnalytics.topEvent ? (
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="text-3xl">{eventAnalytics.topEvent.image}</div>
-                <div>
-                  <h4 className="font-semibold text-lg">{eventAnalytics.topEvent.title}</h4>
-                  <p className="text-sm text-gray-500">{eventAnalytics.topEvent.category}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {eventAnalytics.topEvent.date} • {eventAnalytics.topEvent.time}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Users className="w-4 h-4" />
-                <span>{eventAnalytics.topEvent.attendees} guests confirmed</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span>{eventAnalytics.topEvent.location}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Ticket className="w-4 h-4" />
-                <span>
-                  {eventAnalytics.topEvent.price > 0
-                    ? `${currencyFormatter.format(eventAnalytics.topEvent.price)} tickets`
-                    : "Free RSVP"}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">Add events to unlock engagement insights.</p>
-          )}
-        </div>
-      </div>
-
-    </div>
-  )
+  // EventsTab component moved to components/events/EventsTab.tsx
 
   const OrdersTab = () => (
     <div className="space-y-6">
@@ -1366,7 +1011,18 @@ export default function DashBoard() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {activeTab === "dashboard" && <DashboardTab />}
         {activeTab === "products" && <ProductsTab />}
-        {activeTab === "events" && <EventsTab />}
+        {activeTab === "events" && (
+          <EventsTab
+            events={events}
+            eventsLoading={eventsLoading}
+            eventsError={eventsError}
+            eventSearchTerm={eventSearchTerm}
+            setEventSearchTerm={setEventSearchTerm}
+            eventFilterStatus={eventFilterStatus}
+            setEventFilterStatus={setEventFilterStatus}
+            handleDeleteEvent={handleDeleteEvent}
+          />
+        )}
         {activeTab === "orders" && <OrdersTab />}
       </main>
 
