@@ -16,6 +16,7 @@ export async function apiClient(
   const config: RequestInit = {
     ...fetchOptions,
     headers,
+    credentials: 'include', // Include cookies in requests
   };
 
   const response = await fetch(endpoint, config);

@@ -186,7 +186,6 @@ export async function POST(request: NextRequest) {
     const raw = successData as any;
     const payload = raw?.data?.data;
     const accessToken = payload?.tokens?.accessToken;
-    const refreshToken = payload?.tokens?.refreshToken;
     const vendor = payload?.vendor;
 
     // Store tokens in HTTP-only cookies
@@ -202,15 +201,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (refreshToken) {
-      cookieStore.set('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        path: '/',
-      });
-    }
+    // Refresh token disabled - only using access token
 
     // Store vendor _id and name in cookies
     if (vendor) {

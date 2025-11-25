@@ -26,10 +26,10 @@ import {
 } from "lucide-react"
 import { Button } from "./ui/button"
 import Cookies from "js-cookie"
-// import { cookies } from 'next/headers';
 import { useRouter } from "next/navigation";
 import { useToast } from "../components/ui/use-toast";
 import { config } from "../config"
+import { useVendorAuth } from "../contexts/VendorAuthContext"
 
 
 // Define Product type (for display)
@@ -133,20 +133,21 @@ export default function DashBoard() {
   const [filterCategory, setFilterCategory] = useState("all")
   const router = useRouter();
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
-  // const [showAddProduct, setShowAddProduct] = useState(false);
   const { toast } = useToast();
-  // const cookieStore = await cookies();
+  const { logout } = useVendorAuth();
 
-  const handleLogout = () => {
-    Cookies.remove('accessToken');
-    Cookies.remove('refreshToken');
+  const handleLogout = async () => {
+    console.log('🟡 DASHBOARD handleLogout - Button clicked!');
+    
     toast({
       title: "✅ Logged Out Successfully",
       description: "You have been signed out of your account.",
       variant: "success",
     });
-
-    router.push("/login");
+    
+    console.log('🟡 DASHBOARD - About to call logout() from context...');
+    // Call the logout function from VendorAuthContext
+    await logout();
   };
 
 
@@ -434,18 +435,16 @@ export default function DashBoard() {
     try {
       setEventsLoading(true)
       setEventsError("")
-      const token = Cookies.get("authToken")
-      const res = await fetch(`${config.BACKEND_URL}/api/vendor/events/${eventId}`, {
+      const res = await fetch(`/api/events/${eventId}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         credentials: "include",
       })
       if (!res.ok) {
-        const msg = await res.text()
-        throw new Error(msg || "Failed to delete event")
+        const errorData = await res.json().catch(() => ({ error: "Failed to delete event" }))
+        throw new Error(errorData.error?.message || errorData.message || errorData.error || "Failed to delete event")
       }
       setEvents((prev) => prev.filter((e) => String(e.backendId || e.id) !== eventId))
       toast({
@@ -491,18 +490,16 @@ export default function DashBoard() {
       try {
         setEventsLoading(true)
         setEventsError("")
-        const token = Cookies.get("authToken")
-        const res = await fetch(`${config.BACKEND_URL}/api/vendor/events`, {
+        const res = await fetch('/api/events', {
           method: "GET",
           headers: {
             Accept: "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           credentials: "include",
         })
         if (!res.ok) {
-          const msg = await res.text()
-          throw new Error(msg || "Failed to load events")
+          const errorData = await res.json().catch(() => ({ error: "Failed to load events" }))
+          throw new Error(errorData.error?.message || errorData.message || errorData.error || "Failed to load events")
         }
         const json = await res.json()
         // Normalize events array from various possible shapes

@@ -188,22 +188,26 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
 
       const isEdit = props.mode === "edit" && props.eventId
       const url = isEdit
-        ? `${config.BACKEND_URL}/api/vendor/events/${props.eventId}`
-        : `${config.BACKEND_URL}/api/vendor/events`
+        ? `/api/events/${props.eventId}`
+        : `/api/events`
       const method = isEdit ? "PUT" : "POST"
 
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
-          ...(Cookies.get("authToken") ? { Authorization: `Bearer ${Cookies.get("authToken")}` } : {}),
         },
         body: JSON.stringify(payload),
         credentials: "include",
       })
       if (!res.ok) {
-        const msg: { error?: { message?: string } } = await res.json().catch(() => ({}))
-        throw new Error(msg?.error?.message || `Failed to ${isEdit ? "update" : "create"} event`)
+        const errorData: any = await res.json().catch(() => ({}))
+        throw new Error(
+          errorData?.error?.message || 
+          errorData?.message || 
+          errorData?.error || 
+          `Failed to ${isEdit ? "update" : "create"} event`
+        )
       }
       toast({
         title: isEdit ? "Event updated" : "Event scheduled",
