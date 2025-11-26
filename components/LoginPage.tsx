@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   CircleUserRound,
@@ -51,8 +51,15 @@ export default function AuthPage() {
   const [isSwiping, setIsSwiping] = useState(false);
   const formContainerRef = useRef<HTMLDivElement>(null);
 
-  const { login, register, forgotPassword } = useVendorAuth();
+  const { login, register, forgotPassword, isAuthenticated, loading: authLoading } = useVendorAuth();
   const forms = ["login", "signup", "forgot"] as const;
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const [, setErrors] = useState<{
     name?: string;
@@ -112,10 +119,11 @@ export default function AuthPage() {
         });
         router.push("/dashboard");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        const errorMessage = err instanceof Error ? err.message : "An error occurred";
+        setError(errorMessage);
         toast({
-          title: "Something went wrong",
-          description: "We couldn't complete your request. Please try again.",
+          title: "Login failed",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -198,7 +206,7 @@ export default function AuthPage() {
           return;
         }
 
-        const response = await register({
+        const data = await register({
           name: signupFormData.name,
           email: signupFormData.email,
           password: signupFormData.password,
@@ -207,26 +215,7 @@ export default function AuthPage() {
           address: signupFormData.address,
         });
 
-        if (response.status === 409) {
-          toast({
-            title: "Email already registered",
-            description: "Please sign in instead of creating a new account.",
-            variant: "destructive",
-          });
-          return;
-        }
-        if (!response.ok) {
-          const errorText = await response.text();
-          toast({
-            title: "Registration failed",
-            description: errorText || "Please check your inputs and try again.",
-            variant: "destructive",
-          });
-          throw new Error("Request failed");
-        }
-
-        const data = await response.json();
-        // 🔹 Success feedback
+        // Success feedback
         toast({
           title: "Account created 🎉",
           description: "Your vendor account has been created successfully.",
@@ -245,19 +234,21 @@ export default function AuthPage() {
           password: "",
           confirmPassword: "",
         });
-        setTimeout(() => {
-          setActiveTab("login");
-        }, 2000);
+        
+        // Get verification code from response
+        const verificationCode = data?.data?.verificationCode || data?.verificationCode || '';
+        
         router.push(
           `/verifyEmail?email=${encodeURIComponent(
             signupFormData.email
-          )}&verificationCode=${encodeURIComponent(data.data.verificationCode)}`
+          )}&verificationCode=${encodeURIComponent(verificationCode)}`
         );
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        const errorMessage = err instanceof Error ? err.message : "An error occurred";
+        setError(errorMessage);
         toast({
-          title: "Something went wrong",
-          description: "We couldn’t complete your request. Please try again.",
+          title: "Registration failed",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -283,6 +274,11 @@ export default function AuthPage() {
     try {
       const response = await forgotPassword(forgotFormData.email);
       setSuccess("Password reset link sent! Please check your email.");
+      toast({
+        title: "Reset link sent",
+        description: "Password reset link sent! Please check your email.",
+        variant: "success",
+      });
       setForgotFormData({ email: "" });
       setTimeout(() => {
         setActiveTab("login");
@@ -294,7 +290,13 @@ export default function AuthPage() {
         )}&token=${response.data.resetCode}`
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+      toast({
+        title: "Password reset failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

@@ -21,19 +21,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect to dashboard if already logged in and trying to access auth pages
-  const authRoutes = ['/login', '/signup'];
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  // Don't redirect from login to dashboard based on cookie alone
+  // The cookie might be expired, let the client-side auth check handle it
   
-  if (isAuthRoute) {
-    const accessToken = request.cookies.get('accessToken');
-    
-    if (accessToken) {
-      const dashboardUrl = new URL('/dashboard', request.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
-  }
-
   return NextResponse.next();
 }
 
