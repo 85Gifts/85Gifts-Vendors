@@ -125,6 +125,16 @@ interface DashboardStats {
   avgRating: number
 }
 
+// Define Wallet type
+interface Wallet {
+  balance: number
+  currency: string
+  pendingWithdrawals: number
+  availableBalance: number
+  totalEarnings: number
+  totalWithdrawals: number
+}
+
 export default function DashBoard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showAddProduct, setShowAddProduct] = useState(false)
@@ -162,15 +172,19 @@ export default function DashBoard() {
     joinDate: "Jan 2023",
   })
 
-  const [dashboardStats] = useState<DashboardStats>({
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     totalProducts: 45,
     activeOrders: 23,
-    monthlyRevenue: 12450,
+    monthlyRevenue: 0,
     totalCustomers: 189,
     pendingOrders: 8,
     completedOrders: 234,
     avgRating: 4.8,
   })
+
+  const [wallet, setWallet] = useState<Wallet | null>(null)
+  const [walletLoading, setWalletLoading] = useState<boolean>(true)
+  const [walletError, setWalletError] = useState<string>("")
 
   const [products, setProducts] = useState<Product[]>([])
   const [productsLoading, setProductsLoading] = useState<boolean>(true)
@@ -180,6 +194,57 @@ export default function DashBoard() {
   useEffect(() => {
     fetchProducts()
   }, [])
+
+  // Fetch wallet data from backend
+  useEffect(() => {
+    fetchWallet()
+  }, [])
+
+  const fetchWallet = async () => {
+    try {
+      setWalletLoading(true)
+      setWalletError("")
+      
+      const response = await fetch('/api/vendor/wallet', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      })
+      
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to fetch wallet data')
+      }
+
+      // Handle the nested response structure
+      const walletData = data?.data?.data || data?.data || data
+      
+      if (walletData) {
+        setWallet({
+          balance: walletData.balance || 0,
+          currency: walletData.currency || "NGN",
+          pendingWithdrawals: walletData.pendingWithdrawals || 0,
+          availableBalance: walletData.availableBalance || 0,
+          totalEarnings: walletData.totalEarnings || 0,
+          totalWithdrawals: walletData.totalWithdrawals || 0,
+        })
+        
+        // Update dashboard stats with wallet data
+        setDashboardStats(prev => ({
+          ...prev,
+          monthlyRevenue: walletData.totalEarnings || 0,
+        }))
+      }
+    } catch (err) {
+      setWalletError(err instanceof Error ? err.message : 'Failed to fetch wallet data')
+      console.error('Error fetching wallet:', err)
+    } finally {
+      setWalletLoading(false)
+    }
+  }
 
   const fetchProducts = async () => {
     try {
@@ -562,43 +627,75 @@ export default function DashBoard() {
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+        <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm">Total Products</p>
-              <p className="text-3xl font-bold">{dashboardStats.totalProducts}</p>
+              <p className="text-purple-100 text-sm">Available Balance</p>
+              <p className="text-3xl font-bold">
+                {walletLoading ? (
+                  <span className="text-purple-200">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-200 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.availableBalance || 0)
+                )}
+              </p>
             </div>
-            <Package className="w-8 h-8 text-blue-200" />
+            <Wallet className="w-8 h-8 text-purple-200" />
           </div>
         </div>
 
         <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">Monthly Revenue</p>
-              <p className="text-3xl font-bold">{currencyFormatter.format(dashboardStats.monthlyRevenue)}</p>
+              <p className="text-green-100 text-sm">Total Earnings</p>
+              <p className="text-3xl font-bold">
+                {walletLoading ? (
+                  <span className="text-green-200">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-200 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.totalEarnings || 0)
+                )}
+              </p>
             </div>
             <Wallet className="w-8 h-8 text-green-200" />
           </div>
         </div>
 
-        <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+        <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">Active Orders</p>
-              <p className="text-3xl font-bold">{dashboardStats.activeOrders}</p>
+              <p className="text-blue-100 text-sm">Total Withdrawals</p>
+              <p className="text-3xl font-bold">
+                {walletLoading ? (
+                  <span className="text-blue-200">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-200 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.totalWithdrawals || 0)
+                )}
+              </p>
             </div>
-            <ShoppingBag className="w-8 h-8 text-purple-200" />
+            <Wallet className="w-8 h-8 text-blue-200" />
           </div>
         </div>
 
         <div className="bg-linear-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm">Total Customers</p>
-              <p className="text-3xl font-bold">{dashboardStats.totalCustomers}</p>
+              <p className="text-orange-100 text-sm">Pending Withdrawals</p>
+              <p className="text-3xl font-bold">
+                {walletLoading ? (
+                  <span className="text-orange-200">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-200 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.pendingWithdrawals || 0)
+                )}
+              </p>
             </div>
-            <Users className="w-8 h-8 text-orange-200" />
+            <Clock className="w-8 h-8 text-orange-200" />
           </div>
         </div>
       </div>
@@ -666,19 +763,40 @@ export default function DashBoard() {
           </h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Average Rating</span>
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="font-medium">{dashboardStats.avgRating}</span>
-              </div>
+              <span className="text-gray-600">Wallet Balance</span>
+              <span className="font-medium">
+                {walletLoading ? (
+                  <span className="text-gray-400">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-500 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.balance || 0)
+                )}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Completed Orders</span>
-              <span className="font-medium">{dashboardStats.completedOrders}</span>
+              <span className="text-gray-600">Total Earnings</span>
+              <span className="font-medium">
+                {walletLoading ? (
+                  <span className="text-gray-400">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-500 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.totalEarnings || 0)
+                )}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Pending Orders</span>
-              <span className="font-medium text-yellow-600">{dashboardStats.pendingOrders}</span>
+              <span className="text-gray-600">Total Withdrawals</span>
+              <span className="font-medium text-yellow-600">
+                {walletLoading ? (
+                  <span className="text-gray-400">Loading...</span>
+                ) : walletError ? (
+                  <span className="text-red-500 text-sm">Error</span>
+                ) : (
+                  currencyFormatter.format(wallet?.totalWithdrawals || 0)
+                )}
+              </span>
             </div>
           </div>
         </div>
