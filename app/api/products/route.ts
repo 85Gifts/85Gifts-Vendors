@@ -67,8 +67,46 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     if (!response.ok) {
+      // Extract detailed validation errors if available
+      let errorMessage = data.message || data.error || 'Failed to create product';
+      let validationErrors = null;
+
+      // Handle different error response formats
+      if (data.details) {
+        // If details is an array of errors
+        if (Array.isArray(data.details)) {
+          validationErrors = data.details;
+          errorMessage = 'Validation failed: ' + data.details.map((err: any) => 
+            err.message || err.msg || JSON.stringify(err)
+          ).join(', ');
+        } else if (typeof data.details === 'object') {
+          // If details is an object with field-specific errors
+          validationErrors = data.details;
+          errorMessage = 'Validation failed: ' + Object.entries(data.details)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(', ');
+        }
+      } else if (data.errors) {
+        // Handle errors array format
+        if (Array.isArray(data.errors)) {
+          validationErrors = data.errors;
+          errorMessage = 'Validation failed: ' + data.errors.map((err: any) => 
+            err.message || err.msg || JSON.stringify(err)
+          ).join(', ');
+        } else if (typeof data.errors === 'object') {
+          validationErrors = data.errors;
+          errorMessage = 'Validation failed: ' + Object.entries(data.errors)
+            .map(([field, msg]: [string, any]) => `${field}: ${msg.message || msg}`)
+            .join(', ');
+        }
+      }
+
       return NextResponse.json(
-        { error: data.message || data.error || 'Failed to create product' },
+        { 
+          error: errorMessage,
+          validationErrors: validationErrors,
+          fullError: data // Include full error for debugging
+        },
         { status: response.status }
       );
     }

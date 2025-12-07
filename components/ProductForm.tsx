@@ -47,6 +47,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
   });
   const [images, setImages] = useState<File[]>([]);
   const [error, setError] = useState<string>('');
+  const [validationErrors, setValidationErrors] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
@@ -144,19 +145,11 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
         images: imagesArray, // Array of image URLs
       };
 
-      console.log('=== PRODUCTFORM DEBUG ===');
-      console.log('isEdit:', isEdit);
-      console.log('product:', product);
-      console.log('product?.id:', product?.id);
-
       const url = isEdit 
         ? `/api/productId` 
         : '/api/products';
       
       const method = isEdit ? 'PUT' : 'POST';
-
-      console.log('URL to call:', url);
-      console.log('Method:', isEdit ? 'PUT' : 'POST');
 
       const response = await fetch(url, {
         method,
@@ -169,7 +162,30 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || 'Operation failed');
+        // Set validation errors if available
+        if (data.validationErrors) {
+          setValidationErrors(data.validationErrors);
+        } else {
+          setValidationErrors(null);
+        }
+        
+        // Create detailed error message
+        let errorMsg = data.error || data.message || 'Operation failed';
+        
+        // If we have validation errors, format them nicely
+        if (data.validationErrors) {
+          if (Array.isArray(data.validationErrors)) {
+            errorMsg = 'Validation failed:\n' + data.validationErrors.map((err: any) => 
+              `• ${err.message || err.msg || JSON.stringify(err)}`
+            ).join('\n');
+          } else if (typeof data.validationErrors === 'object') {
+            errorMsg = 'Validation failed:\n' + Object.entries(data.validationErrors)
+              .map(([field, msg]: [string, any]) => `• ${field}: ${msg.message || msg}`)
+              .join('\n');
+          }
+        }
+        
+        throw new Error(errorMsg);
       }
 
       // Close the modal first
@@ -199,7 +215,10 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
       </h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          <div className="font-semibold mb-2">Error:</div>
+          <div className="whitespace-pre-wrap text-sm">{error}</div>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">

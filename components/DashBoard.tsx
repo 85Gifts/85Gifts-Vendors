@@ -587,8 +587,17 @@ export default function DashBoard() {
       return
     }
 
+    if (!id) {
+      toast({
+        title: "Delete failed",
+        description: "Product ID is required",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
-      const response = await fetch(`/api/productId`, {
+      const response = await fetch(`/api/productId?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
       })
 

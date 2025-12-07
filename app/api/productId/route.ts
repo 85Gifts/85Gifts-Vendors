@@ -12,8 +12,6 @@ export async function PUT(request: NextRequest) {
   const body = await request.json();
   const { id, ...rest } = body;  // ⭐ Extract product ID
 
-  console.log("PRODUCT ID RECEIVED:", id);
-
   const response = await fetch(
     `${process.env.API_URL}/api/vendors/products/${id}`,
     {
@@ -104,8 +102,6 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log("Deleting product:", id);
 
     const response = await fetch(
       `${process.env.API_URL}/api/vendors/products/${id}`,
