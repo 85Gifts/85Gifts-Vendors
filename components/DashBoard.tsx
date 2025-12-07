@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import ProductForm from "@/components/ProductForm"
 import EventsTab from "@/components/events/EventsTab"
+import AdsTab from "@/components/ads/AdsTab"
 import {
   Package,
   Plus,
@@ -27,6 +28,7 @@ import {
   History,
   ArrowUpRight,
   ArrowDownRight,
+  Megaphone,
 } from "lucide-react"
 import { Button } from "./ui/button"
 import Cookies from "js-cookie"
@@ -1333,8 +1335,9 @@ export default function DashBoard() {
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
-              { id: "events", label: "Events", icon: Calendar },
+              { id: "ads", label: "Ads", icon: Megaphone },
               { id: "orders", label: "Orders", icon: ShoppingBag },
+              { id: "events", label: "Events", icon: Calendar },
             ].map((tab) => {
               const Icon = tab.icon
               return (
@@ -1374,6 +1377,7 @@ export default function DashBoard() {
           />
         )}
         {activeTab === "orders" && <OrdersTab />}
+        {activeTab === "ads" && <AdsTab />}
       </main>
 
       {/* Modals */}
