@@ -67,53 +67,74 @@ type EventFormProps = {
   initialTiers?: Tier[]
 }
 
+const defaultValues: EventFormValues = {
+  title: "",
+  category: "",
+  date: "",
+  time: "",
+  location: "",
+  price: "",
+  capacity: "",
+  emoji: "",
+  description: "",
+  organiserName: "",
+  endDate: "",
+  endTime: "",
+  salesStartDate: "",
+  salesStartTime: "",
+  salesEndDate: "",
+  salesEndTime: "",
+  venue: "",
+  address: "",
+  city: "",
+  state: "",
+  country: "",
+  coverImageUrl: "",
+  tags: "",
+}
+
 export default function EventForm(props: EventFormProps = {}): React.ReactElement {
   const router = useRouter()
   const { toast } = useToast()
-  const [values, setValues] = useState<EventFormValues>({
-    title: "",
-    category: "",
-    date: "",
-    time: "",
-    location: "",
-    price: "",
-    capacity: "",
-    emoji: "",
-    description: "",
-    organiserName: "",
-    endDate: "",
-    endTime: "",
-    salesStartDate: "",
-    salesStartTime: "",
-    salesEndDate: "",
-    salesEndTime: "",
-    venue: "",
-    address: "",
-    city: "",
-    state: "",
-    country: "",
-    coverImageUrl: "",
-    tags: "",
+  
+  // Initialize state with props if available, otherwise use defaults
+  const [values, setValues] = useState<EventFormValues>(() => {
+    if (props.initialValues && Object.keys(props.initialValues).length > 0) {
+      return { ...defaultValues, ...props.initialValues }
+    }
+    return defaultValues
   })
-  const [tiers, setTiers] = useState<Tier[]>(
-    props.initialTiers && props.initialTiers.length > 0
-      ? props.initialTiers
-      : [{ name: "", description: "", price: "", capacity: "", type: "general" }]
-  )
+  
+  const [tiers, setTiers] = useState<Tier[]>(() => {
+    if (props.initialTiers && props.initialTiers.length > 0) {
+      return props.initialTiers
+    }
+    return [{ name: "", description: "", price: "", capacity: "", type: "general" }]
+  })
+  
   const [submitting, setSubmitting] = useState(false)
 
+  // Update values when props change (for edit mode when data loads asynchronously)
   useEffect(() => {
-    if (props.initialValues) {
-      setValues((prev) => ({
-        ...prev,
-        ...props.initialValues,
-      }))
+    if (props.initialValues && Object.keys(props.initialValues).length > 0) {
+      setValues((prev) => {
+        // Only update if values actually changed
+        const hasChanges = Object.keys(props.initialValues!).some(
+          key => prev[key as keyof EventFormValues] !== props.initialValues![key as keyof EventFormValues]
+        )
+        if (hasChanges) {
+          return { ...prev, ...props.initialValues }
+        }
+        return prev
+      })
     }
+  }, [props.initialValues])
+
+  useEffect(() => {
     if (props.initialTiers && props.initialTiers.length > 0) {
       setTiers(props.initialTiers)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.initialValues, props.initialTiers])
+  }, [props.initialTiers])
 
   const isValid = useMemo(() => {
     const basic =
@@ -244,8 +265,14 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
 
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="px-6 py-5 border-b">
-            <h1 className="text-xl sm:text-2xl font-bold">Schedule New Event</h1>
-            <p className="text-sm text-gray-500 mt-1">Create an experience that matches your brand’s vibe.</p>
+            <h1 className="text-xl sm:text-2xl font-bold">
+              {props.mode === "edit" ? "Edit Event" : "Schedule New Event"}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {props.mode === "edit" 
+                ? "Update your event details below." 
+                : "Create an experience that matches your brand's vibe."}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-8">

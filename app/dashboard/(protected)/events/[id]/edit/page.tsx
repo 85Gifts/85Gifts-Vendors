@@ -1,16 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Cookies from "js-cookie"
+import { useParams } from "next/navigation"
 import EventForm from "../../../../../../components/events/EventForm"
-import { config } from "../../../../../../config"
 
 type ApiTier = { name: string; description?: string; price: number; capacity: number; type?: string }
 
 export default function EditEventPage() {
   const params = useParams() as { id?: string }
-  const router = useRouter()
   const eventId = (params?.id as string) || ""
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>("")
@@ -24,37 +21,50 @@ export default function EditEventPage() {
       try {
         setLoading(true)
         setError("")
-        const token = Cookies.get("authToken")
-        const res = await fetch(`${config.BACKEND_URL}/api/vendor/events/${eventId}`, {
+        const res = await fetch(`/api/events/${eventId}`, {
           method: "GET",
           headers: {
             Accept: "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           credentials: "include",
         })
         if (!res || !res.ok) {
-          const msg = await res.text()
-          throw new Error(msg || "Failed to load event")
+          const json = await res.json().catch(() => ({}))
+          throw new Error(json.message || json.error || "Failed to load event")
         }
         const json = await res.json()
-        const e =
-          json?.data?.data?.event ||
-          json?.data?.event ||
-          json?.event ||
-          json
+        
+        // Extract event from API response structure: {success: true, data: {data: {event object}}}
+        const e = json?.data?.data || json?.data || json
 
-        const start = new Date(e.startAt)
-        const end = e.endAt ? new Date(e.endAt) : null
-        const salesStart = e?.salesPeriod?.start ? new Date(e.salesPeriod.start) : null
-        const salesEnd = e?.salesPeriod?.end ? new Date(e.salesPeriod.end) : null
+        // Helper function to safely parse dates
+        const parseDate = (dateString?: string | null): Date | null => {
+          if (!dateString) return null
+          const date = new Date(dateString)
+          return isNaN(date.getTime()) ? null : date
+        }
 
-        const toD = (d?: Date | null) =>
-          d
-            ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
-            : ""
-        const toT = (d?: Date | null) =>
-          d ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : ""
+        const start = parseDate(e.startAt)
+        const end = parseDate(e.endAt)
+        const salesStart = parseDate(e?.salesPeriod?.start)
+        const salesEnd = parseDate(e?.salesPeriod?.end)
+
+        const toD = (d?: Date | null) => {
+          if (!d || isNaN(d.getTime())) return ""
+          const year = d.getFullYear()
+          const month = d.getMonth() + 1
+          const day = d.getDate()
+          if (isNaN(year) || isNaN(month) || isNaN(day)) return ""
+          return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+        }
+        
+        const toT = (d?: Date | null) => {
+          if (!d || isNaN(d.getTime())) return ""
+          const hours = d.getHours()
+          const minutes = d.getMinutes()
+          if (isNaN(hours) || isNaN(minutes)) return ""
+          return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
+        }
 
         const initVals = {
           title: e.name ?? "",
@@ -66,12 +76,12 @@ export default function EditEventPage() {
           emoji: e?.emoji ?? "",
           description: e?.description ?? "",
           organiserName: e?.organiserName ?? "",
-          endDate: toD(end || undefined),
-          endTime: toT(end || undefined),
-          salesStartDate: toD(salesStart || undefined),
-          salesStartTime: toT(salesStart || undefined),
-          salesEndDate: toD(salesEnd || undefined),
-          salesEndTime: toT(salesEnd || undefined),
+          endDate: toD(end),
+          endTime: toT(end),
+          salesStartDate: toD(salesStart),
+          salesStartTime: toT(salesStart),
+          salesEndDate: toD(salesEnd),
+          salesEndTime: toT(salesEnd),
           venue: e?.location?.venue ?? "",
           address: e?.location?.address ?? "",
           city: e?.location?.city ?? "",
@@ -112,12 +122,13 @@ export default function EditEventPage() {
   if (!eventId) return <div className="p-6">Invalid event id.</div>
   if (loading) return <div className="p-6">Loading event…</div>
   if (error) return <div className="p-6 text-red-600">{error}</div>
+  if (!initialValues) return <div className="p-6">Loading event data…</div>
 
   return (
     <EventForm
       mode="edit"
       eventId={eventId}
-      initialValues={initialValues || {}}
+      initialValues={initialValues}
       initialTiers={initialTiers}
     />
   )

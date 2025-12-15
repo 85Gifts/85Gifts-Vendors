@@ -390,7 +390,7 @@ export default function VerifyEmailPage() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${config.BACKEND_URL}/api/vendors/verify-email`, {
+      const response = await fetch(`/api/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: code.trim() }),
