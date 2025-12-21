@@ -10,6 +10,7 @@ import {
   XCircle,
   ArrowUpRight,
   ArrowDownRight,
+  X,
 } from "lucide-react"
 
 // Define Wallet type
@@ -67,6 +68,10 @@ export default function DashboardTab() {
   const [vendorProfile, setVendorProfile] = useState<VendorProfile | null>(null)
   const [profileLoading, setProfileLoading] = useState<boolean>(true)
   const [profileError, setProfileError] = useState<string>("")
+
+  const [fundWalletModalOpen, setFundWalletModalOpen] = useState<boolean>(false)
+  const [fundAmount, setFundAmount] = useState<string>("")
+  const [fundingLoading, setFundingLoading] = useState<boolean>(false)
 
   const currencyFormatter = useMemo(
     () =>
@@ -223,12 +228,63 @@ export default function DashboardTab() {
     }
   }
 
+  const handleFundWallet = async () => {
+    // Validate amount
+    const amount = parseFloat(fundAmount)
+    if (!fundAmount || isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid amount")
+      return
+    }
+
+    // Check if email is available
+    if (!vendorProfile?.email) {
+      alert("Email not found. Please try again later.")
+      return
+    }
+
+    try {
+      setFundingLoading(true)
+      
+      const response = await fetch('/api/paystack/funding/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          amount: amount,
+          email: vendorProfile.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to initialize payment')
+      }
+
+      // Extract authorization URL from response
+      const authorizationUrl = data?.data?.data?.authorizationUrl
+      
+      if (authorizationUrl) {
+        // Redirect to Paystack checkout
+        window.location.href = authorizationUrl
+      } else {
+        throw new Error('Authorization URL not found in response')
+      }
+    } catch (err) {
+      console.error('Error initializing payment:', err)
+      alert(err instanceof Error ? err.message : 'Failed to initialize payment. Please try again.')
+      setFundingLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-purple-100 text-sm">Available Balance</p>
               <p className="text-3xl font-bold">
@@ -242,6 +298,14 @@ export default function DashboardTab() {
               </p>
             </div>
             <Wallet className="w-8 h-8 text-purple-200" />
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setFundWalletModalOpen(true)}
+              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              Fund Wallet
+            </button>
           </div>
         </div>
 
@@ -519,6 +583,54 @@ export default function DashboardTab() {
           )}
         </div>
       </div>
+
+      {/* Fund Wallet Modal */}
+      {fundWalletModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold">Fund Wallet</h3>
+              <button
+                onClick={() => {
+                  if (!fundingLoading) {
+                    setFundWalletModalOpen(false)
+                    setFundAmount("")
+                  }
+                }}
+                disabled={fundingLoading}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  id="amount"
+                  value={fundAmount}
+                  onChange={(e) => setFundAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                  min="0"
+                  step="0.01"
+                  disabled={fundingLoading}
+                />
+              </div>
+              <button
+                onClick={handleFundWallet}
+                disabled={fundingLoading}
+                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors"
+              >
+                {fundingLoading ? "Processing..." : "Proceed"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
