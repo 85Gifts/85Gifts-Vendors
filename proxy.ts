@@ -13,12 +13,12 @@ export function proxy(request: NextRequest) {
   );
 
   if (isProtectedRoute) {
-    const accessToken = request.cookies.get('accessToken');
+    // const accessToken = request.cookies.get('accessToken');
     
-    if (!accessToken) {
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
+    // if (!accessToken) {
+    //   const loginUrl = new URL('/login', request.url);
+    //   return NextResponse.redirect(loginUrl);
+    // }
   }
 
   // Redirect to dashboard if already logged in and trying to access auth pages

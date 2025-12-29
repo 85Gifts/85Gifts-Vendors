@@ -16,7 +16,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/vendors');
+      const response = await fetch('/api/profile');
       if (response.ok) {
         const data = await response.json();
         setVendor(data);
@@ -29,7 +29,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (userData: RegisterData) => {
-    const response = await fetch('/api/vendors', {
+    const response = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
@@ -43,7 +43,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/vendors', {
+    const response = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -69,7 +69,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (updates: Partial<Vendor>) => {
-    const response = await fetch('/api/vendors', {
+    const response = await fetch('/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -85,7 +85,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
 
   // Add the resetPassword function
   const resetPassword = async (email: string) => {
-    const response = await fetch('/api/auth/reset-password', {
+    const response = await fetch('/api/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),

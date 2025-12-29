@@ -19,6 +19,7 @@ import {
   XCircle,
   Save,
   X,
+  Box,
 } from "lucide-react"
 
 // Define Product type
@@ -856,13 +857,20 @@ export default function DashBoard() {
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
+              { id: "inventory", label: "Inventory", icon: Box },
               { id: "orders", label: "Orders", icon: ShoppingBag },
             ].map((tab) => {
               const Icon = tab.icon
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    if (tab.id === "inventory") {
+                      window.location.href = "/inventory"
+                    } else {
+                      setActiveTab(tab.id)
+                    }
+                  }}
                   className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? "border-blue-500 text-blue-600"
