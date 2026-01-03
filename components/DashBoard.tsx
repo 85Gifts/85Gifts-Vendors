@@ -502,7 +502,13 @@ export default function DashBoard() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    if (tab.id === "inventory") {
+                      window.location.href = "/inventory"
+                    } else {
+                      setActiveTab(tab.id)
+                    }
+                  }}
                   className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? "border-blue-500 text-blue-600"

@@ -1,0 +1,373 @@
+{
+  "info": {
+    "name": "85Gifts Vendor - Inventory API",
+    "description": "Collection for testing inventory management endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Inventory Management",
+      "item": [
+        {
+          "name": "Get All Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory"]
+            },
+            "description": "Retrieves all inventory items with optional product filtering"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inventory by Product ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory?productId=prod-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory"],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "prod-1"
+                }
+              ]
+            },
+            "description": "Filter inventory items by product ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Inventory Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"prod-new-1\",\n  \"quantity\": 50,\n  \"lowStockThreshold\": 10,\n  \"reservedQuantity\": 0,\n  \"status\": \"active\",\n  \"sku\": \"NEW-001\",\n  \"location\": \"Warehouse A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory"]
+            },
+            "description": "Create a new inventory item"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inventory by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1"]
+            },
+            "description": "Retrieve specific inventory item by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 30,\n  \"lowStockThreshold\": 15,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1"]
+            },
+            "description": "Update inventory item details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Inventory Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1"]
+            },
+            "description": "Delete an inventory item"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory Analytics",
+      "item": [
+        {
+          "name": "Get Inventory Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "summary"]
+            },
+            "description": "Get summary statistics for all inventory"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Low Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/low-stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "low-stock"]
+            },
+            "description": "Retrieve items with low stock levels"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Out of Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/out-of-stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "out-of-stock"]
+            },
+            "description": "Retrieve items that are out of stock"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stock Operations",
+      "item": [
+        {
+          "name": "Update Stock Quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 10,\n  \"operation\": \"add\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1", "stock"]
+            },
+            "description": "Update stock quantity with operation: 'add', 'subtract', or 'set'"
+          },
+          "response": []
+        },
+        {
+          "name": "Reserve Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1/reserve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1", "reserve"]
+            },
+            "description": "Reserve a specific quantity of stock"
+          },
+          "response": []
+        },
+        {
+          "name": "Release Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5,\n  \"decreaseStock\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1/release",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1", "release"]
+            },
+            "description": "Release reserved stock with option to decrease actual stock"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Inventory",
+      "item": [
+        {
+          "name": "Get Inventory by Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/product/prod-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "product", "prod-1"]
+            },
+            "description": "Get inventory details for a specific product"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Product Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/availability/prod-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "availability", "prod-1"]
+            },
+            "description": "Check availability status of a product"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Variant Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/variant/prod-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "variant", "prod-1"]
+            },
+            "description": "Get inventory for product variants"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory Status",
+      "item": [
+        {
+          "name": "Get Inventory Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1", "status"]
+            },
+            "description": "Get detailed status information for inventory item"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Variants Management",
+      "item": [
+        {
+          "name": "Get Item Variants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1", "variants"]
+            },
+            "description": "Get all variants for an inventory item"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Variant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/1/variants/0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "1", "variants", "0"]
+            },
+            "description": "Get a specific variant by index"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sync Operations",
+      "item": [
+        {
+          "name": "Sync Product Inventory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/sync/prod-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "sync", "prod-1"]
+            },
+            "description": "Synchronize inventory for a specific product"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
