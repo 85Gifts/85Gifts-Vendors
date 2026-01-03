@@ -1,18 +1,13 @@
 export interface Product {
-  id?: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  stock?: number;
-  image?: string;
-  images?: string[];
-  sku?: string;
-  status?: 'active' | 'inactive' | 'draft';
-  createdAt?: string;
-  updatedAt?: string;
-  lowStockThreshold?: number;
-  lastStockUpdate?: string;
+  vendorId?: string
+  name: string
+  description: string
+  category: string
+  price: number
+  stock: number
+  images: string[]
+  giftCategory?: string
+  status?: "active" | "inactive" | "out_of_stock"
 }
 
 export interface ProductFormData {

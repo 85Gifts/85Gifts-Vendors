@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // This function can be marked `async` if using `await` inside
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Protected routes that require authentication
@@ -21,19 +21,9 @@ export function proxy(request: NextRequest) {
     // }
   }
 
-  // Redirect to dashboard if already logged in and trying to access auth pages
-  const authRoutes = ['/login', '/signup'];
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  // Don't redirect from login to dashboard based on cookie alone
+  // The cookie might be expired, let the client-side auth check handle it
   
-  if (isAuthRoute) {
-    const accessToken = request.cookies.get('accessToken');
-    
-    if (accessToken) {
-      const dashboardUrl = new URL('/dashboard', request.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
-  }
-
   return NextResponse.next();
 }
 
@@ -50,3 +40,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
+

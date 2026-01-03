@@ -1,40 +1,63 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import ProductForm from "@/components/ProductForm"
+import EventsTab from "@/components/events/EventsTab"
+import AdsTab from "@/components/ads/AdsTab"
+import DashboardTab from "@/components/dashboard/DashboardTab"
+import ProductsTab from "@/components/products/ProductsTab"
 import {
   Package,
-  Plus,
-  Edit,
-  Trash2,
   Eye,
+  Edit,
   ShoppingBag,
-  Wallet,
   TrendingUp,
   Users,
   Gift,
-  Star,
-  Search,
-  CheckCircle,
   Clock,
+  CheckCircle,
   XCircle,
-  Save,
-  X,
-  Box,
+  Calendar,
+  Megaphone,
 } from "lucide-react"
+import { Button } from "./ui/button"
+import Cookies from "js-cookie"
+import { useRouter } from "next/navigation";
+import { useToast } from "../components/ui/use-toast";
+import { config } from "../config"
+import { useVendorAuth } from "../contexts/VendorAuthContext"
 
-// Define Product type
+
+// Define Product type (for display)
 interface Product {
-  id: number
+  id: string | number
   name: string
   category: string
   price: number
   stock: number
   status: "active" | "out_of_stock" | "inactive"
   image: string
+  images?: string[] // Store all images for editing
   sales: number
   rating: number
   giftCategory: string
-  description?: string // Add optional description field
+  description?: string
+}
+
+interface EventItem {
+  id: number
+  backendId?: string
+  title: string
+  category: string
+  date: string
+  time: string
+  location: string
+  price: number
+  capacity: number
+  attendees: number
+  status: "upcoming" | "ongoing" | "completed" | "cancelled"
+  image: string
+  description?: string
 }
 
 // Define Order type
@@ -49,27 +72,6 @@ interface Order {
   giftMessage: string
   recipientName: string
   deliveryDate: string
-}
-
-// Define NewProduct type (for the form)
-interface NewProduct {
-  name: string
-  category: string
-  price: string
-  stock: string
-  description: string
-  giftCategory: string
-  image: string
-}
-
-// Define VendorProfile type
-interface VendorProfile {
-  name: string
-  email: string
-  phone: string
-  address: string
-  totalOrders: number
-  joinDate: string
 }
 
 // Define DashboardStats type
@@ -88,79 +90,37 @@ export default function DashBoard() {
   const [showAddProduct, setShowAddProduct] = useState(false)
   const [showEditProduct, setShowEditProduct] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
+  const [refreshProducts, setRefreshProducts] = useState<(() => Promise<void>) | null>(null)
+  const router = useRouter();
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const { toast } = useToast();
+  const { logout } = useVendorAuth();
 
-  // Mock data
-  const [vendorProfile] = useState<VendorProfile>({
-    name: "85Gifts",
-    email: "vendor@elegantgifts.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Gift Street, Commerce City, CC 12345",
-    totalOrders: 1247,
-    joinDate: "Jan 2023",
-  })
+  const handleLogout = async () => {
+    console.log('🟡 DASHBOARD handleLogout - Button clicked!');
+    
+    toast({
+      title: "✅ Logged Out Successfully",
+      description: "You have been signed out of your account.",
+      variant: "success",
+    });
+    
+    console.log('🟡 DASHBOARD - About to call logout() from context...');
+    // Call the logout function from VendorAuthContext
+    await logout();
+  };
 
-  const [dashboardStats] = useState<DashboardStats>({
+
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     totalProducts: 45,
     activeOrders: 23,
-    monthlyRevenue: 12450,
+    monthlyRevenue: 0,
     totalCustomers: 189,
     pendingOrders: 8,
     completedOrders: 234,
     avgRating: 4.8,
   })
 
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Luxury Gift Box Set",
-      category: "Gift Sets",
-      price: 8000.0,
-      stock: 25,
-      status: "active",
-      image: "🎁",
-      sales: 156,
-      rating: 4.9,
-      giftCategory: "Birthday",
-    },
-    {
-      id: 2,
-      name: "Artisan Chocolate Collection",
-      category: "Food & Treats",
-      price: 3400.0,
-      stock: 0,
-      status: "out_of_stock",
-      image: "🍫",
-      sales: 203,
-      rating: 4.7,
-      giftCategory: "Anniversary",
-    },
-    {
-      id: 3,
-      name: "Personalized Photo Frame",
-      category: "Personalized",
-      price: 5000.0,
-      stock: 42,
-      status: "active",
-      image: "🖼️",
-      sales: 89,
-      rating: 4.6,
-      giftCategory: "Wedding",
-    },
-    {
-      id: 4,
-      name: "Premium Wine & Cheese Set",
-      category: "Food & Treats",
-      price: 10000.0,
-      stock: 15,
-      status: "active",
-      image: "🍷",
-      sales: 67,
-      rating: 4.8,
-      giftCategory: "Corporate",
-    },
-  ])
 
   const [orders] = useState<Order[]>([
     {
@@ -201,26 +161,49 @@ export default function DashBoard() {
     },
   ])
 
-  const [newProduct, setNewProduct] = useState<NewProduct>({
-    name: "",
-    category: "",
-    price: "",
-    stock: "",
-    description: "",
-    giftCategory: "",
-    image: "",
-  })
 
-  const categories = ["Gift Sets", "Food & Treats", "Personalized", "Electronics", "Home & Garden", "Fashion"]
+  const [events, setEvents] = useState<EventItem[]>([])
+  const [eventsLoading, setEventsLoading] = useState<boolean>(false)
+  const [eventsError, setEventsError] = useState<string>("")
+
+  const [eventSearchTerm, setEventSearchTerm] = useState("")
+  const [eventFilterStatus, setEventFilterStatus] = useState<EventItem["status"] | "all">("all")
+
+  const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        maximumFractionDigits: 0,
+        currencyDisplay: "narrowSymbol",
+      }),
+    []
+  )
+
   const giftCategories = ["Birthday", "Anniversary", "Wedding", "Corporate", "Holiday", "Thank You"]
+  const eventCategories = [
+    "Pop-up Shop",
+    "Workshop",
+    "Launch Event",
+    "Virtual Experience",
+    "Corporate Showcase",
+    "Seasonal Campaign",
+  ]
+  // eventStatuses moved to EventsTab component
 
-  const getStatusColor = (status: Product['status'] | Order['status']): string => {
+  const getStatusColor = (status: Order["status"] | EventItem["status"]): string => {
     switch (status) {
-      case "active":
+      case "upcoming":
+        return "text-blue-600 bg-blue-100"
+      case "ongoing":
+        return "text-purple-600 bg-purple-100"
+      case "completed":
+        return "text-green-600 bg-green-100"
+      case "cancelled":
+        return "text-red-600 bg-red-100"
       case "delivered":
         return "text-green-600 bg-green-100"
-      case "out_of_stock":
-        return "text-red-600 bg-red-100"
       case "pending":
         return "text-yellow-600 bg-yellow-100"
       case "processing":
@@ -246,294 +229,139 @@ export default function DashBoard() {
     }
   }
 
-  const handleAddProduct = () => {
-    if (newProduct.name && newProduct.price && newProduct.stock) {
-      const product: Product = {
-        id: Date.now(),
-        ...newProduct,
-        price: Number.parseFloat(newProduct.price),
-        stock: Number.parseInt(newProduct.stock),
-        status: "active",
-        image: "🎁",
-        sales: 0,
-        rating: 0,
+
+
+  const handleDeleteProduct = (id: string | number) => {
+    // This callback is called after ProductsTab successfully deletes a product
+    // Can be used for any additional cleanup or state updates if needed
+  }
+
+
+
+
+
+
+  const handleDeleteEvent = async (event: EventItem) => {
+    const eventId = String(event.backendId || event.id)
+    try {
+      setEventsLoading(true)
+      setEventsError("")
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+        },
+        credentials: "include",
+      })
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Failed to delete event" }))
+        throw new Error(errorData.error?.message || errorData.message || errorData.error || "Failed to delete event")
       }
-      setProducts([...products, product])
-      setNewProduct({ name: "", category: "", price: "", stock: "", description: "", giftCategory: "", image: "" })
-      setShowAddProduct(false)
+      setEvents((prev) => prev.filter((e) => String(e.backendId || e.id) !== eventId))
+      toast({
+        title: "Event deleted",
+        description: `"${event.title}" was removed successfully.`,
+        variant: "success",
+      })
+    } catch (err: any) {
+      setEventsError(err?.message || "Failed to delete event")
+      toast({
+        title: "Delete failed",
+        description: err?.message || "Unable to delete event",
+        variant: "destructive",
+      })
+    } finally {
+      setEventsLoading(false)
     }
   }
 
-  const handleEditProduct = () => {
-    if (!selectedProduct) return
+  useEffect(() => {
+    const computeStatus = (startIso?: string, endIso?: string): EventItem["status"] => {
+      if (!startIso) return "upcoming"
+      const now = new Date()
+      const start = new Date(startIso)
+      const end = endIso ? new Date(endIso) : undefined
+      if (end && now > end) return "completed"
+      if (now >= start && (!end || now <= end)) return "ongoing"
+      return "upcoming"
+    }
 
-    setProducts(
-      products.map((p) =>
-        p.id === selectedProduct.id
-          ? {
-              ...selectedProduct,
-              price: Number.parseFloat(selectedProduct.price.toString()),
-              stock: Number.parseInt(selectedProduct.stock.toString()),
-            }
-          : p
-      )
-    )
-    setShowEditProduct(false)
-    setSelectedProduct(null)
-  }
+    const toDate = (iso?: string) => {
+      if (!iso) return { date: "", time: "" }
+      const d = new Date(iso)
+      const yyyy = d.getFullYear()
+      const mm = String(d.getMonth() + 1).padStart(2, "0")
+      const dd = String(d.getDate()).padStart(2, "0")
+      const hh = String(d.getHours()).padStart(2, "0")
+      const mi = String(d.getMinutes()).padStart(2, "0")
+      return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${mi}` }
+    }
 
-  const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter((p) => p.id !== id))
-  }
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true)
+        setEventsError("")
+        const res = await fetch('/api/events', {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          credentials: "include",
+        })
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: "Failed to load events" }))
+          throw new Error(errorData.error?.message || errorData.message || errorData.error || "Failed to load events")
+        }
+        const json = await res.json()
+        // Normalize events array from various possible shapes
+        const apiEvents =
+          json?.data?.data?.events ||
+          json?.data?.events ||
+          json?.events ||
+          (Array.isArray(json) ? json : [])
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCategory = filterCategory === "all" || product.category === filterCategory
-      return matchesSearch && matchesCategory
-    })
-  }, [products, searchTerm, filterCategory])
+        const mapped: EventItem[] = apiEvents.map((e: any) => {
+          const { date, time } = toDate(e.startAt)
+          const status = computeStatus(e.startAt, e.endAt)
+          const tiers = Array.isArray(e.tiers) ? e.tiers : []
+          const minPrice = tiers.length ? Math.min(...tiers.map((t: any) => Number(t.price || 0))) : 0
+          const totalCapacity = tiers.length ? tiers.reduce((s: number, t: any) => s + Number(t.capacity || 0), 0) : 0
+          const location =
+            e?.location?.venue ||
+            e?.location?.address ||
+            [e?.location?.city, e?.location?.state].filter(Boolean).join(", ") ||
+            "TBA"
+          return {
+            id: Number(e.id || e._id ? undefined : Date.now() + Math.random() * 1000) || Date.now(),
+            backendId: String(e._id || e.id || ""),
+            title: e.name || "Untitled Event",
+            category: e.category || "other",
+            date,
+            time,
+            location,
+            price: minPrice,
+            capacity: Number(e.totalCapacity ?? totalCapacity ?? 0),
+            attendees: Number(e.totalSold ?? e.attendees ?? 0),
+            status,
+            image: e.emoji || "🎉",
+            description: e.description || "",
+          }
+        })
+        setEvents(mapped)
+      } catch (err: any) {
+        setEventsError(err?.message || "Failed to load events")
+      } finally {
+        setEventsLoading(false)
+      }
+    }
 
-  const DashboardTab = () => (
-    <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Total Products</p>
-              <p className="text-3xl font-bold">{dashboardStats.totalProducts}</p>
-            </div>
-            <Package className="w-8 h-8 text-blue-200" />
-          </div>
-        </div>
+    fetchEvents()
+  }, [])
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Monthly Revenue</p>
-              <p className="text-3xl font-bold">₦{dashboardStats.monthlyRevenue.toLocaleString()}</p>
-            </div>
-            <Wallet className="w-8 h-8 text-green-200" />
-          </div>
-        </div>
+  // Event computed values moved to EventsTab component
+  // ProductsTab component moved to components/products/ProductsTab.tsx
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Active Orders</p>
-              <p className="text-3xl font-bold">{dashboardStats.activeOrders}</p>
-            </div>
-            <ShoppingBag className="w-8 h-8 text-purple-200" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-100 text-sm">Total Customers</p>
-              <p className="text-3xl font-bold">{dashboardStats.totalCustomers}</p>
-            </div>
-            <Users className="w-8 h-8 text-orange-200" />
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Orders */}
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Gift className="w-5 h-5" />
-            Recent Gift Orders
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recipient</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {orders.slice(0, 5).map((order) => (
-                <tr key={order.id}>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-medium">{order.id}</div>
-                      <div className="text-sm text-gray-500">{order.customer}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium">{order.product}</div>
-                    <div className="text-sm text-gray-500">Qty: {order.quantity}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium">{order.recipientName}</div>
-                    <div className="text-sm text-gray-500">Delivery: {order.deliveryDate}</div>
-                  </td>
-                  <td className="px-6 py-4 font-medium">₦{order.total}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        order.status
-                      )}`}
-                    >
-                      {getStatusIcon(order.status)}
-                      {order.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Performance Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Performance Metrics
-          </h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Average Rating</span>
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="font-medium">{dashboardStats.avgRating}</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Completed Orders</span>
-              <span className="font-medium">{dashboardStats.completedOrders}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Pending Orders</span>
-              <span className="font-medium text-yellow-600">{dashboardStats.pendingOrders}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Vendor Profile</h3>
-          <div className="space-y-3">
-            <div>
-              <span className="text-gray-600 text-sm">Business Name</span>
-              <div className="font-medium">{vendorProfile.name}</div>
-            </div>
-            <div>
-              <span className="text-gray-600 text-sm">Member Since</span>
-              <div className="font-medium">{vendorProfile.joinDate}</div>
-            </div>
-            <div>
-              <span className="text-gray-600 text-sm">Total Orders</span>
-              <div className="font-medium">{vendorProfile.totalOrders}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  const ProductsTab = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold">Gift Products</h2>
-        <button
-          onClick={() => setShowAddProduct(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add New Product
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="all">All Categories</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <div key={product.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-4xl">{product.image}</div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedProduct(product)
-                      setShowEditProduct(true)
-                    }}
-                    className="text-gray-400 hover:text-blue-600 transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProduct(product.id)}
-                    className="text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-gray-600">{product.category}</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
-                  {product.status.replace("_", " ")}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
-                <span>Stock: {product.stock}</span>
-                <span>Sales: {product.sales}</span>
-                <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                  <span>{product.rating}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-blue-600">₦{product.price}</span>
-                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.giftCategory}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  // EventsTab component moved to components/events/EventsTab.tsx
 
   const OrdersTab = () => (
     <div className="space-y-6">
@@ -576,7 +404,7 @@ export default function DashBoard() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-lg">₦{order.total}</div>
+                    <div className="font-bold text-lg">{currencyFormatter.format(order.total)}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -607,233 +435,37 @@ export default function DashBoard() {
     </div>
   )
 
-  const AddProductModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Add New Gift Product</h3>
-            <button onClick={() => setShowAddProduct(false)} className="text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Product Name</label>
-            <input
-              type="text"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter product name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <select
-              value={newProduct.category}
-              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Gift Category</label>
-            <select
-              value={newProduct.giftCategory}
-              onChange={(e) => setNewProduct({ ...newProduct, giftCategory: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select gift category</option>
-              {giftCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Price ($)</label>
-              <input
-                type="number"
-                value={newProduct.price}
-                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0.00"
-                step="0.01"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Stock</label>
-              <input
-                type="number"
-                value={newProduct.stock}
-                onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={newProduct.description}
-              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={3}
-              placeholder="Enter product description"
-            />
-          </div>
-        </div>
-
-        <div className="p-6 border-t bg-gray-50 flex gap-3">
+  
+  const LogOut = () => {
+  return (
+    <div className="fixed inset-0 flex z-50 items-center justify-center bg-black bg-opacity-30">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+        <h2 className="text-lg font-semibold mb-4">Are you sure you want to logout?</h2>
+        <div className="flex justify-between mt-4">
           <button
-            onClick={() => setShowAddProduct(false)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={() => setShowLogoutPopup(false)}
+            className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
           >
             Cancel
           </button>
           <button
-            onClick={handleAddProduct}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
-            <Save className="w-4 h-4" />
-            Add Product
+            Logout
           </button>
         </div>
       </div>
     </div>
-  )
+  );
+};
 
-  const EditProductModal = () =>
-    selectedProduct && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Edit Product</h3>
-              <button onClick={() => setShowEditProduct(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
 
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Product Name</label>
-              <input
-                type="text"
-                value={selectedProduct.name}
-                onChange={(e) => setSelectedProduct({ ...selectedProduct, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
-              <select
-                value={selectedProduct.category}
-                onChange={(e) => setSelectedProduct({ ...selectedProduct, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Gift Category</label>
-              <select
-                value={selectedProduct.giftCategory}
-                onChange={(e) => setSelectedProduct({ ...selectedProduct, giftCategory: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {giftCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Price ($)</label>
-                <input
-                  type="number"
-                  value={selectedProduct.price}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, price: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  step="0.01"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Stock</label>
-                <input
-                  type="number"
-                  value={selectedProduct.stock}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, stock: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
-              <select
-                value={selectedProduct.status}
-                onChange={(e) =>
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    status: e.target.value as Product["status"],
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="active">Active</option>
-                <option value="out_of_stock">Out of Stock</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
-            <button
-              onClick={() => {
-                setShowEditProduct(false)
-                setSelectedProduct(null)
-              }}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleEditProduct}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              <Save className="w-4 h-4" />
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -845,7 +477,11 @@ export default function DashBoard() {
               <Gift className="w-8 h-8 text-blue-600" />
               <h1 className="text-xl font-bold text-gray-900">Vendor Dashboard</h1>
             </div>
-            <div className="flex items-center gap-4"></div>
+            <div className="flex items-center gap-4">
+              <Button onClick={() => setShowLogoutPopup(true)}>
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -853,12 +489,14 @@ export default function DashBoard() {
       {/* Navigation */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <div className="overflow-x-auto">
+            <nav className="flex min-w-max space-x-4 sm:space-x-8">
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
-              { id: "inventory", label: "Inventory", icon: Box },
+              { id: "ads", label: "Ads", icon: Megaphone },
               { id: "orders", label: "Orders", icon: ShoppingBag },
+              { id: "events", label: "Events", icon: Calendar },
             ].map((tab) => {
               const Icon = tab.icon
               return (
@@ -882,20 +520,98 @@ export default function DashBoard() {
                 </button>
               )
             })}
-          </nav>
+            </nav>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {activeTab === "dashboard" && <DashboardTab />}
-        {activeTab === "products" && <ProductsTab />}
+        {activeTab === "products" && (
+          <ProductsTab
+            onAddProduct={() => setShowAddProduct(true)}
+            onEditProduct={(product) => {
+              setSelectedProduct(product)
+              setShowEditProduct(true)
+            }}
+            onDeleteProduct={handleDeleteProduct}
+            onRefreshRequested={(refreshFn) => setRefreshProducts(() => refreshFn)}
+          />
+        )}
+        {activeTab === "events" && (
+          <EventsTab
+            events={events}
+            eventsLoading={eventsLoading}
+            eventsError={eventsError}
+            eventSearchTerm={eventSearchTerm}
+            setEventSearchTerm={setEventSearchTerm}
+            eventFilterStatus={eventFilterStatus}
+            setEventFilterStatus={setEventFilterStatus}
+            handleDeleteEvent={handleDeleteEvent}
+          />
+        )}
         {activeTab === "orders" && <OrdersTab />}
+        {activeTab === "ads" && <AdsTab />}
       </main>
 
       {/* Modals */}
-      {showAddProduct && <AddProductModal />}
-      {showEditProduct && <EditProductModal />}
+      {showAddProduct && (
+        <ProductForm 
+          onclose={() => {
+            setShowAddProduct(false)
+          }}
+          onSuccess={async () => {
+            // Refresh products list
+            if (refreshProducts) {
+              await refreshProducts()
+            }
+            // Show success toast
+            toast({
+              title: "Product created",
+              description: "The product has been successfully created.",
+              variant: "success",
+            })
+          }}
+          isEdit={false}
+        />
+      )}
+      {showEditProduct && selectedProduct && (
+        <ProductForm 
+          product={{
+            id: selectedProduct.id.toString(),
+            name: selectedProduct.name,
+            description: selectedProduct.description || '',
+            price: selectedProduct.price,
+            category: selectedProduct.category,
+            stock: selectedProduct.stock,
+            // Pass all images as comma-separated string, or single image if no array
+            images: selectedProduct.images && selectedProduct.images.length > 0
+              ? selectedProduct.images.join(',')
+              : (selectedProduct.image.startsWith('http') ? selectedProduct.image : ''),
+          }}
+          onclose={() => {
+            setShowEditProduct(false)
+            setSelectedProduct(null)
+          }}
+          onSuccess={async () => {
+            // Refresh products list
+            if (refreshProducts) {
+              await refreshProducts()
+            }
+            // Show success toast
+            toast({
+              title: "Product updated",
+              description: "The product has been successfully updated.",
+              variant: "success",
+            })
+          }}
+          isEdit={true}
+        />
+      )}
+
+      {/* Logout Confirmation Popup */}
+      {showLogoutPopup && <LogOut />}
     </div>
   )
 }

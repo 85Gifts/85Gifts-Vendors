@@ -169,7 +169,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen bg-gradient-to-l from-[#E2E5FF] to-[#B5B8FF] flex items-center">
+      <section className="relative min-h-screen bg-linear-to-l from-[#E2E5FF] to-[#B5B8FF] flex items-center">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute inset-0 opacity-10">
           <div
@@ -185,7 +185,7 @@ export default function LandingPage() {
             <div className="text-gray-800">
               <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
                 Sell Perfect
-                <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                   {" "}
                   Gifts{" "}
                 </span>
@@ -198,7 +198,7 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-blue-400 text-white hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                  className="bg-linear-to-r from-blue-500 to-blue-400 text-white hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                 >
                   🚀 Join Us Today
                 </Button>
@@ -206,7 +206,7 @@ export default function LandingPage() {
                 {/*   size="lg" */}
                 {/*   // variant="outline" */}
                 {/**/}
-                {/*   className=" flexflex-row items-center bg-gradient-to-r from-blue-500 to-blue-400 text-white  hover:shadow-2xl transform hover:scale-105 transition-all duration-300" */}
+                {/*   className=" flexflex-row items-center bg-linear-to-r from-blue-500 to-blue-400 text-white  hover:shadow-2xl transform hover:scale-105 transition-all duration-300" */}
                 {/*   // className="backdrop-blur-lg bg-white/20 border-gray-400/30 text-gray-800 hover:bg-white hover:text-blue-500" */}
                 {/* > */}
                 {/* <span> 📺 </span>  */}
@@ -241,7 +241,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl">
+                    <div className="flex justify-between items-center p-4 bg-linear-to-r from-blue-50 to-blue-50 rounded-xl">
                       <div>
                         <p className="text-gray-600 text-sm">Monthly Revenue</p>
                         <p className="text-2xl font-bold text-blue-600">₦2,490,580</p>
@@ -280,7 +280,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Everything You Need to{" "}
-              <span className="bg-gradient-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent">
                 Succeed
               </span>
             </h2>
@@ -336,7 +336,7 @@ export default function LandingPage() {
             ].map((feature, index) => (
               <div
                 key={index}
-                className={`group bg-gradient-to-br ${feature.gradient} p-8 rounded-3xl hover:shadow-lg transform hover:-translate-y-2 transition-all duration-300`}
+                className={`group bg-linear-to-br ${feature.gradient} p-8 rounded-3xl hover:shadow-lg transform hover:-translate-y-2 transition-all duration-300`}
               >
                 <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
@@ -350,7 +350,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section ref={statsRef} className="py-20 bg-gradient-to-r from-blue-600 to-blue-400 text-white">
+      <section ref={statsRef} className="py-20 bg-linear-to-r from-blue-600 to-blue-400 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Trusted by Gift Retailers Worldwide</h2>
@@ -447,7 +447,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-600 text-white relative overflow-hidden">
+      <section className="py-20 bg-linear-to-br from-blue-800 via-blue-700 to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div
             className="w-full h-full"
@@ -471,13 +471,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
+              className="bg-linear-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
             >
               🚀 Join Us Now
             </Button>
             <Button
               size="lg"  
-              className="bg-gradient-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
+              className="bg-linear-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
             >
               📞 Schedule Demo
             </Button>

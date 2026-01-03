@@ -16,13 +16,22 @@ export async function apiClient(
   const config: RequestInit = {
     ...fetchOptions,
     headers,
+    credentials: 'include', // Include cookies in requests
   };
 
   const response = await fetch(endpoint, config);
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || data.message || 'API request failed');
+    // Safely extract error message from various possible formats
+    const errorMessage = 
+      data?.error?.message || 
+      (typeof data?.error === 'string' ? data.error : null) ||
+      data?.message || 
+      data?.detail ||
+      'API request failed';
+    
+    throw new Error(errorMessage);
   }
 
   return data;
