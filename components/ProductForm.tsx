@@ -2,12 +2,15 @@
 
 import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { uploadMultipleImagesToCloudinary, validateImageFile } from '@/lib/cloudinary';
+import { X, Upload } from 'lucide-react';
 // import { Product } from '@/types/product';
 
 interface ProductFormProps {
   product?: Product | null;
   isEdit?: boolean;
   onclose: () => void;
+  onSuccess?: () => void;
 }
 
 interface FormData {
@@ -35,7 +38,7 @@ interface Product {
 
 
 
-export default function ProductForm({ product = null, isEdit = false, onclose}: ProductFormProps) {
+export default function ProductForm({ product = null, isEdit = false, onclose, onSuccess}: ProductFormProps) {
   const [formData, setFormData] = useState<FormData>({
     vendorId: '',
     name: product?.name || '',
@@ -45,7 +48,10 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
     stock: product?.stock?.toString() || '',
     images: product?.images || '',
   });
-  const [images, setImages] = useState<File[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,6 +91,17 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
         stock: product.stock?.toString() || '',
         images: product.images || '',
       });
+      
+      // If product has existing images, set them as previews
+      if (product.images) {
+        const existingImages = typeof product.images === 'string' 
+          ? product.images.split(/[,\n]/).filter(url => url.trim().length > 0)
+          : Array.isArray(product.images) 
+            ? product.images 
+            : [];
+        setUploadedImageUrls(existingImages);
+        setImagePreviews(existingImages);
+      }
     }
   }, [product, isEdit]);
 
@@ -95,22 +112,70 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
     });
   };
 
-  // const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   const files = e.target.files;
-  //   if (files) {
-  //     const filesArray = Array.from(files);
-  //     if (filesArray.length > 5) {
-  //       setError('Maximum 5 images allowed');
-  //       return;
-  //     }
-  //     setImages(filesArray);
-  //   }
-  // };
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const filesArray = Array.from(files);
+    
+    // Check total images (existing + new)
+    const totalImages = uploadedImageUrls.length + filesArray.length;
+    if (totalImages > 5) {
+      setError('Maximum 5 images allowed');
+      return;
+    }
+
+    // Validate each file
+    for (const file of filesArray) {
+      const validationError = validateImageFile(file, 10);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+    }
+
+    // Create previews for new files
+    const newPreviews: string[] = [];
+    filesArray.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === filesArray.length) {
+          setImagePreviews([...uploadedImageUrls, ...newPreviews]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    setImageFiles([...imageFiles, ...filesArray]);
+    setError('');
+  };
+
+  const removeImage = (index: number) => {
+    // Remove from previews
+    const newPreviews = [...imagePreviews];
+    newPreviews.splice(index, 1);
+    setImagePreviews(newPreviews);
+
+    // Remove from uploaded URLs if it's an existing image
+    if (index < uploadedImageUrls.length) {
+      const newUrls = [...uploadedImageUrls];
+      newUrls.splice(index, 1);
+      setUploadedImageUrls(newUrls);
+    } else {
+      // Remove from files array (adjust index)
+      const fileIndex = index - uploadedImageUrls.length;
+      const newFiles = [...imageFiles];
+      newFiles.splice(fileIndex, 1);
+      setImageFiles(newFiles);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setUploadingImages(true);
 
     // Get vendorId from localStorage or cookies if not in formData
     let vendorId = formData.vendorId;
@@ -120,18 +185,37 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
       if (!vendorId) {
         setError('Vendor ID not found. Please log in again.');
         setLoading(false);
+        setUploadingImages(false);
         return;
       }
     }
 
     try {
-      // Convert images string to array (split by comma or newline, filter empty strings)
-      const imagesArray = formData.images
-        ? formData.images
-            .split(/[,\n]/)
-            .map(url => url.trim())
-            .filter(url => url.length > 0)
-        : [];
+      let finalImageUrls: string[] = [...uploadedImageUrls];
+
+      // Upload new image files to Cloudinary
+      if (imageFiles.length > 0) {
+        try {
+          const uploadedUrls = await uploadMultipleImagesToCloudinary(imageFiles);
+          finalImageUrls = [...finalImageUrls, ...uploadedUrls];
+        } catch (uploadError) {
+          setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload images');
+          setLoading(false);
+          setUploadingImages(false);
+          return;
+        }
+      }
+
+      // If no images uploaded and formData.images has URLs (fallback for manual entry)
+      if (finalImageUrls.length === 0 && formData.images) {
+        const imagesArray = formData.images
+          .split(/[,\n]/)
+          .map(url => url.trim())
+          .filter(url => url.length > 0);
+        finalImageUrls = imagesArray;
+      }
+
+      setUploadingImages(false);
 
       // Prepare JSON payload matching the backend API format
       const payload = {
@@ -142,7 +226,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
         category: formData.category,
         price: parseFloat(formData.price), // Convert to number
         stock: parseInt(formData.stock, 10), // Convert to number
-        images: imagesArray, // Array of image URLs
+        images: finalImageUrls, // Array of Cloudinary image URLs
       };
 
       const url = isEdit 
@@ -188,11 +272,13 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
         throw new Error(errorMsg);
       }
 
-      // Close the modal first
+      // Call onSuccess callback if provided (for refreshing data and showing toast)
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      // Close the modal
       onclose();
-      
-      // Refresh the page data to show the new product
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Operation failed');
     } finally {
@@ -288,26 +374,70 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
           <label className="block text-sm font-medium mb-1">
             Product Images (Max 5)
           </label>
-          {/* <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            className="w-full px-3 py-2 border rounded-md"
+          
+          {/* File input for uploading images */}
+          <div className="mb-3">
+            <label
+              htmlFor="image-upload"
+              className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
+            >
+              <Upload className="w-5 h-5 mr-2 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                {uploadingImages ? 'Uploading images...' : 'Click to upload images'}
+              </span>
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                className="hidden"
+                disabled={uploadingImages || loading}
+              />
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              Supported formats: JPG, PNG, GIF, WebP. Max 10MB per image.
+            </p>
+          </div>
+
+          {/* Image previews */}
+          {imagePreviews.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-3">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    disabled={uploadingImages || loading}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Fallback: Manual URL input (optional) */}
+          <div className="mt-3">
+            <label className="block text-xs text-gray-500 mb-1">
+              Or enter image URLs manually (comma-separated):
+            </label>
+            <input
+              id="coverImageUrl"
+              name="images"
+              value={formData.images}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg, https://example.com/image2.jpg"
+              className="w-full px-3 py-2 border rounded-md text-sm"
+              disabled={imageFiles.length > 0 || uploadingImages || loading}
             />
-            {images.length > 0 && (
-              <p className="text-sm text-gray-600 mt-1">
-              {images.length} image(s) selected
-              </p>
-              )} */}
-          <input
-            id="coverImageUrl"
-            name="images"
-            value={formData.images}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-3 py-2 border rounded-md"
-          />
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4">
@@ -320,10 +450,12 @@ export default function ProductForm({ product = null, isEdit = false, onclose}: 
           </button>
           <button
             type="submit"
-            disabled={loading}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+            disabled={loading || uploadingImages}
+            className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading
+            {uploadingImages
+              ? "Uploading images..."
+              : loading
               ? isEdit
                 ? "Updating..."
                 : "Creating..."
