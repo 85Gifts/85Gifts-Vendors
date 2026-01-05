@@ -303,7 +303,7 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold">Gift Products</h2>
+        <h2 className="text-2xl font-bold dark:text-white">Gift Products</h2>
         <button
           onClick={onAddProduct}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
@@ -316,19 +316,19 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
           <input
             type="text"
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="all">All Categories</option>
           {categories.map((category) => (
@@ -342,19 +342,19 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
       {/* Loading State */}
       {productsLoading && (
         <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading products...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading products...</p>
         </div>
       )}
 
       {/* Error State */}
       {productsError && !productsLoading && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
           <p className="font-semibold">Error loading products</p>
           <p className="text-sm">{productsError}</p>
           <button
             onClick={fetchProducts}
-            className="mt-2 text-sm underline hover:no-underline"
+            className="mt-2 text-sm underline hover:no-underline dark:text-red-300"
           >
             Try again
           </button>
@@ -366,15 +366,15 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">No products found</p>
-              <p className="text-gray-500 text-sm mt-2">Add your first product to get started</p>
+              <Package className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400 text-lg">No products found</p>
+              <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Add your first product to get started</p>
             </div>
           ) : (
             filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow overflow-hidden">
+              <div key={product.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow overflow-hidden">
                 {/* Product Image */}
-                <div className="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+                <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                   {product.image && product.image.startsWith('http') ? (
                     <img 
                       src={product.image} 
@@ -401,19 +401,19 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                      <h3 className="font-semibold text-lg mb-2 dark:text-white">{product.name}</h3>
                     </div>
                     <div className="flex gap-2 ml-2">
                       <button
                         onClick={() => onEditProduct(product)}
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         title="Edit product"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
-                        className="text-gray-400 hover:text-red-600 transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                         title="Delete product"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -422,13 +422,13 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                   </div>
 
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-gray-600">{product.category}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{product.category}</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
                       {product.status.replace("_", " ")}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
+                  <div className="flex items-center gap-4 mb-3 text-sm text-gray-600 dark:text-gray-400">
                     <span>Stock: {product.stock}</span>
                     <span>Sales: {product.sales}</span>
                     <div className="flex items-center gap-1">
@@ -438,10 +438,10 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-blue-600">
+                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {currencyFormatter.format(product.price)}
                     </span>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.giftCategory}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{product.giftCategory}</span>
                   </div>
                 </div>
               </div>
