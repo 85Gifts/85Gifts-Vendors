@@ -31,10 +31,10 @@ let inventoryData: InventoryItem[] = [
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const { productId } = params;
+    const { productId } = await params;
     const body: { variants: InventoryVariant[] } = await request.json();
     const { variants } = body;
 

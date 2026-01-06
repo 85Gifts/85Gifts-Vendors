@@ -16,10 +16,10 @@ let inventoryData: InventoryItem[] = [
 // PATCH /{id}/stock - Update stock quantity
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body: { quantity: number; operation?: 'add' | 'subtract' | 'set' } = await request.json();
     const { quantity, operation = 'set' } = body;
 

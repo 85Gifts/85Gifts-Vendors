@@ -36,10 +36,10 @@ let inventoryData: InventoryItem[] = [
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; index: string } }
+  { params }: { params: Promise<{ id: string; index: string }> }
 ) {
   try {
-    const { id, index } = params;
+    const { id, index } = await params;
     const body: Partial<InventoryVariant> = await request.json();
  
     const item = inventoryData.find(item => item.productId === id);
@@ -80,10 +80,10 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string; index: string } }
+  { params }: { params: Promise<{ id: string; index: string }> }
 ) {
   try {
-    const { id, index } = params; 
+    const { id, index } = await params; 
     const item = inventoryData.find(item => item.productId === id);
 
     if (!item) {

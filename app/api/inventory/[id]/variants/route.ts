@@ -30,10 +30,10 @@ let inventoryData: InventoryItem[] = [
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const item = inventoryData.find(item => item.productId === id);
 
     if (!item) {
@@ -57,10 +57,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body: InventoryVariant = await request.json();
     const { attributes, quantity, priceAdjustment } = body;
  

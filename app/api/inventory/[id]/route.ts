@@ -59,10 +59,10 @@ let inventoryData: InventoryItem[] = [
 // GET /{id} - Get inventory by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const item = inventoryData.find(item => item.id === id);
 
     if (!item) {
@@ -87,10 +87,10 @@ export async function GET(
 // PUT /{id} - Update inventory
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body: Partial<InventoryItem> = await request.json();
 
     const index = inventoryData.findIndex(item => item.id === id);
@@ -124,10 +124,10 @@ export async function PUT(
 // DELETE /{id} - Delete inventory
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const index = inventoryData.findIndex(item => item.id === id);
 
     if (index === -1) {

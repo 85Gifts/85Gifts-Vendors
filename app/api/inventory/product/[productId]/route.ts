@@ -18,10 +18,10 @@ let inventoryData: InventoryItem[] = [
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const { productId } = params;
+    const { productId } = await params;
     const item = inventoryData.find(item => item.productId === productId);
 
     if (!item) {

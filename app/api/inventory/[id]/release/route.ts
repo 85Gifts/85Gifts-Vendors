@@ -17,7 +17,7 @@ let inventoryData: InventoryItem[] = [
 // PATCH /{id}/release - Release reserved stock
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -60,3 +60,5 @@ export async function PATCH(
     );
   }
 }
+
+
