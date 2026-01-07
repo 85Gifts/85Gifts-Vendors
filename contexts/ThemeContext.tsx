@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
+import { usePathname } from "next/navigation"
 
 type Theme = "light" | "dark"
 
@@ -11,9 +12,14 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
+// Routes where dark mode should be disabled
+const AUTH_ROUTES = ["/login", "/register", "/reset-password", "/verifyEmail", "/forgot-password"]
+const AUTH_ROUTE_PREFIX = "/auth"
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light")
   const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     setMounted(true)
@@ -25,6 +31,32 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(initialTheme)
   }, [])
 
+  // Force light mode on auth pages
+  useEffect(() => {
+    if (!mounted) return
+    
+    const isAuthRoute = AUTH_ROUTES.some(route => pathname?.startsWith(route)) || 
+                       pathname?.startsWith(AUTH_ROUTE_PREFIX) ||
+                       pathname?.includes("/login") ||
+                       pathname?.includes("/register") ||
+                       pathname?.includes("/reset-password") ||
+                       pathname?.includes("/verifyEmail") ||
+                       pathname?.includes("/forgot-password")
+    
+    if (isAuthRoute) {
+      // Force light mode on auth pages
+      applyTheme("light")
+      // Don't change the theme state, just override the class
+    } else {
+      // Apply saved theme on non-auth pages
+      const savedTheme = localStorage.getItem("theme") as Theme | null
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      const currentTheme = savedTheme || systemTheme
+      setTheme(currentTheme)
+      applyTheme(currentTheme)
+    }
+  }, [pathname, mounted])
+
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement
     if (newTheme === "dark") {
@@ -35,6 +67,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   const toggleTheme = () => {
+    // Don't allow theme toggle on auth pages
+    const isAuthRoute = AUTH_ROUTES.some(route => pathname?.startsWith(route)) || 
+                       pathname?.startsWith(AUTH_ROUTE_PREFIX) ||
+                       pathname?.includes("/login") ||
+                       pathname?.includes("/register") ||
+                       pathname?.includes("/reset-password") ||
+                       pathname?.includes("/verifyEmail") ||
+                       pathname?.includes("/forgot-password")
+    
+    if (isAuthRoute) {
+      return // Disable theme toggle on auth pages
+    }
+
     const newTheme = theme === "light" ? "dark" : "light"
     setTheme(newTheme)
     localStorage.setItem("theme", newTheme)
