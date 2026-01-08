@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useEffect } from "react"
 import {
   TrendingUp,
   TrendingDown,
@@ -20,12 +20,38 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react"
+import CreateCampaignModal, { CampaignData } from "./CreateCampaignModal"
+import { useToast } from "@/components/ui/use-toast"
+
+interface ApiCampaign {
+  _id: string
+  name: string
+  displayName: string
+  googleAdsName: string
+  type: string
+  status: string
+  budgetAmount: number
+  budgetCurrency: string
+  startDate: string
+  endDate: string
+  approval: {
+    status: string
+  }
+  performance: {
+    impressions: number
+    clicks: number
+    conversions: number
+    cost: number
+  }
+  createdAt: string
+  updatedAt: string
+}
 
 interface AdCampaign {
   id: string
   name: string
-  platform: "meta" | "snapchat" | "tiktok"
-  status: "active" | "paused" | "completed"
+  platform: "meta" | "snapchat" | "tiktok" | "google"
+  status: "active" | "paused" | "completed" | "draft" | "pending"
   startDate: string
   endDate?: string
   budget: number
@@ -40,7 +66,7 @@ interface AdCampaign {
 }
 
 interface PlatformMetrics {
-  platform: "meta" | "snapchat" | "tiktok"
+  platform: "meta" | "snapchat" | "tiktok" | "google"
   name: string
   icon: React.ComponentType<{ className?: string }>
   color: string
@@ -57,107 +83,44 @@ interface PlatformMetrics {
   trendPercentage: number
 }
 
-// Hardcoded data
-const mockCampaigns: AdCampaign[] = [
-  {
-    id: "1",
-    name: "Summer Gift Collection 2025",
-    platform: "meta",
-    status: "active",
-    startDate: "2025-01-15",
-    budget: 50000,
-    spend: 32500,
-    impressions: 1250000,
-    clicks: 12500,
-    conversions: 450,
-    ctr: 1.0,
-    cpc: 2.6,
-    cpm: 26.0,
-    roas: 3.2,
-  },
-  {
-    id: "2",
-    name: "Valentine's Day Special",
-    platform: "meta",
-    status: "active",
-    startDate: "2025-01-20",
-    budget: 30000,
-    spend: 18500,
-    impressions: 850000,
-    clicks: 8500,
-    conversions: 320,
-    ctr: 1.0,
-    cpc: 2.18,
-    cpm: 21.76,
-    roas: 4.1,
-  },
-  {
-    id: "3",
-    name: "Snapchat Story Ads - Gift Sets",
-    platform: "snapchat",
-    status: "active",
-    startDate: "2025-01-10",
-    budget: 25000,
-    spend: 15200,
-    impressions: 980000,
-    clicks: 9800,
-    conversions: 280,
-    ctr: 1.0,
-    cpc: 1.55,
-    cpm: 15.51,
-    roas: 2.8,
-  },
-  {
-    id: "4",
-    name: "TikTok Viral Challenge Campaign",
-    platform: "tiktok",
-    status: "active",
-    startDate: "2025-01-05",
-    budget: 40000,
-    spend: 28900,
-    impressions: 2100000,
-    clicks: 21000,
-    conversions: 520,
-    ctr: 1.0,
-    cpc: 1.38,
-    cpm: 13.76,
-    roas: 3.5,
-  },
-  {
-    id: "5",
-    name: "Meta Retargeting Campaign",
-    platform: "meta",
-    status: "paused",
-    startDate: "2024-12-01",
-    endDate: "2025-01-10",
-    budget: 20000,
-    spend: 20000,
-    impressions: 650000,
-    clicks: 6500,
-    conversions: 180,
-    ctr: 1.0,
-    cpc: 3.08,
-    cpm: 30.77,
-    roas: 2.5,
-  },
-  {
-    id: "6",
-    name: "Snapchat AR Lens Campaign",
-    platform: "snapchat",
-    status: "completed",
-    startDate: "2024-12-15",
-    endDate: "2025-01-05",
-    budget: 15000,
-    spend: 15000,
-    impressions: 720000,
-    clicks: 7200,
-    conversions: 210,
-    ctr: 1.0,
-    cpc: 2.08,
-    cpm: 20.83,
-    roas: 3.0,
-  },
-]
+// Helper function to transform API campaign to component format
+const transformCampaign = (apiCampaign: ApiCampaign): AdCampaign => {
+  const { performance, budgetAmount, budgetCurrency } = apiCampaign
+  const spend = performance.cost || 0
+  const impressions = performance.impressions || 0
+  const clicks = performance.clicks || 0
+  const conversions = performance.conversions || 0
+  
+  // Calculate metrics
+  const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
+  const cpc = clicks > 0 ? spend / clicks : 0
+  const cpm = impressions > 0 ? (spend / impressions) * 1000 : 0
+  // ROAS calculation - assuming revenue is conversions * some value, or 0 if no data
+  // For now, setting to 0 since we don't have revenue data
+  const roas = spend > 0 ? 0 : 0
+  
+  // Format dates
+  const startDate = new Date(apiCampaign.startDate).toISOString().split('T')[0]
+  const endDate = apiCampaign.endDate ? new Date(apiCampaign.endDate).toISOString().split('T')[0] : undefined
+  
+  return {
+    id: apiCampaign._id,
+    name: apiCampaign.displayName || apiCampaign.name,
+    platform: getPlatformFromType(apiCampaign.type),
+    status: mapApiStatus(apiCampaign.status, apiCampaign.approval?.status),
+    startDate,
+    endDate,
+    budget: budgetAmount,
+    spend,
+    impressions,
+    clicks,
+    conversions,
+    ctr,
+    cpc,
+    cpm,
+    roas,
+  }
+}
 
 const getStatusColor = (status: AdCampaign["status"]): string => {
   switch (status) {
@@ -167,6 +130,10 @@ const getStatusColor = (status: AdCampaign["status"]): string => {
       return "text-yellow-600 bg-yellow-100"
     case "completed":
       return "text-gray-600 bg-gray-100"
+    case "draft":
+      return "text-blue-600 bg-blue-100"
+    case "pending":
+      return "text-orange-600 bg-orange-100"
     default:
       return "text-gray-600 bg-gray-100"
   }
@@ -180,6 +147,8 @@ const getPlatformIcon = (platform: AdCampaign["platform"]) => {
       return Zap
     case "tiktok":
       return Instagram
+    case "google":
+      return Search
     default:
       return BarChart3
   }
@@ -193,12 +162,43 @@ const getPlatformColor = (platform: AdCampaign["platform"]): string => {
       return "text-yellow-600"
     case "tiktok":
       return "text-pink-600"
+    case "google":
+      return "text-green-600"
     default:
       return "text-gray-600"
   }
 }
 
+// Map API campaign type to platform
+const getPlatformFromType = (type: string): AdCampaign["platform"] => {
+  // Since API doesn't provide platform, we'll use type as a hint
+  // For now, defaulting to "google" since these are Google Ads campaigns
+  return "google"
+}
+
+// Map API status to component status
+const mapApiStatus = (status: string, approvalStatus?: string): AdCampaign["status"] => {
+  if (status === "draft" || approvalStatus === "pending") {
+    return "pending"
+  }
+  if (status === "active" || status === "running") {
+    return "active"
+  }
+  if (status === "paused") {
+    return "paused"
+  }
+  if (status === "completed" || status === "ended") {
+    return "completed"
+  }
+  return status as AdCampaign["status"]
+}
+
 export default function AdsTab() {
+  const { toast } = useToast()
+  const [campaigns, setCampaigns] = useState<AdCampaign[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat("en-NG", {
@@ -212,16 +212,52 @@ export default function AdsTab() {
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
 
+  // Fetch campaigns from API
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch('/api/ads/campaigns', {
+          credentials: 'include',
+        })
+        
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to fetch campaigns')
+        }
+        
+        const data = await response.json()
+        // Navigate through the nested response structure
+        const campaignsData = data?.data?.data?.campaigns || []
+        const transformedCampaigns = campaignsData.map(transformCampaign)
+        setCampaigns(transformedCampaigns)
+      } catch (err) {
+        console.error('Error fetching campaigns:', err)
+        setError(err instanceof Error ? err.message : 'Failed to fetch campaigns')
+        toast({
+          title: "Error",
+          description: err instanceof Error ? err.message : 'Failed to fetch campaigns',
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCampaigns()
+  }, [toast])
+
   // Calculate overall metrics
   const overallMetrics = useMemo(() => {
-    const totalSpend = mockCampaigns.reduce((sum, campaign) => sum + campaign.spend, 0)
-    const totalImpressions = mockCampaigns.reduce((sum, campaign) => sum + campaign.impressions, 0)
-    const totalClicks = mockCampaigns.reduce((sum, campaign) => sum + campaign.clicks, 0)
-    const totalConversions = mockCampaigns.reduce((sum, campaign) => sum + campaign.conversions, 0)
+    const totalSpend = campaigns.reduce((sum, campaign) => sum + campaign.spend, 0)
+    const totalImpressions = campaigns.reduce((sum, campaign) => sum + campaign.impressions, 0)
+    const totalClicks = campaigns.reduce((sum, campaign) => sum + campaign.clicks, 0)
+    const totalConversions = campaigns.reduce((sum, campaign) => sum + campaign.conversions, 0)
     const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
     const avgCpc = totalClicks > 0 ? totalSpend / totalClicks : 0
     const avgCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0
-    const totalRevenue = mockCampaigns.reduce((sum, campaign) => sum + campaign.spend * campaign.roas, 0)
+    const totalRevenue = campaigns.reduce((sum, campaign) => sum + campaign.spend * campaign.roas, 0)
     const avgRoas = totalSpend > 0 ? totalRevenue / totalSpend : 0
 
     return {
@@ -233,31 +269,45 @@ export default function AdsTab() {
       avgCpc,
       avgCpm,
       avgRoas,
-      activeCampaigns: mockCampaigns.filter((c) => c.status === "active").length,
+      activeCampaigns: campaigns.filter((c) => c.status === "active").length,
     }
-  }, [])
+  }, [campaigns])
 
   // Calculate platform-specific metrics
   const platformMetrics: PlatformMetrics[] = useMemo(() => {
-    const platforms: ("meta" | "snapchat" | "tiktok")[] = ["meta", "snapchat", "tiktok"]
+    const platforms: ("meta" | "snapchat" | "tiktok" | "google")[] = ["google", "meta", "snapchat", "tiktok"]
     
     return platforms.map((platform) => {
-      const campaigns = mockCampaigns.filter((c) => c.platform === platform)
-      const totalSpend = campaigns.reduce((sum, c) => sum + c.spend, 0)
-      const totalImpressions = campaigns.reduce((sum, c) => sum + c.impressions, 0)
-      const totalClicks = campaigns.reduce((sum, c) => sum + c.clicks, 0)
-      const totalConversions = campaigns.reduce((sum, c) => sum + c.conversions, 0)
+      const platformCampaigns = campaigns.filter((c) => c.platform === platform)
+      const totalSpend = platformCampaigns.reduce((sum, c) => sum + c.spend, 0)
+      const totalImpressions = platformCampaigns.reduce((sum, c) => sum + c.impressions, 0)
+      const totalClicks = platformCampaigns.reduce((sum, c) => sum + c.clicks, 0)
+      const totalConversions = platformCampaigns.reduce((sum, c) => sum + c.conversions, 0)
       const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
       const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0
       const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0
-      const totalRevenue = campaigns.reduce((sum, c) => sum + c.spend * c.roas, 0)
+      const totalRevenue = platformCampaigns.reduce((sum, c) => sum + c.spend * c.roas, 0)
       const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0
+
+      const platformNames: Record<typeof platform, string> = {
+        google: "Google Ads",
+        meta: "Meta (Facebook/Instagram)",
+        snapchat: "Snapchat",
+        tiktok: "TikTok",
+      }
+
+      const platformColors: Record<typeof platform, string> = {
+        google: "green",
+        meta: "blue",
+        snapchat: "yellow",
+        tiktok: "pink",
+      }
 
       return {
         platform,
-        name: platform === "meta" ? "Meta (Facebook/Instagram)" : platform === "snapchat" ? "Snapchat" : "TikTok",
+        name: platformNames[platform],
         icon: getPlatformIcon(platform),
-        color: platform === "meta" ? "blue" : platform === "snapchat" ? "yellow" : "pink",
+        color: platformColors[platform],
         totalSpend,
         impressions: totalImpressions,
         clicks: totalClicks,
@@ -266,25 +316,26 @@ export default function AdsTab() {
         cpc,
         cpm,
         roas,
-        activeCampaigns: campaigns.filter((c) => c.status === "active").length,
-        trend: Math.random() > 0.5 ? "up" : "down",
+        activeCampaigns: platformCampaigns.filter((c) => c.status === "active").length,
+        trend: (Math.random() > 0.5 ? "up" : "down") as "up" | "down",
         trendPercentage: Math.floor(Math.random() * 30) + 5,
       }
-    })
-  }, [])
+    }).filter((p) => p.activeCampaigns > 0 || p.totalSpend > 0) // Only show platforms with campaigns
+  }, [campaigns])
 
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterPlatform, setFilterPlatform] = useState<"all" | "meta" | "snapchat" | "tiktok">("all")
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused" | "completed">("all")
+  const [filterPlatform, setFilterPlatform] = useState<"all" | "meta" | "snapchat" | "tiktok" | "google">("all")
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused" | "completed" | "draft" | "pending">("all")
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const filteredCampaigns = useMemo(() => {
-    return mockCampaigns.filter((campaign) => {
+    return campaigns.filter((campaign) => {
       const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesPlatform = filterPlatform === "all" || campaign.platform === filterPlatform
       const matchesStatus = filterStatus === "all" || campaign.status === filterStatus
       return matchesSearch && matchesPlatform && matchesStatus
     })
-  }, [searchTerm, filterPlatform, filterStatus])
+  }, [campaigns, searchTerm, filterPlatform, filterStatus])
 
   return (
     <div className="space-y-6">
@@ -294,7 +345,10 @@ export default function AdsTab() {
           <h2 className="text-2xl font-bold dark:text-white">Ads Management</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage and track your advertising campaigns across platforms</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+        <button 
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        >
           <Plus className="w-4 h-4" />
           Create Campaign
         </button>
@@ -485,6 +539,7 @@ export default function AdsTab() {
             className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">All Platforms</option>
+            <option value="google">Google Ads</option>
             <option value="meta">Meta</option>
             <option value="snapchat">Snapchat</option>
             <option value="tiktok">TikTok</option>
@@ -498,27 +553,42 @@ export default function AdsTab() {
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="completed">Completed</option>
+            <option value="draft">Draft</option>
+            <option value="pending">Pending</option>
           </select>
         </div>
 
         {/* Campaigns Table */}
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Campaign</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Platform</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Spend / Budget</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Impressions</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Clicks</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Conversions</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">CTR</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ROAS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredCampaigns.map((campaign) => {
+          {loading ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400">Loading campaigns...</p>
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center">
+              <p className="text-red-500 dark:text-red-400">{error}</p>
+            </div>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400">No campaigns found</p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Campaign</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Platform</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Spend / Budget</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Impressions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Clicks</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Conversions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">CTR</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ROAS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredCampaigns.map((campaign) => {
                 const PlatformIcon = getPlatformIcon(campaign.platform)
                 const spendPercentage = (campaign.spend / campaign.budget) * 100
                 return (
@@ -573,10 +643,56 @@ export default function AdsTab() {
                   </tr>
                 )
               })}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
+
+      {/* Create Campaign Modal */}
+      <CreateCampaignModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={async (data: CampaignData) => {
+          const response = await fetch('/api/ads/campaigns', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(data),
+          })
+
+          const result = await response.json()
+
+          if (!response.ok) {
+            const errorMessage = result.error || 'Failed to create campaign'
+            toast({
+              title: "Error",
+              description: errorMessage,
+              variant: "destructive",
+            })
+            throw new Error(errorMessage)
+          }
+
+          toast({
+            title: "Campaign created",
+            description: "Your campaign has been successfully created.",
+            variant: "success",
+          })
+          
+          // Refresh campaigns list
+          const refreshResponse = await fetch('/api/ads/campaigns', {
+            credentials: 'include',
+          })
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json()
+            const campaignsData = refreshData?.data?.data?.campaigns || []
+            const transformedCampaigns = campaignsData.map(transformCampaign)
+            setCampaigns(transformedCampaigns)
+          }
+        }}
+      />
     </div>
   )
 }
