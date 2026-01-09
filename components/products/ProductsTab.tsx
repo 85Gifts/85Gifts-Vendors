@@ -11,7 +11,9 @@ import {
   XCircle,
   Star,
   DollarSign,
+  Boxes,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useToast } from "../ui/use-toast"
 
 // Define Product type (for display)
@@ -58,6 +60,7 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
   const [productsError, setProductsError] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
+  const router = useRouter()
   const { toast } = useToast()
 
   const categories = ["Gift Sets", "Food & Treats", "Personalized", "Electronics", "Home & Garden", "Fashion"]
@@ -374,7 +377,17 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
             filteredProducts.map((product) => (
               <div key={product.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow overflow-hidden">
                 {/* Product Image */}
-                <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                  {/* Manage Inventory Button */}
+                  <button
+                    onClick={() => router.push('/inventory')}
+                    className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-3 py-1.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-1.5 text-xs font-semibold backdrop-blur-sm bg-opacity-90 hover:scale-105 z-10"
+                    title="Manage Inventory"
+                  >
+                    <Boxes className="w-3 h-3" />
+                    <span>Manage Inventory</span>
+                  </button>
+                  
                   {product.image && product.image.startsWith('http') ? (
                     <img 
                       src={product.image} 
