@@ -21,6 +21,7 @@ import {
   ArrowDownRight,
 } from "lucide-react"
 import CreateCampaignModal, { CampaignData } from "./CreateCampaignModal"
+import CampaignDetailsModal from "./CampaignDetailsModal"
 import { useToast } from "@/components/ui/use-toast"
 
 interface ApiCampaign {
@@ -47,7 +48,7 @@ interface ApiCampaign {
   updatedAt: string
 }
 
-interface AdCampaign {
+export interface AdCampaign {
   id: string
   name: string
   platform: "meta" | "snapchat" | "tiktok" | "google"
@@ -327,6 +328,8 @@ export default function AdsTab() {
   const [filterPlatform, setFilterPlatform] = useState<"all" | "meta" | "snapchat" | "tiktok" | "google">("all")
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused" | "completed" | "draft" | "pending">("all")
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedCampaign, setSelectedCampaign] = useState<AdCampaign | null>(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
@@ -592,7 +595,14 @@ export default function AdsTab() {
                 const PlatformIcon = getPlatformIcon(campaign.platform)
                 const spendPercentage = (campaign.spend / campaign.budget) * 100
                 return (
-                  <tr key={campaign.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <tr 
+                    key={campaign.id} 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedCampaign(campaign)
+                      setIsDetailsModalOpen(true)
+                    }}
+                  >
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-medium dark:text-white">{campaign.name}</div>
@@ -691,6 +701,40 @@ export default function AdsTab() {
             const transformedCampaigns = campaignsData.map(transformCampaign)
             setCampaigns(transformedCampaigns)
           }
+        }}
+      />
+
+      {/* Campaign Details Modal */}
+      <CampaignDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false)
+          setSelectedCampaign(null)
+        }}
+        campaign={selectedCampaign}
+        onPublishToGoogle={(campaign) => {
+          toast({
+            title: "Publishing to Google Ads",
+            description: `Publishing "${campaign.name}" to Google Ads...`,
+            variant: "default",
+          })
+          // TODO: Implement actual Google Ads API integration
+        }}
+        onPublishToMeta={(campaign) => {
+          toast({
+            title: "Publishing to Meta Ads",
+            description: `Publishing "${campaign.name}" to Meta Ads...`,
+            variant: "default",
+          })
+          // TODO: Implement actual Meta Ads API integration
+        }}
+        onPublishToTikTok={(campaign) => {
+          toast({
+            title: "Publishing to TikTok Ads",
+            description: `Publishing "${campaign.name}" to TikTok Ads...`,
+            variant: "default",
+          })
+          // TODO: Implement actual TikTok Ads API integration
         }}
       />
     </div>
