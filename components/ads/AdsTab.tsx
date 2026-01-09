@@ -35,6 +35,7 @@ interface ApiCampaign {
   budgetCurrency: string
   startDate: string
   endDate: string
+  images?: string[]
   approval: {
     status: string
   }
@@ -64,6 +65,7 @@ export interface AdCampaign {
   cpc: number
   cpm: number
   roas: number
+  images?: string[]
 }
 
 interface PlatformMetrics {
@@ -120,6 +122,7 @@ const transformCampaign = (apiCampaign: ApiCampaign): AdCampaign => {
     cpc,
     cpm,
     roas,
+    images: apiCampaign.images || [],
   }
 }
 

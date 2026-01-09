@@ -67,6 +67,42 @@ export default function CampaignDetailsModal({
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Publish Buttons */}
+          <div className="pb-6 border-b dark:border-gray-800">
+            <h4 className="text-lg font-semibold mb-4 dark:text-white">Publish Campaign</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Google Ads Button */}
+              <button
+                onClick={handlePublishToGoogle}
+                className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold transform hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Search className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">Publish to Google Ads</span>
+              </button>
+
+              {/* Meta Ads Button */}
+              <button
+                onClick={handlePublishToMeta}
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold transform hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Facebook className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">Publish to Meta Ads</span>
+              </button>
+
+              {/* TikTok Ads Button */}
+              <button
+                onClick={handlePublishToTikTok}
+                className="group relative overflow-hidden bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold transform hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Music className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">Publish to TikTok Ads</span>
+              </button>
+            </div>
+          </div>
+
           {/* Campaign Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -154,41 +190,27 @@ export default function CampaignDetailsModal({
             </div>
           </div>
 
-          {/* Publish Buttons */}
-          <div className="pt-6 border-t dark:border-gray-800">
-            <h4 className="text-lg font-semibold mb-4 dark:text-white">Publish Campaign</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Google Ads Button */}
-              <button
-                onClick={handlePublishToGoogle}
-                className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold transform hover:scale-105"
-              >
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Search className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">Publish to Google Ads</span>
-              </button>
-
-              {/* Meta Ads Button */}
-              <button
-                onClick={handlePublishToMeta}
-                className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold transform hover:scale-105"
-              >
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Facebook className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">Publish to Meta Ads</span>
-              </button>
-
-              {/* TikTok Ads Button */}
-              <button
-                onClick={handlePublishToTikTok}
-                className="group relative overflow-hidden bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold transform hover:scale-105"
-              >
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Music className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">Publish to TikTok Ads</span>
-              </button>
+          {/* Campaign Images */}
+          {campaign.images && campaign.images.length > 0 && (
+            <div className="pt-6 border-t dark:border-gray-800">
+              <h4 className="text-lg font-semibold mb-4 dark:text-white">Campaign Images</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {campaign.images.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={imageUrl}
+                      alt={`Campaign image ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
