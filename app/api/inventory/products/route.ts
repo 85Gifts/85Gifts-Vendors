@@ -15,7 +15,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${API_URL}/api/vendors/inventory/summary`, {
+    const { searchParams } = new URL(request.url);
+    const page = searchParams.get('page') || '1';
+    const limit = searchParams.get('limit') || '20';
+    const status = searchParams.get('status');
+    const category = searchParams.get('category');
+    const search = searchParams.get('search');
+
+    // Build query parameters
+    const queryParams = new URLSearchParams({
+      page,
+      limit,
+    });
+
+    if (status) {
+      queryParams.append('status', status);
+    }
+    if (category) {
+      queryParams.append('category', category);
+    }
+    if (search) {
+      queryParams.append('search', search);
+    }
+
+    const response = await fetch(`${API_URL}/api/vendors/inventory/products?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -27,14 +50,14 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: data.message || data.error || 'Failed to fetch inventory summary' },
+        { error: data.message || data.error || 'Failed to fetch inventory products' },
         { status: response.status }
       );
     }
 
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('Fetch Inventory Summary API Error:', error);
+    console.error('Fetch Inventory Products API Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

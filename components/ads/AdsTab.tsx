@@ -214,6 +214,17 @@ export default function AdsTab() {
     []
   )
 
+  const nairaFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: "NGN",
+        maximumFractionDigits: 0,
+        currencyDisplay: "narrowSymbol",
+      }),
+    []
+  )
+
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
 
   // Fetch campaigns from API
@@ -447,8 +458,8 @@ export default function AdsTab() {
         </div>
       </div>
 
-      {/* Platform Performance */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+      {/* Platform Performance - Commented Out */}
+      {/* <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 dark:text-white">
           <BarChart3 className="w-5 h-5" />
           Platform Performance
@@ -515,6 +526,131 @@ export default function AdsTab() {
               </div>
             )
           })}
+        </div>
+      </div> */}
+
+      {/* Platform Pricing Cards */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <DollarSign className="w-5 h-5" />
+          Platform Pricing
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Google Ads Pricing Card */}
+          <div className="border dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow dark:bg-gray-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Search className={`w-6 h-6 ${getPlatformColor("google")}`} />
+              <div>
+                <h4 className="font-semibold dark:text-white">Google Ads</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Search & Display</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Min. Budget</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(50000)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPC</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(150)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPM</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(2000)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm pt-2 border-t dark:border-gray-700">
+                <span className="text-gray-600 dark:text-gray-400 font-semibold">Setup Fee</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">{nairaFormatter.format(10000)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Meta Ads Pricing Card */}
+          <div className="border dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow dark:bg-gray-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Facebook className={`w-6 h-6 ${getPlatformColor("meta")}`} />
+              <div>
+                <h4 className="font-semibold dark:text-white">Meta Ads</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Facebook & Instagram</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Min. Budget</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(30000)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPC</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(120)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPM</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(1800)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm pt-2 border-t dark:border-gray-700">
+                <span className="text-gray-600 dark:text-gray-400 font-semibold">Setup Fee</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">{nairaFormatter.format(8000)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* TikTok Ads Pricing Card */}
+          <div className="border dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow dark:bg-gray-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Instagram className={`w-6 h-6 ${getPlatformColor("tiktok")}`} />
+              <div>
+                <h4 className="font-semibold dark:text-white">TikTok Ads</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Video & In-Feed</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Min. Budget</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(40000)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPC</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(100)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPM</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(1500)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm pt-2 border-t dark:border-gray-700">
+                <span className="text-gray-600 dark:text-gray-400 font-semibold">Setup Fee</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">{nairaFormatter.format(12000)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Snapchat Ads Pricing Card */}
+          <div className="border dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow dark:bg-gray-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Zap className={`w-6 h-6 ${getPlatformColor("snapchat")}`} />
+              <div>
+                <h4 className="font-semibold dark:text-white">Snapchat Ads</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Stories & AR</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Min. Budget</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(35000)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPC</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(110)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Avg. CPM</span>
+                <span className="font-medium dark:text-white">{nairaFormatter.format(1700)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm pt-2 border-t dark:border-gray-700">
+                <span className="text-gray-600 dark:text-gray-400 font-semibold">Setup Fee</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">{nairaFormatter.format(9000)}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

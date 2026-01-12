@@ -1,51 +1,87 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw } from 'lucide-react';
+import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface InventoryItem {
-  id: string;
-  productId: string;
-  quantity: number;
-  lowStockThreshold: number;
-  reservedQuantity: number;
-  sku?: string;
-  status: string;
+interface InventoryProduct {
+  _id: string;
+  name: string;
+  description: string;
+  category: string;
+  inventory: {
+    totalQuantity: number;
+    reservedQuantity: number;
+    availableQuantity: number;
+    itemCount: number;
+    hasVariants: boolean;
+    status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'discontinued';
+  };
+}
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 interface InventoryListProps {
-  onEdit?: (item: InventoryItem) => void;
+  onEdit?: (item: any) => void;
 }
 
 export default function InventoryList({ onEdit }: InventoryListProps) {
-  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'in-stock' | 'low-stock' | 'out-of-stock'>('all');
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [filter, setFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock' | 'discontinued'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchInventory();
-  }, [filter]);
+  }, [filter, categoryFilter, currentPage, searchTerm]);
 
   const fetchInventory = async () => {
     try {
       setLoading(true);
-      let url = '/api/inventory';
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '20',
+      });
 
-      if (filter === 'low-stock') {
-        url = '/api/inventory/low-stock';
-      } else if (filter === 'out-of-stock') {
-        url = '/api/inventory/out-of-stock';
+      if (filter !== 'all') {
+        params.append('status', filter);
+      }
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+      if (searchTerm) {
+        params.append('search', searchTerm);
       }
 
-      const response = await fetch(url);
+      const response = await fetch(`/api/inventory/products?${params.toString()}`, {
+        credentials: 'include',
+      });
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch inventory');
       }
 
-      setItems(data.data || []);
+      // Handle nested response structure
+      const productsData = data?.data?.data?.products || data?.data?.products || [];
+      const paginationData = data?.data?.data?.pagination || data?.data?.pagination;
+
+      setProducts(productsData);
+      setPagination(paginationData);
+
+      // Extract unique categories
+      const uniqueCategories = Array.from(new Set(productsData.map((p: InventoryProduct) => p.category))).filter(Boolean) as string[];
+      setCategories(uniqueCategories);
     } catch (err) {
       console.error('Error fetching inventory:', err);
     } finally {
@@ -53,26 +89,40 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
     }
   };
 
-  const getStockStatus = (item: InventoryItem) => {
-    const available = item.quantity - item.reservedQuantity;
-    if (available === 0) return { status: 'out-of-stock', label: 'Out of Stock', icon: XCircle };
-    if (available <= item.lowStockThreshold) return { status: 'low-stock', label: 'Low Stock', icon: AlertTriangle };
-    return { status: 'in-stock', label: 'In Stock', icon: CheckCircle };
+  const getStockStatus = (status: string) => {
+    switch (status) {
+      case 'in_stock':
+        return { status: 'in_stock', label: 'In Stock', icon: CheckCircle };
+      case 'low_stock':
+        return { status: 'low_stock', label: 'Low Stock', icon: AlertTriangle };
+      case 'out_of_stock':
+        return { status: 'out_of_stock', label: 'Out of Stock', icon: XCircle };
+      case 'discontinued':
+        return { status: 'discontinued', label: 'Discontinued', icon: XCircle };
+      default:
+        return { status: 'in_stock', label: 'In Stock', icon: CheckCircle };
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in-stock': return 'text-green-600 bg-green-100';
-      case 'low-stock': return 'text-yellow-600 bg-yellow-100';
-      case 'out-of-stock': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'in_stock': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
+      case 'low_stock': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
+      case 'out_of_stock': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
+      case 'discontinued': return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
+      default: return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
     }
   };
 
-  const filteredItems = items.filter(item =>
-    item.productId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.sku && item.sku.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="space-y-6">
@@ -95,88 +145,199 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
       <div className="flex flex-col sm:flex-row gap-4">
         <input
           type="text"
-          placeholder="Search by SKU or Product ID..."
+          placeholder="Search products..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearch}
           className="flex-1 px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
+          onChange={(e) => {
+            setFilter(e.target.value as any);
+            setCurrentPage(1);
+          }}
           className="px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="all">All Items</option>
-          <option value="in-stock">In Stock</option>
-          <option value="low-stock">Low Stock</option>
-          <option value="out-of-stock">Out of Stock</option>
+          <option value="all">All Status</option>
+          <option value="in_stock">In Stock</option>
+          <option value="low_stock">Low Stock</option>
+          <option value="out_of_stock">Out of Stock</option>
+          <option value="discontinued">Discontinued</option>
+        </select>
+        <select
+          value={categoryFilter}
+          onChange={(e) => {
+            setCategoryFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
         </select>
       </div>
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading inventory...</div>
-      ) : filteredItems.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <Package className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <p className="text-gray-600 dark:text-gray-300 mb-2">No inventory items found</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filter</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border dark:border-gray-700">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">SKU</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quantity</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reserved</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredItems.map((item) => {
-                  const available = item.quantity - item.reservedQuantity;
-                  const { status, label, icon: StatusIcon } = getStockStatus(item);
-                  return (
-                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {item.productId}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {item.sku || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium dark:text-white">{item.quantity}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {item.reservedQuantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium dark:text-white">
-                        {available}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
-                          <StatusIcon className="w-3 h-3" />
-                          {label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => onEdit && onEdit(item)}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border dark:border-gray-700">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Quantity</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reserved</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Items</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {products.map((product) => {
+                    const { status, label, icon: StatusIcon } = getStockStatus(product.inventory.status);
+                    return (
+                      <tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{product.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{product.description}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {product.category}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium dark:text-white">{product.inventory.totalQuantity}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {product.inventory.reservedQuantity}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium dark:text-white">
+                          {product.inventory.availableQuantity}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {product.inventory.itemCount}
+                          {product.inventory.hasVariants && (
+                            <span className="ml-1 text-xs text-blue-600 dark:text-blue-400">(variants)</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                            <StatusIcon className="w-3 h-3" />
+                            {label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => onEdit && onEdit(product)}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Pagination */}
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-3 border-t dark:border-gray-700 rounded-lg">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPrev}
+                  className="relative inline-flex items-center px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNext}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
+                    <span className="font-medium">
+                      {Math.min(pagination.page * pagination.limit, pagination.total)}
+                    </span>{' '}
+                    of <span className="font-medium">{pagination.total}</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={!pagination.hasPrev}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        // Show first page, last page, current page, and pages around current
+                        return (
+                          page === 1 ||
+                          page === pagination.totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        );
+                      })
+                      .map((page, idx, arr) => {
+                        // Add ellipsis if there's a gap
+                        const showEllipsisBefore = idx > 0 && arr[idx - 1] !== page - 1;
+                        return (
+                          <div key={page} className="flex items-center">
+                            {showEllipsisBefore && (
+                              <span className="relative inline-flex items-center px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium">
+                                ...
+                              </span>
+                            )}
+                            <button
+                              onClick={() => handlePageChange(page)}
+                              className={`relative inline-flex items-center px-4 py-2 border dark:border-gray-700 text-sm font-medium ${
+                                currentPage === page
+                                  ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                                  : 'dark:bg-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!pagination.hasNext}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
