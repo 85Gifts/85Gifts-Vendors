@@ -67,73 +67,73 @@ export default function InventoryDashboard() {
   };
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-500">Loading dashboard...</div>;
+    return <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading dashboard...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold flex items-center gap-2">
-        <Package className="w-6 h-6 text-blue-600" />
+      <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
+        <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
         Inventory Dashboard
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-blue-500 dark:border-blue-400">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Items</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Items</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 {summary?.totalItems || 0}
               </p>
             </div>
-            <Package className="w-12 h-12 text-blue-500" />
+            <Package className="w-12 h-12 text-blue-500 dark:text-blue-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-green-500 dark:border-green-400">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Stock</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Stock</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 {summary?.totalQuantity || 0}
               </p>
             </div>
-            <TrendingUp className="w-12 h-12 text-green-500" />
+            <TrendingUp className="w-12 h-12 text-green-500 dark:text-green-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-yellow-500 dark:border-yellow-400">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Low Stock Alerts</p>
-              <p className="text-3xl font-bold text-yellow-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Low Stock Alerts</p>
+              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                 {summary?.lowStockCount || 0}
               </p>
             </div>
-            <AlertTriangle className="w-12 h-12 text-yellow-500" />
+            <AlertTriangle className="w-12 h-12 text-yellow-500 dark:text-yellow-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-red-500 dark:border-red-400">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Out of Stock</p>
-              <p className="text-3xl font-bold text-red-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Out of Stock</p>
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400">
                 {summary?.outOfStockCount || 0}
               </p>
             </div>
-            <AlertTriangle className="w-12 h-12 text-red-500" />
+            <AlertTriangle className="w-12 h-12 text-red-500 dark:text-red-400" />
           </div>
         </div>
       </div>
 
       {summary && summary.lowStockCount > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-yellow-800">Low Stock Warning</h4>
-              <p className="text-sm text-yellow-700">
+              <h4 className="font-semibold text-yellow-800 dark:text-yellow-300">Low Stock Warning</h4>
+              <p className="text-sm text-yellow-700 dark:text-yellow-400">
                 You have {summary.lowStockCount} item(s) with low stock levels.
                 Consider restocking soon to avoid stockouts.
               </p>
@@ -143,12 +143,12 @@ export default function InventoryDashboard() {
       )}
 
       {summary && summary.outOfStockCount > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-red-800">Out of Stock Alert</h4>
-              <p className="text-sm text-red-700">
+              <h4 className="font-semibold text-red-800 dark:text-red-300">Out of Stock Alert</h4>
+              <p className="text-sm text-red-700 dark:text-red-400">
                 You have {summary.outOfStockCount} item(s) out of stock.
                 These products won't be available for purchase until restocked.
               </p>
@@ -157,20 +157,20 @@ export default function InventoryDashboard() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Additional Details</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border dark:border-gray-700">
+        <h3 className="text-lg font-semibold mb-4 dark:text-white">Additional Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-blue-600">Total Reserved</p>
-            <p className="text-2xl font-bold text-blue-900">{summary?.totalReserved || 0}</p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border dark:border-blue-800">
+            <p className="text-sm text-blue-600 dark:text-blue-400">Total Reserved</p>
+            <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">{summary?.totalReserved || 0}</p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm text-green-600">Available Stock</p>
-            <p className="text-2xl font-bold text-green-900">{summary?.totalAvailable || 0}</p>
+          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-800">
+            <p className="text-sm text-green-600 dark:text-green-400">Available Stock</p>
+            <p className="text-2xl font-bold text-green-900 dark:text-green-300">{summary?.totalAvailable || 0}</p>
           </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-sm text-purple-600">Average Stock</p>
-            <p className="text-2xl font-bold text-purple-900">{summary?.averageStock || 0}</p>
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border dark:border-purple-800">
+            <p className="text-sm text-purple-600 dark:text-purple-400">Average Stock</p>
+            <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">{summary?.averageStock || 0}</p>
           </div>
         </div>
       </div>
