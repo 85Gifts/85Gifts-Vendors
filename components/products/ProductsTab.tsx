@@ -162,6 +162,55 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
     }
   }, [onRefreshRequested, fetchProducts])
 
+  const handleManageInventory = async (product: Product) => {
+    if (!product.id) {
+      toast({
+        title: "Error",
+        description: "Product ID is required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const response = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          productId: product.id.toString(),
+          sellingPrice: product.price,
+          quantity: product.stock,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create inventory')
+      }
+
+      toast({
+        title: "Inventory created",
+        description: "Inventory has been created successfully. Redirecting to inventory page...",
+        variant: "success",
+      })
+
+      // Navigate to inventory page after a short delay
+      setTimeout(() => {
+        router.push('/inventory')
+      }, 1000)
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : 'Failed to create inventory',
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleDeleteProduct = async (id: string | number) => {
     if (!confirm('Are you sure you want to delete this product?')) {
       return
@@ -380,7 +429,7 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                 <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                   {/* Manage Inventory Button */}
                   <button
-                    onClick={() => router.push('/inventory')}
+                    onClick={() => handleManageInventory(product)}
                     className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-3 py-1.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-1.5 text-xs font-semibold backdrop-blur-sm bg-opacity-90 hover:scale-105 z-10"
                     title="Manage Inventory"
                   >
