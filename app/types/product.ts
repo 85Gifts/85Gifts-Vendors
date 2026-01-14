@@ -18,3 +18,23 @@ export interface ProductFormData {
   stock?: string | number;
   image?: File | null;
 }
+
+export interface InventoryMovement {
+  id?: string;
+  productId: string;
+  productName: string;
+  quantityChange: number;
+  type: 'added' | 'sold' | 'adjusted' | 'restocked';
+  reason?: string;
+  timestamp: string;
+  previousStock: number;
+  newStock: number;
+}
+
+export interface InventoryStats {
+  totalProducts: number;
+  totalStock: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  recentMovements: InventoryMovement[];
+}

@@ -365,9 +365,9 @@ export default function DashboardTab() {
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800">
+        <div className="p-6 border-b dark:border-gray-800">
+          <h3 className="text-lg font-semibold flex items-center gap-2 dark:text-white">
             <History className="w-5 h-5" />
             Recent Transactions
           </h3>
@@ -375,40 +375,40 @@ export default function DashboardTab() {
         <div className="overflow-x-auto">
           {transactionsLoading ? (
             <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Loading transactions...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">Loading transactions...</p>
             </div>
           ) : transactionsError ? (
             <div className="p-8 text-center">
-              <p className="text-red-600 font-semibold">Error loading transactions</p>
-              <p className="text-sm text-gray-500 mt-1">{transactionsError}</p>
+              <p className="text-red-600 dark:text-red-400 font-semibold">Error loading transactions</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{transactionsError}</p>
               <button
                 onClick={fetchTransactions}
-                className="mt-4 text-sm text-blue-600 hover:text-blue-800 underline"
+                className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               >
                 Try again
               </button>
             </div>
           ) : transactions.length === 0 ? (
             <div className="p-8 text-center">
-              <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No transactions found</p>
-              <p className="text-sm text-gray-500 mt-1">Your transaction history will appear here</p>
+              <History className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">No transactions found</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">Your transaction history will appear here</p>
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Balance</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {transactions.slice(0, 10).map((transaction) => {
                   const date = new Date(transaction.processedAt || transaction.createdAt)
                   const formattedDate = date.toLocaleDateString('en-US', { 
@@ -420,43 +420,43 @@ export default function DashboardTab() {
                   })
                   
                   return (
-                    <tr key={transaction._id} className="hover:bg-gray-50">
+                    <tr key={transaction._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           {transaction.type === 'credit' ? (
-                            <ArrowDownRight className="w-4 h-4 text-green-600" />
+                            <ArrowDownRight className="w-4 h-4 text-green-600 dark:text-green-400" />
                           ) : (
-                            <ArrowUpRight className="w-4 h-4 text-red-600" />
+                            <ArrowUpRight className="w-4 h-4 text-red-600 dark:text-red-400" />
                           )}
                           <span className={`font-medium capitalize ${
-                            transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                            transaction.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                           }`}>
                             {transaction.type}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-medium">{transaction.description || 'N/A'}</div>
-                        <div className="text-sm text-gray-500">{transaction.reference}</div>
+                        <div className="font-medium dark:text-white">{transaction.description || 'N/A'}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{transaction.reference}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium capitalize">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium capitalize">
                           {transaction.category}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`font-bold ${
-                          transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                          transaction.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                         }`}>
                           {transaction.type === 'credit' ? '+' : '-'}
                           {currencyFormatter.format(transaction.amount)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-medium">{currencyFormatter.format(transaction.balanceAfter)}</div>
-                        <div className="text-xs text-gray-500">From {currencyFormatter.format(transaction.balanceBefore)}</div>
+                        <div className="font-medium dark:text-white">{currencyFormatter.format(transaction.balanceAfter)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">From {currencyFormatter.format(transaction.balanceBefore)}</div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                         {formattedDate}
                       </td>
                       <td className="px-6 py-4">
@@ -486,43 +486,43 @@ export default function DashboardTab() {
 
       {/* Performance Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 dark:text-white">
             <TrendingUp className="w-5 h-5" />
             Performance Metrics
           </h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Wallet Balance</span>
-              <span className="font-medium">
+              <span className="text-gray-600 dark:text-gray-400">Wallet Balance</span>
+              <span className="font-medium dark:text-white">
                 {walletLoading ? (
-                  <span className="text-gray-400">Loading...</span>
+                  <span className="text-gray-400 dark:text-gray-500">Loading...</span>
                 ) : walletError ? (
-                  <span className="text-red-500 text-sm">Error</span>
+                  <span className="text-red-500 dark:text-red-400 text-sm">Error</span>
                 ) : (
                   currencyFormatter.format(wallet?.balance || 0)
                 )}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Earnings</span>
-              <span className="font-medium">
+              <span className="text-gray-600 dark:text-gray-400">Total Earnings</span>
+              <span className="font-medium dark:text-white">
                 {walletLoading ? (
-                  <span className="text-gray-400">Loading...</span>
+                  <span className="text-gray-400 dark:text-gray-500">Loading...</span>
                 ) : walletError ? (
-                  <span className="text-red-500 text-sm">Error</span>
+                  <span className="text-red-500 dark:text-red-400 text-sm">Error</span>
                 ) : (
                   currencyFormatter.format(wallet?.totalEarnings || 0)
                 )}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Withdrawals</span>
-              <span className="font-medium text-yellow-600">
+              <span className="text-gray-600 dark:text-gray-400">Total Withdrawals</span>
+              <span className="font-medium text-yellow-600 dark:text-yellow-400">
                 {walletLoading ? (
-                  <span className="text-gray-400">Loading...</span>
+                  <span className="text-gray-400 dark:text-gray-500">Loading...</span>
                 ) : walletError ? (
-                  <span className="text-red-500 text-sm">Error</span>
+                  <span className="text-red-500 dark:text-red-400 text-sm">Error</span>
                 ) : (
                   currencyFormatter.format(wallet?.totalWithdrawals || 0)
                 )}
@@ -531,20 +531,20 @@ export default function DashboardTab() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Vendor Profile</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Vendor Profile</h3>
           {profileLoading ? (
             <div className="py-4 text-center">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-sm text-gray-600">Loading profile...</p>
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile...</p>
             </div>
           ) : profileError ? (
             <div className="py-4 text-center">
-              <p className="text-red-600 text-sm font-semibold">Error loading profile</p>
-              <p className="text-xs text-gray-500 mt-1">{profileError}</p>
+              <p className="text-red-600 dark:text-red-400 text-sm font-semibold">Error loading profile</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{profileError}</p>
               <button
                 onClick={fetchProfile}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               >
                 Try again
               </button>
@@ -552,33 +552,33 @@ export default function DashboardTab() {
           ) : vendorProfile ? (
             <div className="space-y-3">
               <div>
-                <span className="text-gray-600 text-sm">Business Name</span>
-                <div className="font-medium">{vendorProfile.businessName || vendorProfile.name}</div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Business Name</span>
+                <div className="font-medium dark:text-white">{vendorProfile.businessName || vendorProfile.name}</div>
               </div>
               <div>
-                <span className="text-gray-600 text-sm">Contact Name</span>
-                <div className="font-medium">{vendorProfile.name}</div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Contact Name</span>
+                <div className="font-medium dark:text-white">{vendorProfile.name}</div>
               </div>
               <div>
-                <span className="text-gray-600 text-sm">Email</span>
-                <div className="font-medium">{vendorProfile.email}</div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Email</span>
+                <div className="font-medium dark:text-white">{vendorProfile.email}</div>
               </div>
               <div>
-                <span className="text-gray-600 text-sm">Phone</span>
-                <div className="font-medium">{vendorProfile.phone}</div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Phone</span>
+                <div className="font-medium dark:text-white">{vendorProfile.phone}</div>
               </div>
               <div>
-                <span className="text-gray-600 text-sm">Address</span>
-                <div className="font-medium text-sm">{vendorProfile.address}</div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Address</span>
+                <div className="font-medium text-sm dark:text-white">{vendorProfile.address}</div>
               </div>
               <div>
-                <span className="text-gray-600 text-sm">Member Since</span>
-                <div className="font-medium">{vendorProfile.joinDate}</div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Member Since</span>
+                <div className="font-medium dark:text-white">{vendorProfile.joinDate}</div>
               </div>
             </div>
           ) : (
             <div className="py-4 text-center">
-              <p className="text-gray-600 text-sm">No profile data available</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">No profile data available</p>
             </div>
           )}
         </div>
@@ -586,10 +586,10 @@ export default function DashboardTab() {
 
       {/* Fund Wallet Modal */}
       {fundWalletModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">Fund Wallet</h3>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+              <h3 className="text-lg font-semibold dark:text-white">Fund Wallet</h3>
               <button
                 onClick={() => {
                   if (!fundingLoading) {
@@ -598,14 +598,14 @@ export default function DashboardTab() {
                   }
                 }}
                 disabled={fundingLoading}
-                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-6">
               <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Amount
                 </label>
                 <input
@@ -614,7 +614,7 @@ export default function DashboardTab() {
                   value={fundAmount}
                   onChange={(e) => setFundAmount(e.target.value)}
                   placeholder="Enter amount"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                   min="0"
                   step="0.01"
                   disabled={fundingLoading}
