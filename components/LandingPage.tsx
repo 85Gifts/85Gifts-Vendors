@@ -402,7 +402,7 @@ export default function LandingPage() {
                 avatar: "S",
                 color: "bg-yellow-500",
                 testimonial:
-                  "85Gifts transformed my business! The gift-specific features like custom messages and delivery scheduling are exactly what I needed. Sales increased 300% in 6 months!",
+                  "omniflow85 transformed my business! The gift-specific features like custom messages and delivery scheduling are exactly what I needed. Sales increased 300% in 6 months!",
               },
               {
                 name: "Tunde Adelabu",
@@ -465,7 +465,7 @@ export default function LandingPage() {
             </span>
           </h2>
           <p className="text-xl lg:text-2xl mb-12 text-purple-100 leading-relaxed">
-            Join thousands of successful vendors who chose 85Gifts to grow their business.
+            Join thousands of successful vendors who chose omniflow85 to grow their business.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
@@ -602,7 +602,7 @@ export default function LandingPage() {
 
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 mb-4 md:mb-0">
-              © 2025 85Gifts. All rights reserved. Made with ❤️ for retailers.
+              © 2025 omniflow85. All rights reserved. Made with ❤️ for retailers.
             </p>
             <div className="flex space-x-6 text-gray-400">
               <a href="#" className="hover:text-white transition-colors">
