@@ -373,7 +373,7 @@ export default function AuthPage() {
             </div>
 
             <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent mb-4">
-              Welcome to 85Gifts
+              Welcome to OmniFlow85
             </h2>
             <p className="text-lg text-gray-600 max-w-sm">
               {activeTab === "login"
