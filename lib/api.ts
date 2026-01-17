@@ -1,3 +1,7 @@
+import { redirectToLogin } from "@/lib/authRedirect"
+
+export type ApiError = Error & { status?: number }
+
 interface FetchOptions extends RequestInit {
   requiresAuth?: boolean;
 }
@@ -19,8 +23,22 @@ export async function apiClient(
     credentials: 'include', // Include cookies in requests
   };
 
-  const response = await fetch(endpoint, config);
-  const data = await response.json();
+  let response: Response;
+  try {
+    response = await fetch(endpoint, config);
+  } catch (error: any) {
+    const networkError: ApiError = new Error(error?.message || 'Network error');
+    networkError.status = 0;
+    throw networkError;
+  }
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    redirectToLogin()
+    const unauthorizedError: ApiError = new Error('Unauthorized');
+    unauthorizedError.status = response.status;
+    throw unauthorizedError;
+  }
 
   if (!response.ok) {
     // Safely extract error message from various possible formats
@@ -30,8 +48,9 @@ export async function apiClient(
       data?.message || 
       data?.detail ||
       'API request failed';
-    
-    throw new Error(errorMessage);
+    const apiError: ApiError = new Error(errorMessage);
+    apiError.status = response.status;
+    throw apiError;
   }
 
   return data;

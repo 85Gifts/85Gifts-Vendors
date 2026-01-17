@@ -12,11 +12,13 @@ export interface Vendor {
 export interface AuthContextType {
   vendor: Vendor | null;
   loading: boolean;
+  authError?: string;
   register: (userData: RegisterData) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<Vendor>) => Promise<any>;
   forgotPassword: (email: string) => Promise<any>;
+  refreshAuth?: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
