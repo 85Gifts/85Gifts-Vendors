@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Calendar, Clock, MapPin, Ticket, Users, ArrowLeft, Save, Plus, Trash2, Image, Tag } from "lucide-react"
+import { Calendar, Clock, MapPin, Ticket, Users, ArrowLeft, Save, Plus, Trash2, Image, Tag, ArrowRight, ChevronLeft } from "lucide-react"
 import { useToast } from "../ui/use-toast"
 import { config } from "../../config"
 import Cookies from "js-cookie"
@@ -93,9 +93,18 @@ const defaultValues: EventFormValues = {
   tags: "",
 }
 
+const steps = [
+  { number: 1, title: "Basic Info", description: "Event details and timing" },
+  { number: 2, title: "Location", description: "Where it happens" },
+  { number: 3, title: "Pricing", description: "Tickets and capacity" },
+  { number: 4, title: "Sales Period", description: "When tickets go on sale" },
+  { number: 5, title: "Details & Tiers", description: "Branding and ticket types" },
+]
+
 export default function EventForm(props: EventFormProps = {}): React.ReactElement {
   const router = useRouter()
   const { toast } = useToast()
+  const [currentStep, setCurrentStep] = useState(1)
   
   // Initialize state with props if available, otherwise use defaults
   const [values, setValues] = useState<EventFormValues>(() => {
@@ -136,14 +145,20 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     }
   }, [props.initialTiers])
 
-  const isValid = useMemo(() => {
-    const basic =
-      values.title && values.category && values.date && values.time && values.location && values.organiserName
-    const datesValid = values.endDate && values.endTime && values.salesStartDate && values.salesEndDate
-    const locValid = values.venue && values.city && values.country
-    const tiersValid = tiers.length > 0 && tiers.every((t) => t.name && t.price && t.capacity && t.type)
-    return Boolean(basic && datesValid && locValid && tiersValid)
+  // Validation for each step
+  const stepValidation = useMemo(() => {
+    return {
+      1: Boolean(values.title && values.category && values.date && values.time && values.organiserName && values.endDate && values.endTime),
+      2: Boolean(values.location && values.venue && values.city && values.country),
+      3: Boolean(values.price !== "" && values.capacity !== ""),
+      4: Boolean(values.salesStartDate && values.salesEndDate),
+      5: Boolean(tiers.length > 0 && tiers.every((t) => t.name && t.price && t.capacity && t.type)),
+    }
   }, [values, tiers])
+
+  const isValid = useMemo(() => {
+    return Object.values(stepValidation).every(valid => valid)
+  }, [stepValidation])
 
   const handleChange =
     (field: keyof EventFormValues) =>
@@ -167,6 +182,20 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     if (!d || !t) return ""
     const iso = new Date(`${d}T${t}`).toISOString()
     return iso
+  }
+
+  const handleNext = () => {
+    if (currentStep < 5) {
+      setCurrentStep(currentStep + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -275,422 +304,524 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-8">
-          <section className="space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Basics</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Event title</label>
-                <input
-                  type="text"
-                  value={values.title}
-                  onChange={handleChange("title")}
-                  placeholder="e.g., Holiday Pop-Up Experience"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="mt-1 text-xs text-gray-500">Keep it short and descriptive.</p>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Organiser name</label>
-                <input
-                  type="text"
-                  value={values.organiserName}
-                  onChange={handleChange("organiserName")}
-                  placeholder="e.g., Naija Events Pro"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Experience type</label>
-                <select
-                  value={values.category}
-                  onChange={handleChange("category")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select type</option>
-                  {validCategories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Date</label>
-                  <div className="relative">
-                    <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="date"
-                      value={values.date}
-                      onChange={handleChange("date")}
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Time</label>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="time"
-                      value={values.time}
-                      onChange={handleChange("time")}
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">End date</label>
-                  <div className="relative">
-                    <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="date"
-                      value={values.endDate}
-                      onChange={handleChange("endDate")}
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">End time</label>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="time"
-                      value={values.endTime}
-                      onChange={handleChange("endTime")}
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Location</label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={values.location}
-                    onChange={handleChange("location")}
-                    placeholder="Physical address or virtual link"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Venue</label>
-                  <input
-                    type="text"
-                    value={values.venue}
-                    onChange={handleChange("venue")}
-                    placeholder="e.g., Tafawa Balewa Square"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Address</label>
-                  <input
-                    type="text"
-                    value={values.address}
-                    onChange={handleChange("address")}
-                    placeholder="Street address"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">City</label>
-                  <input
-                    type="text"
-                    value={values.city}
-                    onChange={handleChange("city")}
-                    placeholder="e.g., Lagos"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">State</label>
-                  <input
-                    type="text"
-                    value={values.state}
-                    onChange={handleChange("state")}
-                    placeholder="e.g., Lagos"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Country</label>
-                  <input
-                    type="text"
-                    value={values.country}
-                    onChange={handleChange("country")}
-                    placeholder="e.g., Nigeria"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Tickets & limits</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Ticket price</label>
-                <div className="relative">
-                  <Ticket className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="number"
-                    min={0}
-                    value={values.price}
-                    onChange={handleChange("price")}
-                    placeholder="0 for free"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">Set 0 to make it a free RSVP.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Capacity</label>
-                <div className="relative">
-                  <Users className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="number"
-                    min={0}
-                    value={values.capacity}
-                    onChange={handleChange("capacity")}
-                    placeholder="Expected max attendees"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Sales period</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Sales start date</label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="date"
-                    value={values.salesStartDate}
-                    onChange={handleChange("salesStartDate")}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Sales start time (optional)</label>
-                <div className="relative">
-                  <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="time"
-                    value={values.salesStartTime}
-                    onChange={handleChange("salesStartTime")}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Sales end date</label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="date"
-                    value={values.salesEndDate}
-                    onChange={handleChange("salesEndDate")}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Sales end time (optional)</label>
-                <div className="relative">
-                  <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="time"
-                    value={values.salesEndTime}
-                    onChange={handleChange("salesEndTime")}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Branding & details</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Event icon / emoji</label>
-                <input
-                  type="text"
-                  maxLength={2}
-                  value={values.emoji}
-                  onChange={handleChange("emoji")}
-                  placeholder="e.g., 🎄"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Cover image URL</label>
-                <div className="relative">
-                  <Image className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="url"
-                    value={values.coverImageUrl}
-                    onChange={handleChange("coverImageUrl")}
-                    placeholder="https://..."
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Tags</label>
-                <div className="relative">
-                  <Tag className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={values.tags}
-                    onChange={handleChange("tags")}
-                    placeholder="Comma-separated, e.g., afrobeat, concert, lagos"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">Use commas to add multiple tags.</p>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                rows={4}
-                value={values.description}
-                onChange={handleChange("description")}
-                placeholder="What should attendees expect?"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <p className="mt-1 text-xs text-gray-500">Highlight the vibe, agenda, speakers, and special perks.</p>
-            </div>
-          </section>
-
-          <section className="space-y-4">
+          {/* Step Indicator */}
+          <div className="px-6 py-4 border-b bg-gray-50">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-900">Ticket tiers</h2>
-              <button
-                type="button"
-                onClick={addTier}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4" />
-                Add tier
-              </button>
-            </div>
-            <div className="space-y-4">
-              {tiers.map((tier, index) => (
-                <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Name</label>
-                      <input
-                        type="text"
-                        value={tier.name}
-                        onChange={(e) => updateTier(index, "name", e.target.value)}
-                        placeholder="Regular, VIP, VVIP"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+              {steps.map((step, index) => (
+                <React.Fragment key={step.number}>
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
+                        currentStep === step.number
+                          ? "bg-blue-600 text-white"
+                          : currentStep > step.number
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {step.number}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Type</label>
-                      <select
-                        value={tier.type}
-                        onChange={(e) => updateTier(index, "type", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="general">general</option>
-                        <option value="vip">vip</option>
-                        <option value="vvip">vvip</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Price</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={tier.price}
-                        onChange={(e) => updateTier(index, "price", e.target.value)}
-                        placeholder="0"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Capacity</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={tier.capacity}
-                        onChange={(e) => updateTier(index, "capacity", e.target.value)}
-                        placeholder="0"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Description</label>
-                      <input
-                        type="text"
-                        value={tier.description}
-                        onChange={(e) => updateTier(index, "description", e.target.value)}
-                        placeholder="Short summary of this tier"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                    <div className="mt-2 text-center hidden sm:block">
+                      <p className={`text-xs font-medium ${currentStep === step.number ? "text-blue-600" : "text-gray-600"}`}>
+                        {step.title}
+                      </p>
+                      <p className="text-xs text-gray-400">{step.description}</p>
                     </div>
                   </div>
-                  {tiers.length > 1 && (
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => removeTier(index)}
-                        className="inline-flex items-center gap-2 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Remove tier
-                      </button>
-                    </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={`flex-1 h-1 mx-2 ${
+                        currentStep > step.number ? "bg-green-500" : "bg-gray-200"
+                      }`}
+                    />
                   )}
-                </div>
+                </React.Fragment>
               ))}
             </div>
-          </section>
-
-          <div className="pt-2 border-t flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!isValid || submitting}
-              className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
-                !isValid || submitting ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              <Save className="w-4 h-4" />
-              {submitting ? "Saving..." : "Save Event"}
-            </button>
           </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-8">
+            {/* Step 1: Basic Info */}
+            {currentStep === 1 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Event title</label>
+                    <input
+                      type="text"
+                      value={values.title}
+                      onChange={handleChange("title")}
+                      placeholder="e.g., Holiday Pop-Up Experience"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Keep it short and descriptive.</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Organiser name</label>
+                    <input
+                      type="text"
+                      value={values.organiserName}
+                      onChange={handleChange("organiserName")}
+                      placeholder="e.g., Naija Events Pro"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Experience type</label>
+                    <select
+                      value={values.category}
+                      onChange={handleChange("category")}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select type</option>
+                      {validCategories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-2">Event Start</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <div className="relative">
+                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="date"
+                            value={values.date}
+                            onChange={handleChange("date")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <div className="relative">
+                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="time"
+                            value={values.time}
+                            onChange={handleChange("time")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-2">Event End</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <div className="relative">
+                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="date"
+                            value={values.endDate}
+                            onChange={handleChange("endDate")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <div className="relative">
+                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="time"
+                            value={values.endTime}
+                            onChange={handleChange("endTime")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Step 2: Location */}
+            {currentStep === 2 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Location Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Location</label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={values.location}
+                        onChange={handleChange("location")}
+                        placeholder="Physical address or virtual link"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Venue</label>
+                    <input
+                      type="text"
+                      value={values.venue}
+                      onChange={handleChange("venue")}
+                      placeholder="e.g., Tafawa Balewa Square"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Address</label>
+                    <input
+                      type="text"
+                      value={values.address}
+                      onChange={handleChange("address")}
+                      placeholder="Street address"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">City</label>
+                    <input
+                      type="text"
+                      value={values.city}
+                      onChange={handleChange("city")}
+                      placeholder="e.g., Lagos"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">State</label>
+                    <input
+                      type="text"
+                      value={values.state}
+                      onChange={handleChange("state")}
+                      placeholder="e.g., Lagos"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1">Country</label>
+                    <input
+                      type="text"
+                      value={values.country}
+                      onChange={handleChange("country")}
+                      placeholder="e.g., Nigeria"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Step 3: Pricing */}
+            {currentStep === 3 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Tickets & Capacity</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Ticket price</label>
+                    <div className="relative">
+                      <Ticket className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="number"
+                        min={0}
+                        value={values.price}
+                        onChange={handleChange("price")}
+                        placeholder="0 for free"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Set 0 to make it a free RSVP.</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Capacity</label>
+                    <div className="relative">
+                      <Users className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="number"
+                        min={0}
+                        value={values.capacity}
+                        onChange={handleChange("capacity")}
+                        placeholder="Expected max attendees"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Step 4: Sales Period */}
+            {currentStep === 4 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Sales Period</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-2">Sales Start</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <div className="relative">
+                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="date"
+                            value={values.salesStartDate}
+                            onChange={handleChange("salesStartDate")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Time (optional)</label>
+                        <div className="relative">
+                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="time"
+                            value={values.salesStartTime}
+                            onChange={handleChange("salesStartTime")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-2">Sales End</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <div className="relative">
+                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="date"
+                            value={values.salesEndDate}
+                            onChange={handleChange("salesEndDate")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Time (optional)</label>
+                        <div className="relative">
+                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="time"
+                            value={values.salesEndTime}
+                            onChange={handleChange("salesEndTime")}
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Step 5: Details & Tiers */}
+            {currentStep === 5 && (
+              <>
+                <section className="space-y-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Branding & Details</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Event icon / emoji</label>
+                      <input
+                        type="text"
+                        maxLength={2}
+                        value={values.emoji}
+                        onChange={handleChange("emoji")}
+                        placeholder="e.g., 🎄"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Cover image URL</label>
+                      <div className="relative">
+                        <Image className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="url"
+                          value={values.coverImageUrl}
+                          onChange={handleChange("coverImageUrl")}
+                          placeholder="https://..."
+                          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Tags</label>
+                      <div className="relative">
+                        <Tag className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={values.tags}
+                          onChange={handleChange("tags")}
+                          placeholder="Comma-separated, e.g., afrobeat, concert, lagos"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">Use commas to add multiple tags.</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <textarea
+                      rows={4}
+                      value={values.description}
+                      onChange={handleChange("description")}
+                      placeholder="What should attendees expect?"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Highlight the vibe, agenda, speakers, and special perks.</p>
+                  </div>
+                </section>
+
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900">Ticket Tiers</h2>
+                    <button
+                      type="button"
+                      onClick={addTier}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add tier
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {tiers.map((tier, index) => (
+                      <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Name</label>
+                            <input
+                              type="text"
+                              value={tier.name}
+                              onChange={(e) => updateTier(index, "name", e.target.value)}
+                              placeholder="Regular, VIP, VVIP"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Type</label>
+                            <select
+                              value={tier.type}
+                              onChange={(e) => updateTier(index, "type", e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="general">general</option>
+                              <option value="vip">vip</option>
+                              <option value="vvip">vvip</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Price</label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={tier.price}
+                              onChange={(e) => updateTier(index, "price", e.target.value)}
+                              placeholder="0"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Capacity</label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={tier.capacity}
+                              onChange={(e) => updateTier(index, "capacity", e.target.value)}
+                              placeholder="0"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <input
+                              type="text"
+                              value={tier.description}
+                              onChange={(e) => updateTier(index, "description", e.target.value)}
+                              placeholder="Short summary of this tier"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                        {tiers.length > 1 && (
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => removeTier(index)}
+                              className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remove tier
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="pt-4 border-t flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+              <div>
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handlePrevious}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-3 sm:ml-auto">
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard")}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                {currentStep < 5 ? (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!stepValidation[currentStep as keyof typeof stepValidation]}
+                    className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
+                      !stepValidation[currentStep as keyof typeof stepValidation]
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    Next
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!isValid || submitting}
+                    className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
+                      !isValid || submitting ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    <Save className="w-4 h-4" />
+                    {submitting ? "Saving..." : "Save Event"}
+                  </button>
+                )}
+              </div>
+            </div>
           </form>
         </div>
       </div>
     </div>
   )
 }
-
-
