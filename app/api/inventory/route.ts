@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 interface InventoryItem {
   id?: string;
@@ -91,7 +92,17 @@ export async function GET(request: NextRequest) {
 // POST / - Create/update inventory
 export async function POST(request: NextRequest) {
   try {
-    const body: InventoryItem = await request.json();
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized - No access token' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
     const { productId } = body;
 
     if (!productId) {
@@ -101,39 +112,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingIndex = inventoryData.findIndex(item => item.productId === productId);
+    const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
 
-    if (existingIndex !== -1) {
-      inventoryData[existingIndex] = {
-        ...inventoryData[existingIndex],
-        ...body,
-        lastUpdated: new Date().toISOString(),
-      };
-      return NextResponse.json({
-        success: true,
-        data: inventoryData[existingIndex],
-        message: 'Inventory updated successfully',
-      });
+    const response = await fetch(`${API_URL}/api/vendors/inventory`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data.message || data.error || 'Failed to create inventory' },
+        { status: response.status }
+      );
     }
 
-    const newItem: InventoryItem = {
-      ...body,
-      id: `inv-${Date.now()}`,
-      reservedQuantity: body.reservedQuantity || 0,
-      status: body.status || 'active',
-      lastUpdated: new Date().toISOString(),
-    };
-
-    inventoryData.push(newItem);
-
-    return NextResponse.json({
-      success: true,
-      data: newItem,
-      message: 'Inventory created successfully',
-    }, { status: 201 });
-  } catch (error) {
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error('Create Inventory API Error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
