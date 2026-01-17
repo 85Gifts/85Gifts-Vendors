@@ -14,10 +14,12 @@ import {
   MapPin,
   Ticket,
 } from "lucide-react"
+import { useToast } from "../ui/use-toast"
 
 interface EventItem {
   id: number
   backendId?: string
+  slug?: string
   title: string
   category: string
   date: string
@@ -29,6 +31,10 @@ interface EventItem {
   status: "upcoming" | "ongoing" | "completed" | "cancelled"
   image: string
   description?: string
+  approvalStatus?: string
+  isApproved?: boolean
+  approved?: boolean
+  isPublished?: boolean
 }
 
 interface EventsTabProps {
@@ -70,6 +76,7 @@ export default function EventsTab({
   handleDeleteEvent,
 }: EventsTabProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
   const currencyFormatter = useMemo(
     () => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
@@ -87,6 +94,46 @@ export default function EventsTab({
       return matchesSearch && matchesStatus
     })
   }, [events, eventSearchTerm, eventFilterStatus])
+
+  const isEventApproved = (event: EventItem) => {
+    if (typeof event.isApproved === "boolean") return event.isApproved
+    if (typeof event.approved === "boolean") return event.approved
+    if (typeof event.isPublished === "boolean") return event.isPublished
+    if (event.approvalStatus) {
+      const normalized = event.approvalStatus.toLowerCase()
+      return normalized === "approved" || normalized === "published"
+    }
+    return true
+  }
+
+  const handleGenerateLink = async (event: EventItem) => {
+    if (!isEventApproved(event)) {
+      toast({
+        title: "Event is not approved yet",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const slug = event.slug || event.backendId || String(event.id)
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+    const link = `${baseUrl}/event/${slug}`
+
+    try {
+      await navigator.clipboard.writeText(link)
+      toast({
+        title: "Link copied",
+        description: link,
+        variant: "success",
+      })
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: link,
+        variant: "destructive",
+      })
+    }
+  }
 
   const eventStats = useMemo(() => {
     const totalEvents = events.length
@@ -270,7 +317,10 @@ export default function EventsTab({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
-            <div key={event.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow">
+            <div
+              key={event.backendId ?? `${event.id}-${event.title}-${event.date}-${event.time}`}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow"
+            >
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -335,6 +385,16 @@ export default function EventsTab({
                     <Ticket className="w-4 h-4" />
                     {event.price > 0 ? currencyFormatter.format(event.price) : "Free RSVP"}
                   </span>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateLink(event)}
+                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                  >
+                    Generate Link
+                  </button>
                 </div>
               </div>
             </div>

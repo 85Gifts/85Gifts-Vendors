@@ -29,6 +29,7 @@ import { useToast } from "../components/ui/use-toast";
 import { config } from "../config"
 import { useVendorAuth } from "../contexts/VendorAuthContext"
 import { useTheme } from "../contexts/ThemeContext"
+import { redirectToLogin } from "@/lib/authRedirect"
 
 
 // Define Product type (for display)
@@ -50,6 +51,7 @@ interface Product {
 interface EventItem {
   id: number
   backendId?: string
+  slug?: string
   title: string
   category: string
   date: string
@@ -61,6 +63,9 @@ interface EventItem {
   status: "upcoming" | "ongoing" | "completed" | "cancelled"
   image: string
   description?: string
+  approvalStatus?: string
+  isApproved?: boolean
+  approved?: boolean
 }
 
 // Define Order type
@@ -99,6 +104,13 @@ export default function DashBoard() {
   const { toast } = useToast();
   const { logout } = useVendorAuth();
   const { theme, toggleTheme } = useTheme();
+  const handleUnauthorized = (response: Response) => {
+    if (response.status === 401) {
+      redirectToLogin()
+      return true
+    }
+    return false
+  }
 
   const handleLogout = async () => {
     console.log('🟡 DASHBOARD handleLogout - Button clicked!');
@@ -257,6 +269,9 @@ export default function DashBoard() {
         },
         credentials: "include",
       })
+      if (handleUnauthorized(res)) {
+        return
+      }
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Failed to delete event" }))
         throw new Error(errorData.error?.message || errorData.message || errorData.error || "Failed to delete event")
@@ -312,6 +327,9 @@ export default function DashBoard() {
           },
           credentials: "include",
         })
+        if (handleUnauthorized(res)) {
+          return
+        }
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({ error: "Failed to load events" }))
           throw new Error(errorData.error?.message || errorData.message || errorData.error || "Failed to load events")
@@ -335,9 +353,12 @@ export default function DashBoard() {
             e?.location?.address ||
             [e?.location?.city, e?.location?.state].filter(Boolean).join(", ") ||
             "TBA"
+          const approvalStatus =
+            e?.approvalStatus || e?.approval_status || e?.reviewStatus || e?.status
           return {
             id: Number(e.id || e._id ? undefined : Date.now() + Math.random() * 1000) || Date.now(),
             backendId: String(e._id || e.id || ""),
+            slug: e?.slug || e?.linkSlug || e?.eventSlug || undefined,
             title: e.name || "Untitled Event",
             category: e.category || "other",
             date,
@@ -349,6 +370,14 @@ export default function DashBoard() {
             status,
             image: e.emoji || "🎉",
             description: e.description || "",
+            approvalStatus,
+            isApproved:
+              typeof e?.isApproved === "boolean"
+                ? e.isApproved
+                : typeof e?.isPublished === "boolean"
+                ? e.isPublished
+                : undefined,
+            approved: typeof e?.approved === "boolean" ? e.approved : undefined,
           }
         })
         setEvents(mapped)

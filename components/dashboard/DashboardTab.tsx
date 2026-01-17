@@ -12,6 +12,7 @@ import {
   ArrowDownRight,
   X,
 } from "lucide-react"
+import { redirectToLogin } from "@/lib/authRedirect"
 
 // Define Wallet type
 interface Wallet {
@@ -111,8 +112,13 @@ export default function DashboardTab() {
         },
         credentials: 'include',
       })
-      
-      const data = await response.json()
+
+      const data = await response.json().catch(() => ({}))
+
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
 
       if (!response.ok) {
         throw new Error(data.error || data.message || 'Failed to fetch wallet data')
@@ -151,8 +157,13 @@ export default function DashboardTab() {
         },
         credentials: 'include',
       })
-      
-      const responseData = await response.json()
+
+      const responseData = await response.json().catch(() => ({}))
+
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
 
       if (!response.ok) {
         throw new Error(responseData.error || responseData.message || 'Failed to fetch transactions')
@@ -187,8 +198,13 @@ export default function DashboardTab() {
         },
         credentials: 'include',
       })
-      
-      const responseData = await response.json()
+
+      const responseData = await response.json().catch(() => ({}))
+
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
 
       if (!response.ok) {
         throw new Error(responseData.error || responseData.message || 'Failed to fetch profile')

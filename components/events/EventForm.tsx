@@ -279,25 +279,25 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-sky-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-sky-50 to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-3xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <div className="px-6 py-5 border-b">
-            <h1 className="text-xl sm:text-2xl font-bold">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
+          <div className="px-6 py-5 border-b dark:border-gray-800">
+            <h1 className="text-xl sm:text-2xl font-bold dark:text-white">
               {props.mode === "edit" ? "Edit Event" : "Schedule New Event"}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {props.mode === "edit" 
                 ? "Update your event details below." 
                 : "Create an experience that matches your brand's vibe."}
@@ -305,7 +305,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
           </div>
 
           {/* Step Indicator */}
-          <div className="px-6 py-4 border-b bg-gray-50">
+          <div className="px-6 py-4 border-b dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
             <div className="flex items-center justify-between">
               {steps.map((step, index) => (
                 <React.Fragment key={step.number}>
@@ -316,22 +316,22 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                           ? "bg-blue-600 text-white"
                           : currentStep > step.number
                           ? "bg-green-500 text-white"
-                          : "bg-gray-200 text-gray-600"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                       }`}
                     >
                       {step.number}
                     </div>
                     <div className="mt-2 text-center hidden sm:block">
-                      <p className={`text-xs font-medium ${currentStep === step.number ? "text-blue-600" : "text-gray-600"}`}>
+                      <p className={`text-xs font-medium ${currentStep === step.number ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400"}`}>
                         {step.title}
                       </p>
-                      <p className="text-xs text-gray-400">{step.description}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{step.description}</p>
                     </div>
                   </div>
                   {index < steps.length - 1 && (
                     <div
                       className={`flex-1 h-1 mx-2 ${
-                        currentStep > step.number ? "bg-green-500" : "bg-gray-200"
+                        currentStep > step.number ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"
                       }`}
                     />
                   )}
@@ -344,35 +344,35 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 1: Basic Info */}
             {currentStep === 1 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Event title</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Event title</label>
                     <input
                       type="text"
                       value={values.title}
                       onChange={handleChange("title")}
                       placeholder="e.g., Holiday Pop-Up Experience"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Keep it short and descriptive.</p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Keep it short and descriptive.</p>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Organiser name</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Organiser name</label>
                     <input
                       type="text"
                       value={values.organiserName}
                       onChange={handleChange("organiserName")}
                       placeholder="e.g., Naija Events Pro"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Experience type</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Experience type</label>
                     <select
                       value={values.category}
                       onChange={handleChange("category")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select type</option>
                       {validCategories.map((c) => (
@@ -383,58 +383,58 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     </select>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2">Event Start</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Event Start</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.date}
                             onChange={handleChange("date")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.time}
                             onChange={handleChange("time")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2">Event End</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Event End</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.endDate}
                             onChange={handleChange("endDate")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.endTime}
                             onChange={handleChange("endTime")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -447,69 +447,69 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 2: Location */}
             {currentStep === 2 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900">Location Details</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Location Details</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Location</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Location</label>
                     <div className="relative">
-                      <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         value={values.location}
                         onChange={handleChange("location")}
                         placeholder="Physical address or virtual link"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Venue</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Venue</label>
                     <input
                       type="text"
                       value={values.venue}
                       onChange={handleChange("venue")}
                       placeholder="e.g., Tafawa Balewa Square"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Address</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
                     <input
                       type="text"
                       value={values.address}
                       onChange={handleChange("address")}
                       placeholder="Street address"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">City</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">City</label>
                     <input
                       type="text"
                       value={values.city}
                       onChange={handleChange("city")}
                       placeholder="e.g., Lagos"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">State</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">State</label>
                     <input
                       type="text"
                       value={values.state}
                       onChange={handleChange("state")}
                       placeholder="e.g., Lagos"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1">Country</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Country</label>
                     <input
                       type="text"
                       value={values.country}
                       onChange={handleChange("country")}
                       placeholder="e.g., Nigeria"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -519,34 +519,34 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 3: Pricing */}
             {currentStep === 3 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900">Tickets & Capacity</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tickets & Capacity</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Ticket price</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Ticket price</label>
                     <div className="relative">
-                      <Ticket className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Ticket className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="number"
                         min={0}
                         value={values.price}
                         onChange={handleChange("price")}
                         placeholder="0 for free"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">Set 0 to make it a free RSVP.</p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Set 0 to make it a free RSVP.</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Capacity</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Capacity</label>
                     <div className="relative">
-                      <Users className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Users className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="number"
                         min={0}
                         value={values.capacity}
                         onChange={handleChange("capacity")}
                         placeholder="Expected max attendees"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -557,61 +557,61 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 4: Sales Period */}
             {currentStep === 4 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900">Sales Period</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sales Period</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2">Sales Start</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Sales Start</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.salesStartDate}
                             onChange={handleChange("salesStartDate")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Time (optional)</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time (optional)</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.salesStartTime}
                             onChange={handleChange("salesStartTime")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2">Sales End</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Sales End</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.salesEndDate}
                             onChange={handleChange("salesEndDate")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Time (optional)</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time (optional)</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.salesEndTime}
                             onChange={handleChange("salesEndTime")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -625,67 +625,67 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {currentStep === 5 && (
               <>
                 <section className="space-y-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Branding & Details</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Branding & Details</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Event icon / emoji</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Event icon / emoji</label>
                       <input
                         type="text"
                         maxLength={2}
                         value={values.emoji}
                         onChange={handleChange("emoji")}
                         placeholder="e.g., 🎄"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Cover image URL</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Cover image URL</label>
                       <div className="relative">
-                        <Image className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Image className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="url"
                           value={values.coverImageUrl}
                           onChange={handleChange("coverImageUrl")}
                           placeholder="https://..."
-                          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Tags</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tags</label>
                       <div className="relative">
-                        <Tag className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={values.tags}
                           onChange={handleChange("tags")}
                           placeholder="Comma-separated, e.g., afrobeat, concert, lagos"
-                          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">Use commas to add multiple tags.</p>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Use commas to add multiple tags.</p>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
                     <textarea
                       rows={4}
                       value={values.description}
                       onChange={handleChange("description")}
                       placeholder="What should attendees expect?"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Highlight the vibe, agenda, speakers, and special perks.</p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Highlight the vibe, agenda, speakers, and special perks.</p>
                   </div>
                 </section>
 
                 <section className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-900">Ticket Tiers</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Ticket Tiers</h2>
                     <button
                       type="button"
                       onClick={addTier}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       Add tier
@@ -693,24 +693,24 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                   </div>
                   <div className="space-y-4">
                     {tiers.map((tier, index) => (
-                      <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                      <div key={index} className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium mb-1">Name</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
                             <input
                               type="text"
                               value={tier.name}
                               onChange={(e) => updateTier(index, "name", e.target.value)}
                               placeholder="Regular, VIP, VVIP"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1">Type</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Type</label>
                             <select
                               value={tier.type}
                               onChange={(e) => updateTier(index, "type", e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="general">general</option>
                               <option value="vip">vip</option>
@@ -718,35 +718,35 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1">Price</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Price</label>
                             <input
                               type="number"
                               min={0}
                               value={tier.price}
                               onChange={(e) => updateTier(index, "price", e.target.value)}
                               placeholder="0"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1">Capacity</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Capacity</label>
                             <input
                               type="number"
                               min={0}
                               value={tier.capacity}
                               onChange={(e) => updateTier(index, "capacity", e.target.value)}
                               placeholder="0"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
                             <input
                               type="text"
                               value={tier.description}
                               onChange={(e) => updateTier(index, "description", e.target.value)}
                               placeholder="Short summary of this tier"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -755,7 +755,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                             <button
                               type="button"
                               onClick={() => removeTier(index)}
-                              className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm"
+                              className="inline-flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                               Remove tier
@@ -770,13 +770,13 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             )}
 
             {/* Navigation Buttons */}
-            <div className="pt-4 border-t flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div className="pt-4 border-t dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
               <div>
                 {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={handlePrevious}
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
@@ -787,7 +787,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                 <button
                   type="button"
                   onClick={() => router.push("/dashboard")}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
                 </button>
@@ -798,7 +798,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     disabled={!stepValidation[currentStep as keyof typeof stepValidation]}
                     className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
                       !stepValidation[currentStep as keyof typeof stepValidation]
-                        ? "bg-gray-300 cursor-not-allowed"
+                        ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
                         : "bg-blue-600 hover:bg-blue-700"
                     }`}
                   >
@@ -810,7 +810,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     type="submit"
                     disabled={!isValid || submitting}
                     className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
-                      !isValid || submitting ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                      !isValid || submitting ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                     }`}
                   >
                     <Save className="w-4 h-4" />

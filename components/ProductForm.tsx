@@ -287,21 +287,21 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
   };
 
   return (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 p-4">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
       <button
         onClick={onclose}
-        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+        className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
       >
         ✕
       </button>
 
-      <h2 className="text-2xl font-bold mb-6 text-center">
+      <h2 className="text-2xl font-bold mb-6 text-center dark:text-white">
         {isEdit ? "Edit Product" : "Add New Product"}
       </h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded">
           <div className="font-semibold mb-2">Error:</div>
           <div className="whitespace-pre-wrap text-sm">{error}</div>
         </div>
@@ -309,69 +309,69 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Product Name</label>
+          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Product Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
+          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Price</label>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Price</label>
             <input
               type="number"
               name="price"
               value={formData.price}
               onChange={handleChange}
               step="0.01"
-              className="w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Stock</label>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Stock</label>
             <input
               type="number"
               name="stock"
               value={formData.stock}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Category</label>
+          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Category</label>
           <input
             type="text"
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-1 dark:text-gray-300">
             Product Images (Max 5)
           </label>
           
@@ -379,10 +379,10 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
           <div className="mb-3">
             <label
               htmlFor="image-upload"
-              className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
+              className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
             >
-              <Upload className="w-5 h-5 mr-2 text-gray-500" />
-              <span className="text-sm text-gray-600">
+              <Upload className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 {uploadingImages ? 'Uploading images...' : 'Click to upload images'}
               </span>
               <input
@@ -395,7 +395,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
                 disabled={uploadingImages || loading}
               />
             </label>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Supported formats: JPG, PNG, GIF, WebP. Max 10MB per image.
             </p>
           </div>
@@ -408,7 +408,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
                   <img
                     src={preview}
                     alt={`Preview ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                    className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                   />
                   <button
                     type="button"
@@ -425,7 +425,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
           {/* Fallback: Manual URL input (optional) */}
           <div className="mt-3">
-            <label className="block text-xs text-gray-500 mb-1">
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
               Or enter image URLs manually (comma-separated):
             </label>
             <input
@@ -434,7 +434,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
               value={formData.images}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg, https://example.com/image2.jpg"
-              className="w-full px-3 py-2 border rounded-md text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={imageFiles.length > 0 || uploadingImages || loading}
             />
           </div>
@@ -444,14 +444,14 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
           <button
             type="button"
             onClick={onclose}
-            className="flex-1 border border-gray-300 rounded-md py-2 hover:bg-gray-50"
+            className="flex-1 border border-gray-300 dark:border-gray-700 dark:text-gray-300 rounded-md py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading || uploadingImages}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {uploadingImages
               ? "Uploading images..."

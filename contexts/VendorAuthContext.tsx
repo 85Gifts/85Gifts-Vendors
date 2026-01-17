@@ -1,22 +1,36 @@
 'use client';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Vendor, AuthContextType, RegisterData } from '../app/types/vendor';
-import { apiClient } from '../lib/api';
+import { apiClient, ApiError } from '../lib/api';
 
 const VendorAuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function VendorAuthProvider({ children }: { children: ReactNode }) {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string>("");
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    // Skip auth check on login/register/auth pages to prevent redirect loops
+    const isAuthPage = pathname === '/login' || 
+                       pathname === '/register' || 
+                       pathname?.startsWith('/reset-password') || 
+                       pathname?.startsWith('/verify-email');
+    
+    if (!isAuthPage) {
+      checkAuth();
+    } else {
+      // On auth pages, just set loading to false
+      setLoading(false);
+    }
+  }, [pathname]);
 
   const checkAuth = async () => {
     try {
+      setAuthError("");
       const data = await apiClient('/api/profile');
       setVendor(data);
       
@@ -29,14 +43,24 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('vendorName', data.name);
       }
     } catch (error: any) {
+      const apiError = error as ApiError;
       console.error('Auth check failed:', error);
-      setVendor(null);
-      // Clear vendor data from localStorage if not authenticated
-      localStorage.removeItem('vendorId');
-      localStorage.removeItem('vendorName');
+      if (apiError.status === 401 || apiError.status === 403) {
+        setVendor(null);
+        // Clear vendor data from localStorage if not authenticated
+        localStorage.removeItem('vendorId');
+        localStorage.removeItem('vendorName');
+      } else {
+        setAuthError(apiError.message || "Auth check failed");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshAuth = async () => {
+    setLoading(true);
+    await checkAuth();
   };
 
   const register = async (userData: RegisterData) => {
@@ -133,11 +157,13 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
       value={{
         vendor,
         loading,
+        authError,
         register,
         login,
         logout,
         updateProfile,
         forgotPassword, // Add this line
+        refreshAuth,
         isAuthenticated: !!vendor,
       }}
     >
