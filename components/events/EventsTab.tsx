@@ -167,7 +167,7 @@ export default function EventsTab({
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold">Event Experiences</h2>
+        <h2 className="text-2xl font-bold dark:text-white">Event Experiences</h2>
         <button
           onClick={() => router.push("/dashboard/events/schedule")}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
@@ -232,19 +232,19 @@ export default function EventsTab({
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
           <input
             type="text"
             placeholder="Search events by name, location or type..."
             value={eventSearchTerm}
             onChange={(e) => setEventSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <select
           value={eventFilterStatus}
           onChange={(e) => setEventFilterStatus(e.target.value as EventItem["status"] | "all")}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
         >
           <option value="all">All Statuses</option>
           {eventStatuses.map((status) => (
@@ -256,28 +256,28 @@ export default function EventsTab({
       </div>
 
       {eventsLoading ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
+        <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-12 text-center text-gray-500 dark:text-gray-400">
           Loading events...
         </div>
       ) : eventsError ? (
-        <div className="bg-white border border-dashed border-red-300 rounded-xl p-12 text-center text-red-600">
+        <div className="bg-white dark:bg-gray-900 border border-dashed border-red-300 dark:border-red-800 rounded-xl p-12 text-center text-red-600 dark:text-red-400">
           {eventsError}
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-500">
+        <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-12 text-center text-gray-500 dark:text-gray-400">
           No events match your filters. Try adjusting your search or add a new experience.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+            <div key={event.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow">
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="text-4xl">{event.image}</div>
                     <div>
-                      <h3 className="font-semibold text-lg">{event.title}</h3>
-                      <p className="text-sm text-gray-500">{event.category}</p>
+                      <h3 className="font-semibold text-lg dark:text-white">{event.title}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{event.category}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -285,35 +285,35 @@ export default function EventsTab({
                       onClick={() => {
                         router.push(`/dashboard/events/${event.backendId || event.id}/edit`)
                       }}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
+                      className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteEvent(event)}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
+                      className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4" />
                   <span>
                     {event.date} • {event.time}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <MapPin className="w-4 h-4" />
                   <span>{event.location}</span>
                 </div>
 
                 {event.description && (
-                  <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{event.description}</p>
                 )}
 
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
                     <span>
@@ -330,8 +330,8 @@ export default function EventsTab({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{event.category}</span>
-                  <span className="flex items-center gap-2 text-xl font-semibold text-blue-600">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{event.category}</span>
+                  <span className="flex items-center gap-2 text-xl font-semibold text-blue-600 dark:text-blue-400">
                     <Ticket className="w-4 h-4" />
                     {event.price > 0 ? currencyFormatter.format(event.price) : "Free RSVP"}
                   </span>
@@ -343,21 +343,21 @@ export default function EventsTab({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Event Performance</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Event Performance</h3>
           <div className="space-y-4">
             {eventAnalytics.statusBreakdown.map(({ status, count, percentage }) => {
               const [statusTextClass] = getStatusColor(status).split(" ")
               const progressColor = statusTextClass ? statusTextClass.replace("text-", "bg-") : "bg-blue-500"
               return (
                 <div key={status} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm text-gray-600 capitalize">
+                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 capitalize">
                     <span>{status}</span>
                     <span>
                       {count} • {percentage}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full ${progressColor}`}
                       style={{ width: `${percentage}%` }}
@@ -369,56 +369,56 @@ export default function EventsTab({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Revenue Insights</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Revenue Insights</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">Total Event Revenue</div>
-              <div className="text-xl font-semibold text-blue-600">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Total Event Revenue</div>
+              <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                 {currencyFormatter.format(eventAnalytics.totalRevenue)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Average Ticket Price</span>
               <span>{currencyFormatter.format(eventAnalytics.averageTicketPrice)}</span>
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Average Attendance</span>
               <span>{numberFormatter.format(eventAnalytics.averageAttendance)} guests</span>
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Capacity Utilization</span>
               <span>{eventAnalytics.capacityUtilization}%</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Engagement Highlights</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white">Engagement Highlights</h3>
           {eventAnalytics.topEvent ? (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className="text-3xl">{eventAnalytics.topEvent.image}</div>
                 <div>
-                  <h4 className="font-semibold text-lg">{eventAnalytics.topEvent.title}</h4>
-                  <p className="text-sm text-gray-500">{eventAnalytics.topEvent.category}</p>
+                  <h4 className="font-semibold text-lg dark:text-white">{eventAnalytics.topEvent.title}</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{eventAnalytics.topEvent.category}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Calendar className="w-4 h-4" />
                 <span>
                   {eventAnalytics.topEvent.date} • {eventAnalytics.topEvent.time}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Users className="w-4 h-4" />
                 <span>{eventAnalytics.topEvent.attendees} guests confirmed</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <MapPin className="w-4 h-4" />
                 <span>{eventAnalytics.topEvent.location}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Ticket className="w-4 h-4" />
                 <span>
                   {eventAnalytics.topEvent.price > 0
@@ -428,7 +428,7 @@ export default function EventsTab({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">Add events to unlock engagement insights.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Add events to unlock engagement insights.</p>
           )}
         </div>
       </div>

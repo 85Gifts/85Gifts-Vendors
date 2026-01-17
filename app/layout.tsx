@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {  Fredoka } from "next/font/google";
 import "./globals.css";
 import { VendorAuthProvider } from '@/contexts/VendorAuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 import { Toaster } from "@/components/ui/toaster"
 
@@ -28,10 +29,12 @@ export default function RootLayout({
       <body
         className={`${fredoka.variable} antialiased`}
       >
-     <VendorAuthProvider>
-        {children}
-        <Toaster /> 
-     </VendorAuthProvider>
+     <ThemeProvider>
+       <VendorAuthProvider>
+          {children}
+          <Toaster /> 
+       </VendorAuthProvider>
+     </ThemeProvider>
       </body>
     </html>
   );
