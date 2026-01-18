@@ -14,16 +14,21 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Skip auth check on login/register/auth pages to prevent redirect loops
+    // Skip auth check on login/register/auth pages and public pages
     const isAuthPage = pathname === '/login' || 
                        pathname === '/register' || 
                        pathname?.startsWith('/reset-password') || 
                        pathname?.startsWith('/verify-email');
     
-    if (!isAuthPage) {
+    // Public routes that don't require authentication
+    const isPublicRoute = pathname?.startsWith('/event/') || 
+                         pathname === '/' ||
+                         pathname?.startsWith('/booking-success');
+    
+    if (!isAuthPage && !isPublicRoute) {
       checkAuth();
     } else {
-      // On auth pages, just set loading to false
+      // On auth pages and public routes, just set loading to false
       setLoading(false);
     }
   }, [pathname]);
