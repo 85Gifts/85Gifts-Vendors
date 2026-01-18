@@ -6,11 +6,12 @@ import EventsTab from "@/components/events/EventsTab"
 import AdsTab from "@/components/ads/AdsTab"
 import DashboardTab from "@/components/dashboard/DashboardTab"
 import ProductsTab from "@/components/products/ProductsTab"
+import TransactionsTab from "@/components/transactions/TransactionsTab"
 import {
   Package,
   Eye,
   Edit,
-  ShoppingBag,
+  History,
   TrendingUp,
   Users,
   Gift,
@@ -66,20 +67,6 @@ interface EventItem {
   approvalStatus?: string
   isApproved?: boolean
   approved?: boolean
-}
-
-// Define Order type
-interface Order {
-  id: string
-  customer: string
-  product: string
-  quantity: number
-  total: number
-  status: "pending" | "processing" | "shipped" | "delivered"
-  date: string
-  giftMessage: string
-  recipientName: string
-  deliveryDate: string
 }
 
 // Define DashboardStats type
@@ -138,44 +125,6 @@ export default function DashBoard() {
   })
 
 
-  const [orders] = useState<Order[]>([
-    {
-      id: "ORD-001",
-      customer: "John Smith",
-      product: "Luxury Gift Box Set",
-      quantity: 2,
-      total: 16000.0,
-      status: "pending",
-      date: "2025-08-19",
-      giftMessage: "Happy Birthday! Hope you love this special gift.",
-      recipientName: "Sarah Johnson",
-      deliveryDate: "2025-08-22",
-    },
-    {
-      id: "ORD-002",
-      customer: "Emily Davis",
-      product: "Artisan Chocolate Collection",
-      quantity: 1,
-      total: 3400.0,
-      status: "processing",
-      date: "2025-08-18",
-      giftMessage: "Congratulations on your promotion!",
-      recipientName: "Mike Wilson",
-      deliveryDate: "2025-08-21",
-    },
-    {
-      id: "ORD-003",
-      customer: "Michael Brown",
-      product: "Premium Wine & Cheese Set",
-      quantity: 1,
-      total: 10000.0,
-      status: "shipped",
-      date: "2025-08-17",
-      giftMessage: "Thank you for all your hard work this year.",
-      recipientName: "Corporate Team",
-      deliveryDate: "2025-08-20",
-    },
-  ])
 
 
   const [events, setEvents] = useState<EventItem[]>([])
@@ -208,7 +157,7 @@ export default function DashBoard() {
   ]
   // eventStatuses moved to EventsTab component
 
-  const getStatusColor = (status: Order["status"] | EventItem["status"]): string => {
+  const getStatusColor = (status: EventItem["status"] | "pending" | "processing" | "shipped" | "delivered"): string => {
     switch (status) {
       case "upcoming":
         return "text-blue-600 bg-blue-100"
@@ -231,7 +180,7 @@ export default function DashBoard() {
     }
   }
 
-  const getStatusIcon = (status: Order['status']) => {
+  const getStatusIcon = (status: "pending" | "processing" | "shipped" | "delivered") => {
     switch (status) {
       case "pending":
         return <Clock className="w-4 h-4" />
@@ -396,80 +345,6 @@ export default function DashBoard() {
 
   // EventsTab component moved to components/events/EventsTab.tsx
 
-  const OrdersTab = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold dark:text-white">Gift Orders</h2>
-
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Order Details</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Gift Info</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-medium dark:text-white">{order.id}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{order.customer}</div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">{order.date}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-medium dark:text-white">{order.product}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Quantity: {order.quantity}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-medium text-sm dark:text-white">To: {order.recipientName}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Delivery: {order.deliveryDate}</div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500 italic mt-1 max-w-xs truncate">{order.giftMessage}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-lg dark:text-white">{currencyFormatter.format(order.total)}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        order.status
-                      )}`}
-                    >
-                      {getStatusIcon(order.status)}
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-
-
-  
   const LogOut = () => {
   return (
     <div className="fixed inset-0 flex z-50 items-center justify-center bg-black bg-opacity-30 dark:bg-opacity-50">
@@ -539,7 +414,7 @@ export default function DashBoard() {
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
               { id: "products", label: "Products", icon: Package },
               { id: "ads", label: "Ads", icon: Megaphone },
-              { id: "orders", label: "Orders", icon: ShoppingBag },
+              { id: "transactions", label: "Transactions", icon: History },
               { id: "events", label: "Events", icon: Calendar },
             ].map((tab) => {
               const Icon = tab.icon
@@ -595,7 +470,7 @@ export default function DashBoard() {
             handleDeleteEvent={handleDeleteEvent}
           />
         )}
-        {activeTab === "orders" && <OrdersTab />}
+        {activeTab === "transactions" && <TransactionsTab />}
         {activeTab === "ads" && <AdsTab />}
       </main>
 

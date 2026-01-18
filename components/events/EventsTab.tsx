@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Plus,
@@ -13,6 +13,8 @@ import {
   Trash2,
   MapPin,
   Ticket,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { useToast } from "../ui/use-toast"
 
@@ -82,6 +84,12 @@ export default function EventsTab({
     () => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
     []
   )
+  
+  // Carousel state for mobile
+  const [currentSlide, setCurrentSlide] = useState<number>(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const touchStartX = useRef<number | null>(null)
+  const touchEndX = useRef<number | null>(null)
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -150,6 +158,94 @@ export default function EventsTab({
       averageFillRate,
     }
   }, [events])
+
+  const statsCards = useMemo(() => [
+    {
+      id: 'total-events',
+      label: "Total Events",
+      value: numberFormatter.format(eventStats.totalEvents),
+      gradient: "from-indigo-500 to-indigo-600",
+      accent: "text-indigo-100",
+      iconAccent: "text-indigo-200",
+      icon: Calendar,
+    },
+    {
+      id: 'upcoming-events',
+      label: "Upcoming Events",
+      value: numberFormatter.format(eventStats.upcomingEvents),
+      gradient: "from-blue-500 to-blue-600",
+      accent: "text-blue-100",
+      iconAccent: "text-blue-200",
+      icon: Clock,
+    },
+    {
+      id: 'confirmed-guests',
+      label: "Confirmed Guests",
+      value: numberFormatter.format(eventStats.registeredAttendees),
+      gradient: "from-pink-500 to-pink-600",
+      accent: "text-pink-100",
+      iconAccent: "text-pink-200",
+      icon: Users,
+    },
+    {
+      id: 'avg-fill-rate',
+      label: "Avg Fill Rate",
+      value: `${eventStats.averageFillRate}%`,
+      gradient: "from-emerald-500 to-emerald-600",
+      accent: "text-emerald-100",
+      iconAccent: "text-emerald-200",
+      icon: TrendingUp,
+    },
+  ], [eventStats, numberFormatter])
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+  
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return
+    
+    const distance = touchStartX.current - touchEndX.current
+    const minSwipeDistance = 50
+    
+    if (distance > minSwipeDistance && currentSlide < statsCards.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    } else if (distance < -minSwipeDistance && currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1)
+    }
+    
+    touchStartX.current = null
+    touchEndX.current = null
+  }
+  
+  useEffect(() => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({
+        left: currentSlide * carouselRef.current.offsetWidth,
+        behavior: 'smooth'
+      })
+    }
+  }, [currentSlide, statsCards.length])
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index)
+  }
+  
+  const nextSlide = () => {
+    if (currentSlide < statsCards.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    }
+  }
+  
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1)
+    }
+  }
 
   const eventAnalytics = useMemo(() => {
     if (events.length === 0) {
@@ -224,57 +320,96 @@ export default function EventsTab({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          {
-            label: "Total Events",
-            value: numberFormatter.format(eventStats.totalEvents),
-            gradient: "from-indigo-500 to-indigo-600",
-            accent: "text-indigo-100",
-            iconAccent: "text-indigo-200",
-            icon: Calendar,
-          },
-          {
-            label: "Upcoming Events",
-            value: numberFormatter.format(eventStats.upcomingEvents),
-            gradient: "from-blue-500 to-blue-600",
-            accent: "text-blue-100",
-            iconAccent: "text-blue-200",
-            icon: Clock,
-          },
-          {
-            label: "Confirmed Guests",
-            value: numberFormatter.format(eventStats.registeredAttendees),
-            gradient: "from-pink-500 to-pink-600",
-            accent: "text-pink-100",
-            iconAccent: "text-pink-200",
-            icon: Users,
-          },
-          {
-            label: "Avg Fill Rate",
-            value: `${eventStats.averageFillRate}%`,
-            gradient: "from-emerald-500 to-emerald-600",
-            accent: "text-emerald-100",
-            iconAccent: "text-emerald-200",
-            icon: TrendingUp,
-          },
-        ].map((metric) => {
-          const Icon = metric.icon
-          return (
-            <div
-              key={metric.label}
-              className={`bg-gradient-to-r ${metric.gradient} rounded-xl p-6 text-white`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`${metric.accent} text-sm`}>{metric.label}</p>
-                  <p className="text-3xl font-bold">{metric.value}</p>
+      {/* Stats Grid - Desktop / Carousel - Mobile */}
+      <div className="relative">
+        {/* Desktop Grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {statsCards.map((card) => {
+            const Icon = card.icon
+            return (
+              <div
+                key={card.id}
+                className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`${card.accent} text-sm`}>{card.label}</p>
+                    <p className="text-3xl font-bold">{card.value}</p>
+                  </div>
+                  <Icon className={`w-8 h-8 ${card.iconAccent}`} />
                 </div>
-                <Icon className={`w-8 h-8 ${metric.iconAccent}`} />
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
+
+        {/* Mobile Carousel */}
+        <div className="md:hidden relative -mx-6 px-6">
+          <div
+            ref={carouselRef}
+            className="flex overflow-x-hidden scroll-smooth snap-x snap-mandatory"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          >
+            {statsCards.map((card, index) => {
+              const Icon = card.icon
+              return (
+                <div
+                  key={card.id}
+                  className="min-w-full snap-center"
+                >
+                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white min-h-[160px] flex flex-col justify-center`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`${card.accent} text-sm`}>{card.label}</p>
+                        <p className="text-3xl font-bold">{card.value}</p>
+                      </div>
+                      <Icon className={`w-8 h-8 ${card.iconAccent}`} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Navigation Arrows */}
+          {currentSlide > 0 && (
+            <button
+              onClick={prevSlide}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm rounded-full p-2 text-gray-700 transition-colors z-10"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {currentSlide < statsCards.length - 1 && (
+            <button
+              onClick={nextSlide}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm rounded-full p-2 text-gray-700 transition-colors z-10"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-4">
+            {statsCards.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`h-2 rounded-full transition-all ${
+                  currentSlide === index
+                    ? 'bg-blue-600 w-8'
+                    : 'bg-gray-300 w-2'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">

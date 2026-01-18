@@ -16,10 +16,20 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '20';
+    
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    queryParams.set('page', searchParams.get('page') || '1');
+    queryParams.set('limit', searchParams.get('limit') || '10');
+    
+    // Forward optional filter parameters
+    if (searchParams.get('type')) queryParams.set('type', searchParams.get('type')!);
+    if (searchParams.get('category')) queryParams.set('category', searchParams.get('category')!);
+    if (searchParams.get('status')) queryParams.set('status', searchParams.get('status')!);
+    if (searchParams.get('startDate')) queryParams.set('startDate', searchParams.get('startDate')!);
+    if (searchParams.get('endDate')) queryParams.set('endDate', searchParams.get('endDate')!);
 
-    const response = await fetch(`${API_URL}/api/vendor/wallet/transactions?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_URL}/api/vendor/wallet/transactions?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

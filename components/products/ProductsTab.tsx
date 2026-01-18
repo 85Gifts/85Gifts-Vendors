@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import {
   Package,
   Plus,
@@ -12,6 +12,8 @@ import {
   Star,
   DollarSign,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "../ui/use-toast"
@@ -62,6 +64,12 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
   const [filterCategory, setFilterCategory] = useState("all")
   const router = useRouter()
   const { toast } = useToast()
+  
+  // Carousel state for mobile
+  const [currentSlide, setCurrentSlide] = useState<number>(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const touchStartX = useRef<number | null>(null)
+  const touchEndX = useRef<number | null>(null)
 
   const categories = ["Gift Sets", "Food & Treats", "Personalized", "Electronics", "Home & Garden", "Fashion"]
 
@@ -284,78 +292,203 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
     totalRevenue: products.reduce((sum, p) => sum + (p.price * p.sales), 0),
   }
 
+  const statsCards = useMemo(() => [
+    {
+      id: 'total-products',
+      gradient: 'from-blue-500 to-blue-600',
+      label: 'Total Products',
+      value: productsLoading ? 'Loading...' : productStats.totalProducts.toString(),
+      icon: Package,
+      iconColor: 'text-blue-200',
+      loadingColor: 'text-blue-200',
+    },
+    {
+      id: 'active-products',
+      gradient: 'from-green-500 to-green-600',
+      label: 'Active Products',
+      value: productsLoading ? 'Loading...' : productStats.activeProducts.toString(),
+      icon: CheckCircle,
+      iconColor: 'text-green-200',
+      loadingColor: 'text-green-200',
+    },
+    {
+      id: 'out-of-stock',
+      gradient: 'from-red-500 to-red-600',
+      label: 'Out of Stock',
+      value: productsLoading ? 'Loading...' : productStats.outOfStockProducts.toString(),
+      icon: XCircle,
+      iconColor: 'text-red-200',
+      loadingColor: 'text-red-200',
+    },
+    {
+      id: 'total-revenue',
+      gradient: 'from-purple-500 to-purple-600',
+      label: 'Total Revenue',
+      value: productsLoading ? 'Loading...' : currencyFormatter.format(productStats.totalRevenue),
+      icon: DollarSign,
+      iconColor: 'text-purple-200',
+      loadingColor: 'text-purple-200',
+    },
+  ], [productStats, productsLoading, currencyFormatter])
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+  
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return
+    
+    const distance = touchStartX.current - touchEndX.current
+    const minSwipeDistance = 50
+    
+    if (distance > minSwipeDistance && currentSlide < statsCards.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    } else if (distance < -minSwipeDistance && currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1)
+    }
+    
+    touchStartX.current = null
+    touchEndX.current = null
+  }
+  
+  useEffect(() => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({
+        left: currentSlide * carouselRef.current.offsetWidth,
+        behavior: 'smooth'
+      })
+    }
+  }, [currentSlide, statsCards.length])
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index)
+  }
+  
+  const nextSlide = () => {
+    if (currentSlide < statsCards.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    }
+  }
+  
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1)
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Total Products</p>
-              <p className="text-3xl font-bold">
-                {productsLoading ? (
-                  <span className="text-blue-200">Loading...</span>
-                ) : (
-                  productStats.totalProducts
-                )}
-              </p>
-            </div>
-            <Package className="w-8 h-8 text-blue-200" />
-          </div>
+      {/* Stats Grid - Desktop / Carousel - Mobile */}
+      <div className="relative">
+        {/* Desktop Grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {statsCards.map((card) => {
+            const Icon = card.icon
+            return (
+              <div key={card.id} className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`${card.gradient.includes('blue') ? 'text-blue-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('red') ? 'text-red-100' : 'text-purple-100'} text-sm`}>
+                      {card.label}
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {productsLoading ? (
+                        <span className={card.loadingColor}>{card.value}</span>
+                      ) : (
+                        card.value
+                      )}
+                    </p>
+                  </div>
+                  <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                </div>
+              </div>
+            )
+          })}
         </div>
 
-        <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Active Products</p>
-              <p className="text-3xl font-bold">
-                {productsLoading ? (
-                  <span className="text-green-200">Loading...</span>
-                ) : (
-                  productStats.activeProducts
-                )}
-              </p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-200" />
+        {/* Mobile Carousel */}
+        <div className="md:hidden relative -mx-6 px-6">
+          <div
+            ref={carouselRef}
+            className="flex overflow-x-hidden scroll-smooth snap-x snap-mandatory"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          >
+            {statsCards.map((card, index) => {
+              const Icon = card.icon
+              return (
+                <div
+                  key={card.id}
+                  className="min-w-full snap-center"
+                >
+                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white min-h-[160px] flex flex-col justify-center`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`${card.gradient.includes('blue') ? 'text-blue-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('red') ? 'text-red-100' : 'text-purple-100'} text-sm`}>
+                          {card.label}
+                        </p>
+                        <p className="text-3xl font-bold">
+                          {productsLoading ? (
+                            <span className={card.loadingColor}>{card.value}</span>
+                          ) : (
+                            card.value
+                          )}
+                        </p>
+                      </div>
+                      <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </div>
 
-        <div className="bg-linear-to-r from-red-500 to-red-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-red-100 text-sm">Out of Stock</p>
-              <p className="text-3xl font-bold">
-                {productsLoading ? (
-                  <span className="text-red-200">Loading...</span>
-                ) : (
-                  productStats.outOfStockProducts
-                )}
-              </p>
-            </div>
-            <XCircle className="w-8 h-8 text-red-200" />
-          </div>
-        </div>
+          {/* Navigation Arrows */}
+          {currentSlide > 0 && (
+            <button
+              onClick={prevSlide}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm rounded-full p-2 text-gray-700 transition-colors z-10"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {currentSlide < statsCards.length - 1 && (
+            <button
+              onClick={nextSlide}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm rounded-full p-2 text-gray-700 transition-colors z-10"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
 
-        <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Total Revenue</p>
-              <p className="text-3xl font-bold">
-                {productsLoading ? (
-                  <span className="text-purple-200">Loading...</span>
-                ) : (
-                  currencyFormatter.format(productStats.totalRevenue)
-                )}
-              </p>
-            </div>
-            <DollarSign className="w-8 h-8 text-purple-200" />
+          {/* Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-4">
+            {statsCards.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`h-2 rounded-full transition-all ${
+                  currentSlide === index
+                    ? 'bg-blue-600 w-8'
+                    : 'bg-gray-300 w-2'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold dark:text-white">Gift Products</h2>
         <button
           onClick={onAddProduct}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
