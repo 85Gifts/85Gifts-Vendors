@@ -13,6 +13,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Calendar,
+  Megaphone,
+  Package,
+  Box,
 } from "lucide-react"
 import { redirectToLogin } from "@/lib/authRedirect"
 
@@ -591,6 +595,57 @@ export default function DashboardTab() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Product Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          {
+            id: 'events',
+            label: 'Events',
+            icon: Calendar,
+            gradient: 'from-indigo-500 to-indigo-600',
+            accent: 'text-indigo-100',
+            iconColor: 'text-indigo-200',
+          },
+          {
+            id: 'ads',
+            label: 'Ads',
+            icon: Megaphone,
+            gradient: 'from-purple-500 to-purple-600',
+            accent: 'text-purple-100',
+            iconColor: 'text-purple-200',
+          },
+          {
+            id: 'inventory',
+            label: 'Inventory',
+            icon: Box,
+            gradient: 'from-blue-500 to-blue-600',
+            accent: 'text-blue-100',
+            iconColor: 'text-blue-200',
+          },
+          {
+            id: 'products',
+            label: 'Products',
+            icon: Package,
+            gradient: 'from-green-500 to-green-600',
+            accent: 'text-green-100',
+            iconColor: 'text-green-200',
+          },
+        ].map((card) => {
+          const Icon = card.icon
+          return (
+            <div
+              key={card.id}
+              className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform`}
+            >
+              <div className="flex flex-col items-center justify-center text-center">
+                <Icon className={`w-12 h-12 ${card.iconColor} mb-3`} />
+                <p className={`${card.accent} text-lg font-semibold`}>{card.label}</p>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Recent Transactions */}
