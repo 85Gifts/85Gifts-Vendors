@@ -367,7 +367,7 @@ export default function EventsTab({
           {currentSlide > 0 && (
             <button
               onClick={prevSlide}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm rounded-full p-2 text-gray-700 transition-colors z-10"
+              className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -376,7 +376,7 @@ export default function EventsTab({
           {currentSlide < statsCards.length - 1 && (
             <button
               onClick={nextSlide}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm rounded-full p-2 text-gray-700 transition-colors z-10"
+              className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Next slide"
             >
               <ChevronRight className="w-5 h-5" />
