@@ -309,17 +309,6 @@ export default function EventsTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold dark:text-white">Event Experiences</h2>
-        <button
-          onClick={() => router.push("/dashboard/events/schedule")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Schedule Event
-        </button>
-      </div>
-
       {/* Stats Grid - Desktop / Carousel - Mobile */}
       <div className="relative">
         {/* Desktop Grid */}
@@ -410,6 +399,17 @@ export default function EventsTab({
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Schedule Event Button */}
+      <div className="flex justify-start">
+        <button
+          onClick={() => router.push("/dashboard/events/schedule")}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Schedule Event
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
