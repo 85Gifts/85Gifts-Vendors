@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight, MoreVertical, ShoppingCart, Receipt, FileText, Link, PackageCheck } from 'lucide-react';
+import { useCheckout } from '@/contexts/CheckoutContext';
 
 interface InventoryProduct {
   _id: string;
   name: string;
   description: string;
   category: string;
+  price: number;
   inventory: {
     totalQuantity: number;
     reservedQuantity: number;
@@ -32,6 +34,7 @@ interface InventoryListProps {
 }
 
 export default function InventoryList({ onEdit }: InventoryListProps) {
+  const { addToCheckout } = useCheckout();
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -40,6 +43,8 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null);
+  const [isActionsModalOpen, setIsActionsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -122,6 +127,52 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleActionsClick = (product: InventoryProduct) => {
+    setSelectedProduct(product);
+    setIsActionsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsActionsModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleAction = (action: string) => {
+    if (!selectedProduct) return;
+    
+    // Handle different actions
+    switch (action) {
+      case 'add-to-checkout':
+        addToCheckout(selectedProduct);
+        handleCloseModal();
+        break;
+      case 'generate-receipt':
+        console.log('Generate receipt:', selectedProduct);
+        // TODO: Implement generate receipt
+        break;
+      case 'generate-invoice':
+        console.log('Generate invoice:', selectedProduct);
+        // TODO: Implement generate invoice
+        break;
+      case 'generate-payment-link':
+        console.log('Generate payment link:', selectedProduct);
+        // TODO: Implement generate payment link
+        break;
+      case 'edit-stock':
+        console.log('Edit stock:', selectedProduct);
+        // TODO: Implement edit stock
+        break;
+      case 'edit-inventory':
+        if (onEdit) {
+          onEdit(selectedProduct);
+        }
+        handleCloseModal();
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -219,6 +270,11 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                           {product.category}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium dark:text-white">
+                            ₦{product.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-medium dark:text-white">{product.inventory.totalQuantity}</span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -241,10 +297,11 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
-                            onClick={() => onEdit && onEdit(product)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                            onClick={() => handleActionsClick(product)}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors"
+                            title="Actions"
                           >
-                            <Edit className="w-4 h-4" />
+                            <MoreVertical className="w-5 h-5" />
                           </button>
                         </td>
                       </tr>
@@ -338,6 +395,98 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
             </div>
           )}
         </>
+      )}
+
+      {/* Actions Modal */}
+      {isActionsModalOpen && selectedProduct && (
+        <div
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseModal}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+              <div>
+                <h3 className="text-xl font-semibold dark:text-white">Product Actions</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{selectedProduct.name}</p>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Actions Grid */}
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Add to Checkout */}
+                <button
+                  onClick={() => handleAction('add-to-checkout')}
+                  className="group relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <ShoppingCart className="w-8 h-8 relative z-10" />
+                  <span className="font-semibold text-lg relative z-10">Add to Checkout</span>
+                </button>
+
+                {/* Generate Receipt */}
+                <button
+                  onClick={() => handleAction('generate-receipt')}
+                  className="group relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <Receipt className="w-8 h-8 relative z-10" />
+                  <span className="font-semibold text-lg relative z-10">Generate Receipt</span>
+                </button>
+
+                {/* Generate Invoice */}
+                <button
+                  onClick={() => handleAction('generate-invoice')}
+                  className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <FileText className="w-8 h-8 relative z-10" />
+                  <span className="font-semibold text-lg relative z-10">Generate Invoice</span>
+                </button>
+
+                {/* Generate Payment Link */}
+                <button
+                  onClick={() => handleAction('generate-payment-link')}
+                  className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <Link className="w-8 h-8 relative z-10" />
+                  <span className="font-semibold text-lg relative z-10">Generate Payment Link</span>
+                </button>
+
+                {/* Edit Stock */}
+                <button
+                  onClick={() => handleAction('edit-stock')}
+                  className="group relative overflow-hidden bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <PackageCheck className="w-8 h-8 relative z-10" />
+                  <span className="font-semibold text-lg relative z-10">Edit Stock</span>
+                </button>
+
+                {/* Edit Inventory */}
+                <button
+                  onClick={() => handleAction('edit-inventory')}
+                  className="group relative overflow-hidden bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <Edit className="w-8 h-8 relative z-10" />
+                  <span className="font-semibold text-lg relative z-10">Edit Inventory</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
