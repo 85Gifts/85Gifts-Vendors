@@ -68,9 +68,9 @@ export default function LandingPage() {
             <div className="flex items-center space-x-3">
              
                 <Image
-             src="/favicon.png"
+             src="https://res.cloudinary.com/dsmc6vtpt/image/upload/v1768827902/omniflow_monogram_blue_segmsg.png"
               alt="logo"
-               className="h-10"
+               className="h-8"
                width={50}
                height={50} 
             />
@@ -513,9 +513,9 @@ export default function LandingPage() {
               <div className="flex items-center space-x-3 mb-6">
                               
                 <Image
-             src="/favicon.png"
+             src="https://res.cloudinary.com/dsmc6vtpt/image/upload/v1768827902/omniflow_monogram_blue_segmsg.png"
               alt="logo"
-               className="h-10"
+               className="h-8"
                width={50}
                height={50} 
             />

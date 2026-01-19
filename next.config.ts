@@ -4,13 +4,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   images: {
       remotePatterns: [
-          // Add your image hosting domain here when needed
-          // Example:
-          // {
-          //     protocol:"https",
-          //     hostname: "your-image-host.com",
-          //     pathname: '/uploads/**',
-          // },
+          {
+              protocol: "https",
+              hostname: "res.cloudinary.com",
+              pathname: '/**',
+          },
       ],
 
     },
