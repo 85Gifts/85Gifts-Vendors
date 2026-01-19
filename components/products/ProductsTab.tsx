@@ -301,6 +301,7 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
       icon: Package,
       iconColor: 'text-blue-200',
       loadingColor: 'text-blue-200',
+      hasButton: true,
     },
     {
       id: 'active-products',
@@ -390,7 +391,7 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
             const Icon = card.icon
             return (
               <div key={card.id} className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}>
-                <div className="flex items-center justify-between">
+                <div className={`flex items-center justify-between ${card.hasButton ? 'mb-4' : ''}`}>
                   <div>
                     <p className={`${card.gradient.includes('blue') ? 'text-blue-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('red') ? 'text-red-100' : 'text-purple-100'} text-sm`}>
                       {card.label}
@@ -405,6 +406,17 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                   </div>
                   <Icon className={`w-8 h-8 ${card.iconColor}`} />
                 </div>
+                {card.hasButton && (
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={onAddProduct}
+                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add New Product
+                    </button>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -427,8 +439,8 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                   key={card.id}
                   className="min-w-full snap-center"
                 >
-                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white min-h-[160px] flex flex-col justify-center`}>
-                    <div className="flex items-center justify-between">
+                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white h-full min-h-[160px] flex flex-col justify-between`}>
+                    <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className={`${card.gradient.includes('blue') ? 'text-blue-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('red') ? 'text-red-100' : 'text-purple-100'} text-sm`}>
                           {card.label}
@@ -442,6 +454,19 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                         </p>
                       </div>
                       <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                    </div>
+                    <div className="flex gap-2 h-[32px]">
+                      {card.hasButton ? (
+                        <button 
+                          onClick={onAddProduct}
+                          className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add New Product
+                        </button>
+                      ) : (
+                        <div></div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -487,18 +512,7 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
         </div>
       </div>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <button
-          onClick={onAddProduct}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add New Product
-        </button>
-      </div>
-
-      {/* Filters */}
+        {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />

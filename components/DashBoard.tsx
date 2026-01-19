@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import Image from "next/image"
 import ProductForm from "@/components/ProductForm"
 import EventsTab from "@/components/events/EventsTab"
 import AdsTab from "@/components/ads/AdsTab"
@@ -382,8 +383,14 @@ export default function DashBoard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <Gift className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Vendor Dashboard</h1>
+              <Image
+                src="https://res.cloudinary.com/dsmc6vtpt/image/upload/v1768827902/omniflow_monogram_blue_segmsg.png"
+                alt="logo"
+                className="h-10"
+                width={50}
+                height={50}
+              />
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">OmniFlow85</h1>
             </div>
             <div className="flex items-center gap-4">
               <button

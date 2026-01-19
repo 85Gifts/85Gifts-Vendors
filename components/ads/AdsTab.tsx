@@ -362,6 +362,7 @@ export default function AdsTab() {
       accent: "text-purple-100",
       iconAccent: "text-purple-200",
       icon: DollarSign,
+      hasButton: true,
     },
     {
       id: 'impressions',
@@ -460,13 +461,24 @@ export default function AdsTab() {
             const Icon = card.icon
             return (
               <div key={card.id} className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}>
-                <div className="flex items-center justify-between">
+                <div className={`flex items-center justify-between ${card.hasButton ? 'mb-4' : ''}`}>
                   <div>
                     <p className={`${card.accent} text-sm`}>{card.label}</p>
                     <p className="text-3xl font-bold">{card.value}</p>
                   </div>
                   <Icon className={`w-8 h-8 ${card.iconAccent}`} />
                 </div>
+                {card.hasButton && (
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create Campaign
+                    </button>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -489,13 +501,26 @@ export default function AdsTab() {
                   key={card.id}
                   className="min-w-full snap-center"
                 >
-                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white min-h-[160px] flex flex-col justify-center`}>
-                    <div className="flex items-center justify-between">
+                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white h-full min-h-[160px] flex flex-col justify-between`}>
+                    <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className={`${card.accent} text-sm`}>{card.label}</p>
                         <p className="text-3xl font-bold">{card.value}</p>
                       </div>
                       <Icon className={`w-8 h-8 ${card.iconAccent}`} />
+                    </div>
+                    <div className="flex gap-2 h-[32px]">
+                      {card.hasButton ? (
+                        <button 
+                          onClick={() => setIsCreateModalOpen(true)}
+                          className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Create Campaign
+                        </button>
+                      ) : (
+                        <div></div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -575,17 +600,6 @@ export default function AdsTab() {
           <p className="text-2xl font-bold dark:text-white">{overallMetrics.avgRoas.toFixed(2)}x</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Return on ad spend</p>
         </div>
-      </div>
-
-      {/* Create Campaign Button */}
-      <div className="flex justify-start">
-        <button 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Create Campaign
-        </button>
       </div>
 
       {/* Platform Performance - Commented Out */}
