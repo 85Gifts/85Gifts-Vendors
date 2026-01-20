@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { X, Plus, Minus, Trash2, FileText, Receipt, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { useCheckout, CheckoutItem } from '@/contexts/CheckoutContext';
+import GenerateLinkModal from '@/components/inventory/GenerateLinkModal';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ interface CheckoutModalProps {
 
 export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const { items, updateQuantity, removeFromCheckout } = useCheckout();
+  const [showGenerateLinkModal, setShowGenerateLinkModal] = useState(false);
 
   if (!isOpen) return null;
 
@@ -27,8 +30,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   };
 
   const handleGeneratePaymentLink = () => {
-    console.log('Generate Payment Link for items:', items);
-    // TODO: Implement generate payment link
+    setShowGenerateLinkModal(true);
   };
 
   const handleAIFeature = () => {
@@ -224,6 +226,12 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           </div>
         )}
       </div>
+
+      {/* Generate Link Modal */}
+      <GenerateLinkModal
+        isOpen={showGenerateLinkModal}
+        onClose={() => setShowGenerateLinkModal(false)}
+      />
     </div>
   );
 }
