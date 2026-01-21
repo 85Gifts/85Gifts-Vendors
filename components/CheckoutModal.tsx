@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Plus, Minus, Trash2, FileText, Receipt, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { useCheckout, CheckoutItem } from '@/contexts/CheckoutContext';
 import GenerateLinkModal from '@/components/inventory/GenerateLinkModal';
+import { useToast } from '@/components/ui/use-toast';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface CheckoutModalProps {
 
 export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const { items, updateQuantity, removeFromCheckout } = useCheckout();
+  const { toast } = useToast();
   const [showGenerateLinkModal, setShowGenerateLinkModal] = useState(false);
 
   if (!isOpen) return null;
@@ -30,6 +32,14 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   };
 
   const handleGeneratePaymentLink = () => {
+    if (items.length > 1) {
+      toast({
+        title: 'Multiple items in checkout',
+        description: 'You can only generate payment link for one item at a time',
+        variant: 'destructive',
+      });
+      return;
+    }
     setShowGenerateLinkModal(true);
   };
 

@@ -87,10 +87,23 @@ export default function GenerateLinkModal({ isOpen, onClose }: GenerateLinkModal
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || 'Failed to generate link');
+        // Handle error object structure: data.error.message or data.error or data.message
+        const errorMessage = 
+          (typeof data.error === 'object' && data.error?.message) 
+          || data.error 
+          || data.message 
+          || 'Failed to generate link';
+        throw new Error(errorMessage);
       }
 
-      const link = data?.data?.link || `${window.location.origin}/inventory/${data?.data?.slug}`;
+      // Extract link from nested response structure: data.data.data.link
+      const linkData = data?.data?.data || data?.data;
+      const link = linkData?.link || `${window.location.origin}/inventory/${linkData?.slug}`;
+      
+      if (!link || link.includes('undefined')) {
+        throw new Error('Invalid link received from server');
+      }
+      
       setGeneratedLink(link);
 
       // Copy to clipboard

@@ -47,8 +47,15 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     if (!response.ok) {
+      // Handle error object structure: data.error.message or data.message
+      const errorMessage = 
+        (typeof data.error === 'object' && data.error?.message) 
+        || data.error 
+        || data.message 
+        || 'Failed to generate link';
+      
       return NextResponse.json(
-        { error: data.message || data.error || 'Failed to generate link' },
+        { error: errorMessage },
         { status: response.status }
       );
     }

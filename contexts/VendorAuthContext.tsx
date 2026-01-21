@@ -23,7 +23,8 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     // Public routes that don't require authentication
     const isPublicRoute = pathname?.startsWith('/event/') || 
                          pathname === '/' ||
-                         pathname?.startsWith('/booking-success');
+                         pathname?.startsWith('/booking-success') ||
+                         pathname?.startsWith('/inventory/');
     
     if (!isAuthPage && !isPublicRoute) {
       checkAuth();

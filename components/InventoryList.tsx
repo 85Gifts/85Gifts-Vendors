@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight, MoreVertical, ShoppingCart, Receipt, FileText, Link, PackageCheck } from 'lucide-react';
 import { useCheckout } from '@/contexts/CheckoutContext';
+import GenerateLinkModal from '@/components/inventory/GenerateLinkModal';
 
 interface InventoryProduct {
   _id: string;
@@ -45,6 +46,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null);
   const [isActionsModalOpen, setIsActionsModalOpen] = useState(false);
+  const [showGenerateLinkModal, setShowGenerateLinkModal] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -157,8 +159,10 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
         // TODO: Implement generate invoice
         break;
       case 'generate-payment-link':
-        console.log('Generate payment link:', selectedProduct);
-        // TODO: Implement generate payment link
+        // Add product to checkout first, then open generate link modal
+        // addToCheckout(selectedProduct);
+        handleCloseModal();
+        setShowGenerateLinkModal(true);
         break;
       case 'edit-stock':
         console.log('Edit stock:', selectedProduct);
@@ -249,6 +253,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Quantity</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reserved</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</th>
@@ -488,6 +493,12 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
           </div>
         </div>
       )}
+
+      {/* Generate Link Modal */}
+      <GenerateLinkModal
+        isOpen={showGenerateLinkModal}
+        onClose={() => setShowGenerateLinkModal(false)}
+      />
     </div>
   );
 }
