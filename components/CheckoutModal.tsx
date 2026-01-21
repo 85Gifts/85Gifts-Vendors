@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Plus, Minus, Trash2, FileText, Receipt, Link as LinkIcon, Sparkles } from 'lucide-react';
+import { X, Plus, Minus, Trash2, FileText, Receipt, Link as LinkIcon, Sparkles, Loader2 } from 'lucide-react';
 import { useCheckout, CheckoutItem } from '@/contexts/CheckoutContext';
 import GenerateLinkModal from '@/components/inventory/GenerateLinkModal';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,6 +15,14 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const { items, updateQuantity, removeFromCheckout } = useCheckout();
   const { toast } = useToast();
   const [showGenerateLinkModal, setShowGenerateLinkModal] = useState(false);
+  const [showCustomerInfoModal, setShowCustomerInfoModal] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+  });
 
   if (!isOpen) return null;
 
@@ -22,8 +30,125 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const handleGenerateInvoice = () => {
-    console.log('Generate Invoice for items:', items);
-    // TODO: Implement generate invoice
+    if (items.length === 0) {
+      toast({
+        title: 'No items',
+        description: 'Please add items to checkout before generating an invoice',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setShowCustomerInfoModal(true);
+  };
+
+  const handleCustomerInfoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate all required fields
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
+      toast({
+        title: 'Missing information',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerInfo.email)) {
+      toast({
+        title: 'Invalid email',
+        description: 'Please enter a valid email address',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeneratingInvoice(true);
+    setShowCustomerInfoModal(false);
+
+    try {
+      // Transform checkout items to invoice format
+      const invoiceItems = items.map((item) => ({
+        name: item.name,
+        description: item.description || undefined, // Optional field
+        quantity: item.quantity,
+        unitPrice: item.price,
+        total: item.price * item.quantity,
+      }));
+
+      const response = await fetch('/api/invoices/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          items: invoiceItems,
+          customerInfo: {
+            companyName: '', // Empty string as backend requires this field
+            name: customerInfo.name,
+            email: customerInfo.email,
+            phone: customerInfo.phone,
+            address: customerInfo.address,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = 
+          (typeof errorData.error === 'object' && errorData.error?.message) 
+          || errorData.error 
+          || errorData.message 
+          || 'Failed to generate invoice';
+        
+        throw new Error(errorMessage);
+      }
+
+      // Check if response is a PDF blob
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/pdf')) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: 'Invoice generated',
+          description: 'Your invoice PDF has been downloaded',
+        });
+        
+        // Reset customer info
+        setCustomerInfo({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+        });
+      } else {
+        // Handle JSON response if backend returns something else
+        const data = await response.json();
+        toast({
+          title: 'Invoice generated',
+          description: data.message || 'Invoice generated successfully',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Failed to generate invoice',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingInvoice(false);
+    }
   };
 
   const handleGenerateReceipt = () => {
@@ -196,11 +321,18 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               {/* Generate Invoice */}
               <button
                 onClick={handleGenerateInvoice}
-                className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-3"
+                disabled={isGeneratingInvoice}
+                className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-3"
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <FileText className="w-5 h-5 relative z-10" />
-                <span className="font-semibold relative z-10">Generate Invoice</span>
+                {isGeneratingInvoice ? (
+                  <Loader2 className="w-5 h-5 relative z-10 animate-spin" />
+                ) : (
+                  <FileText className="w-5 h-5 relative z-10" />
+                )}
+                <span className="font-semibold relative z-10">
+                  {isGeneratingInvoice ? 'Generating...' : 'Generate Invoice'}
+                </span>
               </button>
 
               {/* Generate Receipt */}
@@ -242,6 +374,148 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         isOpen={showGenerateLinkModal}
         onClose={() => setShowGenerateLinkModal(false)}
       />
+
+      {/* Customer Information Modal */}
+      {showCustomerInfoModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+          onClick={() => !isGeneratingInvoice && setShowCustomerInfoModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Customer Information</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Provide customer details
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCustomerInfoModal(false)}
+                disabled={isGeneratingInvoice}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCustomerInfoSubmit} className="p-4 space-y-3">
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  required
+                  value={customerInfo.name}
+                  onChange={(e) =>
+                    setCustomerInfo({ ...customerInfo, name: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="John Doe"
+                  disabled={isGeneratingInvoice}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  value={customerInfo.email}
+                  onChange={(e) =>
+                    setCustomerInfo({ ...customerInfo, email: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="customer@example.com"
+                  disabled={isGeneratingInvoice}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  required
+                  value={customerInfo.phone}
+                  onChange={(e) =>
+                    setCustomerInfo({ ...customerInfo, phone: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="+1234567890"
+                  disabled={isGeneratingInvoice}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="address"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Address *
+                </label>
+                <textarea
+                  id="address"
+                  required
+                  value={customerInfo.address}
+                  onChange={(e) =>
+                    setCustomerInfo({ ...customerInfo, address: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="123 Main St, City, State"
+                  rows={2}
+                  disabled={isGeneratingInvoice}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerInfoModal(false)}
+                  disabled={isGeneratingInvoice}
+                  className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isGeneratingInvoice}
+                  className="flex-1 px-3 py-1.5 text-sm bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-medium rounded-md shadow hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {isGeneratingInvoice ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    'Generate Invoice'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
