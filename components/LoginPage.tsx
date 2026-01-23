@@ -119,6 +119,7 @@ export default function AuthPage() {
         });
         router.push("/dashboard");
       } catch (err) {
+        console.log("Login failed", err);
         const errorMessage = err instanceof Error ? err.message : "An error occurred";
         setError(errorMessage);
         toast({

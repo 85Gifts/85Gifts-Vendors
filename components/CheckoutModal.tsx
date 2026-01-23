@@ -16,8 +16,16 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const { toast } = useToast();
   const [showGenerateLinkModal, setShowGenerateLinkModal] = useState(false);
   const [showCustomerInfoModal, setShowCustomerInfoModal] = useState(false);
+  const [showReceiptCustomerInfoModal, setShowReceiptCustomerInfoModal] = useState(false);
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+  });
+  const [receiptCustomerInfo, setReceiptCustomerInfo] = useState({
     name: '',
     email: '',
     phone: '',
@@ -152,8 +160,125 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   };
 
   const handleGenerateReceipt = () => {
-    console.log('Generate Receipt for items:', items);
-    // TODO: Implement generate receipt
+    if (items.length === 0) {
+      toast({
+        title: 'No items',
+        description: 'Please add items to checkout before generating a receipt',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setShowReceiptCustomerInfoModal(true);
+  };
+
+  const handleReceiptCustomerInfoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate all required fields
+    if (!receiptCustomerInfo.name || !receiptCustomerInfo.email || !receiptCustomerInfo.phone || !receiptCustomerInfo.address) {
+      toast({
+        title: 'Missing information',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(receiptCustomerInfo.email)) {
+      toast({
+        title: 'Invalid email',
+        description: 'Please enter a valid email address',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeneratingReceipt(true);
+    setShowReceiptCustomerInfoModal(false);
+
+    try {
+      // Transform checkout items to receipt format
+      const receiptItems = items.map((item) => ({
+        name: item.name,
+        description: item.description || undefined, // Optional field
+        quantity: item.quantity,
+        unitPrice: item.price,
+        total: item.price * item.quantity,
+      }));
+
+      const response = await fetch('/api/receipts/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          items: receiptItems,
+          customerInfo: {
+            companyName: '', // Empty string as backend requires this field
+            name: receiptCustomerInfo.name,
+            email: receiptCustomerInfo.email,
+            phone: receiptCustomerInfo.phone,
+            address: receiptCustomerInfo.address,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = 
+          (typeof errorData.error === 'object' && errorData.error?.message) 
+          || errorData.error 
+          || errorData.message 
+          || 'Failed to generate receipt';
+        
+        throw new Error(errorMessage);
+      }
+
+      // Check if response is a PDF blob
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/pdf')) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: 'Receipt generated',
+          description: 'Your receipt PDF has been downloaded',
+        });
+        
+        // Reset receipt customer info
+        setReceiptCustomerInfo({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+        });
+      } else {
+        // Handle JSON response if backend returns something else
+        const data = await response.json();
+        toast({
+          title: 'Receipt generated',
+          description: data.message || 'Receipt generated successfully',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Failed to generate receipt',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingReceipt(false);
+    }
   };
 
   const handleGeneratePaymentLink = () => {
@@ -338,11 +463,18 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               {/* Generate Receipt */}
               <button
                 onClick={handleGenerateReceipt}
-                className="group relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-3"
+                disabled={isGeneratingReceipt}
+                className="group relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-3"
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Receipt className="w-5 h-5 relative z-10" />
-                <span className="font-semibold relative z-10">Generate Receipt</span>
+                {isGeneratingReceipt ? (
+                  <Loader2 className="w-5 h-5 relative z-10 animate-spin" />
+                ) : (
+                  <Receipt className="w-5 h-5 relative z-10" />
+                )}
+                <span className="font-semibold relative z-10">
+                  {isGeneratingReceipt ? 'Generating...' : 'Generate Receipt'}
+                </span>
               </button>
 
               {/* Generate Payment Link */}
@@ -509,6 +641,148 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                     </>
                   ) : (
                     'Generate Invoice'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Customer Information Modal */}
+      {showReceiptCustomerInfoModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+          onClick={() => !isGeneratingReceipt && setShowReceiptCustomerInfoModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Customer Information</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Provide customer details
+                </p>
+              </div>
+              <button
+                onClick={() => setShowReceiptCustomerInfoModal(false)}
+                disabled={isGeneratingReceipt}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleReceiptCustomerInfoSubmit} className="p-4 space-y-3">
+              <div>
+                <label
+                  htmlFor="receipt-name"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  id="receipt-name"
+                  required
+                  value={receiptCustomerInfo.name}
+                  onChange={(e) =>
+                    setReceiptCustomerInfo({ ...receiptCustomerInfo, name: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="John Doe"
+                  disabled={isGeneratingReceipt}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="receipt-email"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  id="receipt-email"
+                  required
+                  value={receiptCustomerInfo.email}
+                  onChange={(e) =>
+                    setReceiptCustomerInfo({ ...receiptCustomerInfo, email: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="customer@example.com"
+                  disabled={isGeneratingReceipt}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="receipt-phone"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  id="receipt-phone"
+                  required
+                  value={receiptCustomerInfo.phone}
+                  onChange={(e) =>
+                    setReceiptCustomerInfo({ ...receiptCustomerInfo, phone: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="+1234567890"
+                  disabled={isGeneratingReceipt}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="receipt-address"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Address *
+                </label>
+                <textarea
+                  id="receipt-address"
+                  required
+                  value={receiptCustomerInfo.address}
+                  onChange={(e) =>
+                    setReceiptCustomerInfo({ ...receiptCustomerInfo, address: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="123 Main St, City, State"
+                  rows={2}
+                  disabled={isGeneratingReceipt}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReceiptCustomerInfoModal(false)}
+                  disabled={isGeneratingReceipt}
+                  className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isGeneratingReceipt}
+                  className="flex-1 px-3 py-1.5 text-sm bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-medium rounded-md shadow hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {isGeneratingReceipt ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    'Generate Receipt'
                   )}
                 </button>
               </div>

@@ -35,7 +35,7 @@ export async function apiClient(
 
   if (response.status === 401) {
     redirectToLogin()
-    const unauthorizedError: ApiError = new Error('Unauthorized');
+    const unauthorizedError: ApiError = new Error('Invalid credentials');
     unauthorizedError.status = response.status;
     throw unauthorizedError;
   }
