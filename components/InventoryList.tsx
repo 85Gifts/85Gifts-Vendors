@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight, MoreVertical, ShoppingCart, Receipt, FileText, Link, PackageCheck } from 'lucide-react';
+import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight, MoreVertical, ShoppingCart } from 'lucide-react';
 import { useCheckout } from '@/contexts/CheckoutContext';
-import GenerateLinkModal from '@/components/inventory/GenerateLinkModal';
 
 interface InventoryProduct {
   _id: string;
@@ -46,7 +45,6 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null);
   const [isActionsModalOpen, setIsActionsModalOpen] = useState(false);
-  const [showGenerateLinkModal, setShowGenerateLinkModal] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -149,24 +147,6 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
       case 'add-to-checkout':
         addToCheckout(selectedProduct);
         handleCloseModal();
-        break;
-      case 'generate-receipt':
-        console.log('Generate receipt:', selectedProduct);
-        // TODO: Implement generate receipt
-        break;
-      case 'generate-invoice':
-        console.log('Generate invoice:', selectedProduct);
-        // TODO: Implement generate invoice
-        break;
-      case 'generate-payment-link':
-        // Add product to checkout first, then open generate link modal
-        // addToCheckout(selectedProduct);
-        handleCloseModal();
-        setShowGenerateLinkModal(true);
-        break;
-      case 'edit-stock':
-        console.log('Edit stock:', selectedProduct);
-        // TODO: Implement edit stock
         break;
       case 'edit-inventory':
         if (onEdit) {
@@ -439,46 +419,6 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                   <span className="font-semibold text-lg relative z-10">Add to Checkout</span>
                 </button>
 
-                {/* Generate Receipt */}
-                <button
-                  onClick={() => handleAction('generate-receipt')}
-                  className="group relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <Receipt className="w-8 h-8 relative z-10" />
-                  <span className="font-semibold text-lg relative z-10">Generate Receipt</span>
-                </button>
-
-                {/* Generate Invoice */}
-                <button
-                  onClick={() => handleAction('generate-invoice')}
-                  className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <FileText className="w-8 h-8 relative z-10" />
-                  <span className="font-semibold text-lg relative z-10">Generate Invoice</span>
-                </button>
-
-                {/* Generate Payment Link */}
-                <button
-                  onClick={() => handleAction('generate-payment-link')}
-                  className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <Link className="w-8 h-8 relative z-10" />
-                  <span className="font-semibold text-lg relative z-10">Generate Payment Link</span>
-                </button>
-
-                {/* Edit Stock */}
-                <button
-                  onClick={() => handleAction('edit-stock')}
-                  className="group relative overflow-hidden bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center gap-3"
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <PackageCheck className="w-8 h-8 relative z-10" />
-                  <span className="font-semibold text-lg relative z-10">Edit Stock</span>
-                </button>
-
                 {/* Edit Inventory */}
                 <button
                   onClick={() => handleAction('edit-inventory')}
@@ -494,11 +434,6 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
         </div>
       )}
 
-      {/* Generate Link Modal */}
-      <GenerateLinkModal
-        isOpen={showGenerateLinkModal}
-        onClose={() => setShowGenerateLinkModal(false)}
-      />
     </div>
   );
 }

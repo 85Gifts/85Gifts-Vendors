@@ -2,8 +2,9 @@
 
 import React, { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Calendar, Clock, MapPin, Ticket, Users, ArrowLeft, Save, Plus, Trash2, Image, Tag, ArrowRight, ChevronLeft } from "lucide-react"
+import { Calendar, Clock, MapPin, ArrowLeft, Save, Plus, Trash2, Image, Tag, ArrowRight, ChevronLeft, Upload, X, Info } from "lucide-react"
 import { useToast } from "../ui/use-toast"
+import { uploadImageToCloudinary, validateImageFile } from "@/lib/cloudinary"
 import { config } from "../../config"
 import Cookies from "js-cookie"
 
@@ -96,15 +97,16 @@ const defaultValues: EventFormValues = {
 const steps = [
   { number: 1, title: "Basic Info", description: "Event details and timing" },
   { number: 2, title: "Location", description: "Where it happens" },
-  { number: 3, title: "Pricing", description: "Tickets and capacity" },
+  { number: 3, title: "Ticket Tiers", description: "Add tiers with price and capacity" },
   { number: 4, title: "Sales Period", description: "When tickets go on sale" },
-  { number: 5, title: "Details & Tiers", description: "Branding and ticket types" },
+  { number: 5, title: "Branding & Details", description: "Look and description" },
 ]
 
 export default function EventForm(props: EventFormProps = {}): React.ReactElement {
   const router = useRouter()
   const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
+  const [showFreeEventModal, setShowFreeEventModal] = useState(false)
   
   // Initialize state with props if available, otherwise use defaults
   const [values, setValues] = useState<EventFormValues>(() => {
@@ -122,6 +124,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
   })
   
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingCoverImage, setUploadingCoverImage] = useState(false)
 
   // Update values when props change (for edit mode when data loads asynchronously)
   useEffect(() => {
@@ -145,16 +148,21 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     }
   }, [props.initialTiers])
 
-  // Validation for each step
+  // Validation for each step (step 4 optional when event is free — step 4 is skipped)
+  const isFreeEvent = tiers.length > 0 && tiers.every((t) => t.price === "0" || Number(t.price) === 0)
   const stepValidation = useMemo(() => {
     return {
       1: Boolean(values.title && values.category && values.date && values.time && values.organiserName && values.endDate && values.endTime),
-      2: Boolean(values.location && values.venue && values.city && values.country),
-      3: Boolean(values.price !== "" && values.capacity !== ""),
-      4: Boolean(values.salesStartDate && values.salesEndDate),
-      5: Boolean(tiers.length > 0 && tiers.every((t) => t.name && t.price && t.capacity && t.type)),
+      2: Boolean(
+        values.location &&
+        values.venue &&
+        (values.location === "virtual" || (values.city && values.country))
+      ),
+      3: Boolean(tiers.length > 0 && tiers.every((t) => t.name && t.price !== "" && t.capacity !== "" && t.type)),
+      4: Boolean(values.salesStartDate && values.salesEndDate) || isFreeEvent,
+      5: true,
     }
-  }, [values, tiers])
+  }, [values, tiers, isFreeEvent])
 
   const isValid = useMemo(() => {
     return Object.values(stepValidation).every(valid => valid)
@@ -178,6 +186,35 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     setTiers((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const handleCoverImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const validationError = validateImageFile(file, 10)
+    if (validationError) {
+      toast({ title: "Invalid image", description: validationError, variant: "destructive" })
+      e.target.value = ""
+      return
+    }
+    setUploadingCoverImage(true)
+    try {
+      const url = await uploadImageToCloudinary(file)
+      setValues((prev) => ({ ...prev, coverImageUrl: url }))
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: err instanceof Error ? err.message : "Failed to upload cover image",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingCoverImage(false)
+      e.target.value = ""
+    }
+  }
+
+  const clearCoverImage = () => {
+    setValues((prev) => ({ ...prev, coverImageUrl: "" }))
+  }
+
   const toIso = (d: string, t: string) => {
     if (!d || !t) return ""
     const iso = new Date(`${d}T${t}`).toISOString()
@@ -186,14 +223,30 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
 
   const handleNext = () => {
     if (currentStep < 5) {
+      // Step 3 is Ticket Tiers; if all tier prices are 0, show free event warning
+      if (currentStep === 3 && tiers.length > 0 && tiers.every((t) => t.price === "0" || Number(t.price) === 0)) {
+        setShowFreeEventModal(true)
+        return
+      }
       setCurrentStep(currentStep + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const confirmFreeEventContinue = () => {
+    setShowFreeEventModal(false)
+    if (currentStep === 3) {
+      // Skip sales period (step 4) for free events
+      setCurrentStep(5)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      // From step 5 (tiers), skip back over sales period (step 4) if free event
+      const nextStep = currentStep === 5 && isFreeEvent ? 3 : currentStep - 1
+      setCurrentStep(nextStep)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -451,16 +504,15 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Location</label>
-                    <div className="relative">
-                      <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={values.location}
-                        onChange={handleChange("location")}
-                        placeholder="Physical address or virtual link"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                    <select
+                      value={values.location}
+                      onChange={handleChange("location")}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select location type</option>
+                      <option value="physical">Physical</option>
+                      <option value="virtual">Virtual</option>
+                    </select>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Venue</label>
@@ -468,89 +520,154 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                       type="text"
                       value={values.venue}
                       onChange={handleChange("venue")}
-                      placeholder="e.g., Tafawa Balewa Square"
+                      placeholder={values.location === "virtual" ? "enter virtual or registration link" : "e.g., Tafawa Balewa Square"}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
-                    <input
-                      type="text"
-                      value={values.address}
-                      onChange={handleChange("address")}
-                      placeholder="Street address"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">City</label>
-                    <input
-                      type="text"
-                      value={values.city}
-                      onChange={handleChange("city")}
-                      placeholder="e.g., Lagos"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">State</label>
-                    <input
-                      type="text"
-                      value={values.state}
-                      onChange={handleChange("state")}
-                      placeholder="e.g., Lagos"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Country</label>
-                    <input
-                      type="text"
-                      value={values.country}
-                      onChange={handleChange("country")}
-                      placeholder="e.g., Nigeria"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                  {values.location === "physical" && (
+                    <>
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
+                        <input
+                          type="text"
+                          value={values.address}
+                          onChange={handleChange("address")}
+                          placeholder="Street address"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">City</label>
+                        <input
+                          type="text"
+                          value={values.city}
+                          onChange={handleChange("city")}
+                          placeholder="e.g., Lagos"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">State</label>
+                        <input
+                          type="text"
+                          value={values.state}
+                          onChange={handleChange("state")}
+                          placeholder="e.g., Lagos"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Country</label>
+                        <input
+                          type="text"
+                          value={values.country}
+                          onChange={handleChange("country")}
+                          placeholder="e.g., Nigeria"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </section>
             )}
 
-            {/* Step 3: Pricing */}
+            {/* Step 3: Ticket Tiers */}
             {currentStep === 3 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tickets & Capacity</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Ticket price</label>
-                    <div className="relative">
-                      <Ticket className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="number"
-                        min={0}
-                        value={values.price}
-                        onChange={handleChange("price")}
-                        placeholder="0 for free"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Set 0 to make it a free RSVP.</p>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    Ticket Tiers
+                    <span
+                      className="inline-flex text-gray-500 dark:text-gray-400 cursor-help"
+                      title="For free events, set price to 0."
+                    >
+                      <Info className="w-4 h-4" />
+                    </span>
+                  </h2>
+                    <button
+                      type="button"
+                      onClick={addTier}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add tier
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Capacity</label>
-                    <div className="relative">
-                      <Users className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="number"
-                        min={0}
-                        value={values.capacity}
-                        onChange={handleChange("capacity")}
-                        placeholder="Expected max attendees"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                  <div className="space-y-4">
+                    {tiers.map((tier, index) => (
+                      <div key={index} className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
+                            <input
+                              type="text"
+                              value={tier.name}
+                              onChange={(e) => updateTier(index, "name", e.target.value)}
+                              placeholder="Regular, VIP, VVIP"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Type</label>
+                            <select
+                              value={tier.type}
+                              onChange={(e) => updateTier(index, "type", e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="general">general</option>
+                              <option value="vip">vip</option>
+                              <option value="vvip">vvip</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Price</label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={tier.price}
+                              onChange={(e) => updateTier(index, "price", e.target.value)}
+                              placeholder="Set price to 0 if event is free"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Capacity</label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={tier.capacity}
+                              onChange={(e) => updateTier(index, "capacity", e.target.value)}
+                              placeholder="0"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
+                            <input
+                              type="text"
+                              value={tier.description}
+                              onChange={(e) => updateTier(index, "description", e.target.value)}
+                              placeholder="Short summary of this tier"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                        {tiers.length > 1 && (
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => removeTier(index)}
+                              className="inline-flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remove tier
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
               </section>
             )}
 
@@ -621,152 +738,90 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
               </section>
             )}
 
-            {/* Step 5: Details & Tiers */}
+            {/* Step 5: Branding & Details */}
             {currentStep === 5 && (
-              <>
-                <section className="space-y-4">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Branding & Details</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Event icon / emoji</label>
-                      <input
-                        type="text"
-                        maxLength={2}
-                        value={values.emoji}
-                        onChange={handleChange("emoji")}
-                        placeholder="e.g., 🎄"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Cover image URL</label>
-                      <div className="relative">
-                        <Image className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="url"
-                          value={values.coverImageUrl}
-                          onChange={handleChange("coverImageUrl")}
-                          placeholder="https://..."
-                          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tags</label>
-                      <div className="relative">
-                        <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="text"
-                          value={values.tags}
-                          onChange={handleChange("tags")}
-                          placeholder="Comma-separated, e.g., afrobeat, concert, lagos"
-                          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Use commas to add multiple tags.</p>
-                    </div>
-                  </div>
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Branding & Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
-                    <textarea
-                      rows={4}
-                      value={values.description}
-                      onChange={handleChange("description")}
-                      placeholder="What should attendees expect?"
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Event icon / emoji</label>
+                    <input
+                      type="text"
+                      maxLength={2}
+                      value={values.emoji}
+                      onChange={handleChange("emoji")}
+                      placeholder="e.g., 🎄"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Highlight the vibe, agenda, speakers, and special perks.</p>
                   </div>
-                </section>
-
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Ticket Tiers</h2>
-                    <button
-                      type="button"
-                      onClick={addTier}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm transition-colors"
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Cover image</label>
+                    <label
+                      htmlFor="event-cover-upload"
+                      className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
                     >
-                      <Plus className="w-4 h-4" />
-                      Add tier
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {tiers.map((tier, index) => (
-                      <div key={index} className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
-                            <input
-                              type="text"
-                              value={tier.name}
-                              onChange={(e) => updateTier(index, "name", e.target.value)}
-                              placeholder="Regular, VIP, VVIP"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Type</label>
-                            <select
-                              value={tier.type}
-                              onChange={(e) => updateTier(index, "type", e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                              <option value="general">general</option>
-                              <option value="vip">vip</option>
-                              <option value="vvip">vvip</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Price</label>
-                            <input
-                              type="number"
-                              min={0}
-                              value={tier.price}
-                              onChange={(e) => updateTier(index, "price", e.target.value)}
-                              placeholder="0"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Capacity</label>
-                            <input
-                              type="number"
-                              min={0}
-                              value={tier.capacity}
-                              onChange={(e) => updateTier(index, "capacity", e.target.value)}
-                              placeholder="0"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
-                            <input
-                              type="text"
-                              value={tier.description}
-                              onChange={(e) => updateTier(index, "description", e.target.value)}
-                              placeholder="Short summary of this tier"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                        </div>
-                        {tiers.length > 1 && (
-                          <div className="mt-3 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => removeTier(index)}
-                              className="inline-flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Remove tier
-                            </button>
-                          </div>
-                        )}
+                      <Upload className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {uploadingCoverImage ? "Uploading..." : "Click to upload cover image"}
+                      </span>
+                      <input
+                        id="event-cover-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverImageChange}
+                        className="hidden"
+                        disabled={uploadingCoverImage}
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      JPG, PNG, GIF, WebP. Max 10MB.
+                    </p>
+                    {values.coverImageUrl && (
+                      <div className="mt-3 relative inline-block">
+                        <img
+                          src={values.coverImageUrl}
+                          alt="Cover preview"
+                          className="h-32 w-auto object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={clearCoverImage}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          disabled={uploadingCoverImage}
+                          aria-label="Remove cover image"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </section>
-              </>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tags</label>
+                    <div className="relative">
+                      <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={values.tags}
+                        onChange={handleChange("tags")}
+                        placeholder="Comma-separated, e.g., afrobeat, concert, lagos"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Use commas to add multiple tags.</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
+                  <textarea
+                    rows={4}
+                    value={values.description}
+                    onChange={handleChange("description")}
+                    placeholder="What should attendees expect?"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Highlight the vibe, agenda, speakers, and special perks.</p>
+                </div>
+              </section>
             )}
 
             {/* Navigation Buttons */}
@@ -820,6 +875,33 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
               </div>
             </div>
           </form>
+
+          {/* Free event warning modal */}
+          {showFreeEventModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full p-6">
+                <p className="text-gray-900 dark:text-white font-medium mb-6">
+                  This is a free event?
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowFreeEventModal(false)}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmFreeEventContinue}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
