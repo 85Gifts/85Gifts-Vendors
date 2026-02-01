@@ -15,6 +15,8 @@ import {
   Ticket,
   ChevronLeft,
   ChevronRight,
+  Mail,
+  Phone,
 } from "lucide-react"
 import { useToast } from "../ui/use-toast"
 
@@ -37,6 +39,48 @@ interface EventItem {
   isApproved?: boolean
   approved?: boolean
   isPublished?: boolean
+}
+
+interface Booking {
+  bookingReference: string
+  eventId: string
+  eventSlug: string
+  eventName: string
+  customer: {
+    name: string
+    email: string
+    phone: string
+  }
+  tickets: Array<{
+    tierName: string
+    quantity: number
+    pricePerTicket: number
+    totalPrice: number
+    _id: string
+  }>
+  subtotal: number
+  totalAmount: number
+  paymentStatus: string
+  paymentMethod: string
+  paidAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface BookingsResponse {
+  success: boolean
+  data: {
+    message: string
+    data: {
+      totalBookings: number
+      totalRevenue: number
+      statusCounts: {
+        paid: number
+        pending: number
+      }
+      bookings: Booking[]
+    }
+  }
 }
 
 interface EventsTabProps {
@@ -80,8 +124,8 @@ export default function EventsTab({
   const router = useRouter()
   const { toast } = useToast()
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
-  const currencyFormatter = useMemo(
-    () => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
+  const nairaFormatter = useMemo(
+    () => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }),
     []
   )
   
@@ -90,6 +134,16 @@ export default function EventsTab({
   const carouselRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
+
+  // Bookings state
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [bookingsLoading, setBookingsLoading] = useState(false)
+  const [bookingsError, setBookingsError] = useState("")
+  const [bookingsStats, setBookingsStats] = useState<{
+    totalBookings: number
+    totalRevenue: number
+    statusCounts: { paid: number; pending: number }
+  } | null>(null)
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -307,6 +361,72 @@ export default function EventsTab({
       statusBreakdown,
     }
   }, [events])
+
+  // Fetch bookings
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setBookingsLoading(true)
+        setBookingsError("")
+
+        const response = await fetch("/api/vendor/bookings", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        })
+
+        const data: BookingsResponse = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data?.data?.message || "Failed to fetch bookings")
+        }
+
+        if (data.success && data.data?.data) {
+          setBookings(data.data.data.bookings || [])
+          setBookingsStats({
+            totalBookings: data.data.data.totalBookings || 0,
+            totalRevenue: data.data.data.totalRevenue || 0,
+            statusCounts: data.data.data.statusCounts || { paid: 0, pending: 0 },
+          })
+        }
+      } catch (error: any) {
+        console.error("Error fetching bookings:", error)
+        setBookingsError(error.message || "Failed to load bookings")
+      } finally {
+        setBookingsLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [])
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return ""
+    try {
+      const date = new Date(dateString)
+      return new Intl.DateTimeFormat("en-NG", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date)
+    } catch {
+      return dateString
+    }
+  }
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "paid":
+        return "text-green-600 bg-green-100"
+      case "pending":
+        return "text-yellow-600 bg-yellow-100"
+      case "failed":
+        return "text-red-600 bg-red-100"
+      default:
+        return "text-gray-600 bg-gray-100"
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -532,7 +652,7 @@ export default function EventsTab({
                   <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{event.category}</span>
                   <span className="flex items-center gap-2 text-xl font-semibold text-blue-600 dark:text-blue-400">
                     <Ticket className="w-4 h-4" />
-                    {event.price > 0 ? currencyFormatter.format(event.price) : "Free RSVP"}
+                    {event.price > 0 ? nairaFormatter.format(event.price) : "Free RSVP"}
                   </span>
                 </div>
 
@@ -550,6 +670,129 @@ export default function EventsTab({
           ))}
         </div>
       )}
+
+      {/* Bookings Table */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+          <h3 className="text-lg font-semibold dark:text-white">Recent Bookings</h3>
+          {bookingsStats && (
+            <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <span>Total: {numberFormatter.format(bookingsStats.totalBookings)}</span>
+              <span>Revenue: {nairaFormatter.format(bookingsStats.totalRevenue)}</span>
+              <span className="text-green-600 dark:text-green-400">
+                Paid: {numberFormatter.format(bookingsStats.statusCounts.paid)}
+              </span>
+              <span className="text-yellow-600 dark:text-yellow-400">
+                Pending: {numberFormatter.format(bookingsStats.statusCounts.pending)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {bookingsLoading ? (
+          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+            Loading bookings...
+          </div>
+        ) : bookingsError ? (
+          <div className="p-12 text-center text-red-600 dark:text-red-400">
+            {bookingsError}
+          </div>
+        ) : bookings.length === 0 ? (
+          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+            No bookings found.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Booking Ref
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Event
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Tickets
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                {bookings.map((booking) => (
+                  <tr key={booking.bookingReference} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-mono text-gray-900 dark:text-white">
+                        {booking.bookingReference}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {booking.eventName}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {booking.eventSlug}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {booking.customer.name}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+                        <Mail className="w-3 h-3" />
+                        {booking.customer.email}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+                        <Phone className="w-3 h-3" />
+                        {booking.customer.phone}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {booking.tickets.map((ticket, idx) => (
+                          <div key={ticket._id || idx} className="text-xs">
+                            {ticket.tierName}: {ticket.quantity}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {nairaFormatter.format(booking.totalAmount)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getPaymentStatusColor(
+                          booking.paymentStatus
+                        )}`}
+                      >
+                        {booking.paymentStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {formatDate(booking.paidAt || booking.createdAt)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
@@ -584,12 +827,12 @@ export default function EventsTab({
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-500 dark:text-gray-400">Total Event Revenue</div>
               <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
-                {currencyFormatter.format(eventAnalytics.totalRevenue)}
+                {nairaFormatter.format(eventAnalytics.totalRevenue)}
               </div>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Average Ticket Price</span>
-              <span>{currencyFormatter.format(eventAnalytics.averageTicketPrice)}</span>
+              <span>{nairaFormatter.format(eventAnalytics.averageTicketPrice)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Average Attendance</span>
@@ -631,7 +874,7 @@ export default function EventsTab({
                 <Ticket className="w-4 h-4" />
                 <span>
                   {eventAnalytics.topEvent.price > 0
-                    ? `${currencyFormatter.format(eventAnalytics.topEvent.price)} tickets`
+                    ? `${nairaFormatter.format(eventAnalytics.topEvent.price)} tickets`
                     : "Free RSVP"}
                 </span>
               </div>
