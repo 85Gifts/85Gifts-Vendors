@@ -221,7 +221,9 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     return iso
   }
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     if (currentStep < 5) {
       // Step 3 is Ticket Tiers; if all tier prices are 0, show free event warning
       if (currentStep === 3 && tiers.length > 0 && tiers.every((t) => t.price === "0" || Number(t.price) === 0)) {
@@ -251,8 +253,36 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    // Prevent Enter key from submitting the form unless it's from the submit button
+    if (e.key === 'Enter' && e.target instanceof HTMLElement) {
+      // Only allow Enter to submit if it's coming from the submit button
+      if (e.target.tagName !== 'BUTTON' || e.target.getAttribute('type') !== 'submit') {
+        e.preventDefault()
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    // Check if this was triggered by the submit button
+    const target = e.target as HTMLElement
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null
+    
+    // Only submit if we're on the final step (step 5) AND it was triggered by the submit button
+    if (currentStep !== 5) {
+      // If not on step 5, just prevent submission - don't call handleNext here
+      // as the Next button should handle navigation
+      return
+    }
+    
+    // Additional check: ensure it's actually the submit button
+    if (submitter && submitter.getAttribute('type') !== 'submit') {
+      return
+    }
+    
     if (!isValid) return
     try {
       setSubmitting(true)
@@ -393,7 +423,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-8">
+          <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="p-6 space-y-8">
             {/* Step 1: Basic Info */}
             {currentStep === 1 && (
               <section className="space-y-4">
@@ -849,7 +879,11 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                 {currentStep < 5 ? (
                   <button
                     type="button"
-                    onClick={handleNext}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleNext(e)
+                    }}
                     disabled={!stepValidation[currentStep as keyof typeof stepValidation]}
                     className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
                       !stepValidation[currentStep as keyof typeof stepValidation]
