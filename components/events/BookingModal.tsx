@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { X, Ticket, Plus, Minus } from "lucide-react"
+import { X, Ticket, Plus, Minus, CheckCircle } from "lucide-react"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { useToast } from "../ui/use-toast"
@@ -54,6 +54,14 @@ export default function BookingModal({
     return initial
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [bookingData, setBookingData] = useState<{
+    bookingReference: string
+    eventName: string
+    totalAmount: number
+    status: string
+    paidAt?: string
+  } | null>(null)
 
   if (!isOpen) return null
 
@@ -197,10 +205,36 @@ export default function BookingModal({
           description: errorMessage,
           variant: "destructive",
         })
+        setIsSubmitting(false)
         return
       }
 
-      // Extract payment URL from response
+      // Check if this is a free booking (totalAmount === 0)
+      const bookingInfo = data?.data
+      if (bookingInfo && bookingInfo.totalAmount === 0) {
+        // Show success modal for free bookings
+        setBookingData({
+          bookingReference: bookingInfo.bookingReference,
+          eventName: bookingInfo.eventName,
+          totalAmount: bookingInfo.totalAmount,
+          status: bookingInfo.status,
+          paidAt: bookingInfo.paidAt,
+        })
+        // Reset form
+        setCustomer({ name: "", email: "", phone: "" })
+        setTicketSelections(() => {
+          const reset: Record<string, number> = {}
+          tiers.forEach((tier) => {
+            reset[tier.name] = 0
+          })
+          return reset
+        })
+        setShowSuccessModal(true)
+        setIsSubmitting(false)
+        return
+      }
+
+      // Extract payment URL from response for paid bookings
       const paymentUrl = data?.data?.data?.paymentUrl ?? data?.data?.paymentUrl
       
       if (paymentUrl) {
@@ -214,6 +248,7 @@ export default function BookingModal({
           description: "Payment URL not found in response. Please contact support.",
           variant: "destructive",
         })
+        setIsSubmitting(false)
       }
     } catch (error: any) {
       // Handle network errors or JSON parsing errors
@@ -230,6 +265,98 @@ export default function BookingModal({
       // Always reset submitting state (won't execute if redirect happens)
       setIsSubmitting(false)
     }
+  }
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false)
+    setBookingData(null)
+    handleClose()
+  }
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return ""
+    try {
+      const date = new Date(dateString)
+      return new Intl.DateTimeFormat("en-NG", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date)
+    } catch {
+      return dateString
+    }
+  }
+
+  // Success Modal
+  if (showSuccessModal && bookingData) {
+    return (
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={handleSuccessClose}
+      >
+        <div
+          className="bg-white rounded-xl shadow-xl max-w-md w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-6">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="rounded-full bg-green-100 p-3 mb-4">
+                <CheckCircle className="w-12 h-12 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Booking Successful!
+              </h3>
+              <p className="text-gray-600">
+                Your RSVP has been confirmed
+              </p>
+            </div>
+
+            <div className="space-y-4 border-t border-gray-200 pt-6">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Event:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {bookingData.eventName}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Booking Reference:</span>
+                <span className="text-sm font-semibold text-gray-900 font-mono">
+                  {bookingData.bookingReference}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Total Amount:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {formatCurrency(bookingData.totalAmount)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Status:</span>
+                <span className="text-sm font-semibold text-green-600 capitalize">
+                  {bookingData.status}
+                </span>
+              </div>
+              {bookingData.paidAt && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Confirmed At:</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formatDate(bookingData.paidAt)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <Button
+                onClick={handleSuccessClose}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -348,39 +475,63 @@ export default function BookingModal({
                       </div>
 
                       {!isOutOfStock ? (
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => updateTicketQuantity(tier.name, -1)}
-                            disabled={
-                              isSubmitting ||
-                              qty === 0 ||
-                              (tier.minPerOrder
-                                ? qty <= tier.minPerOrder
-                                : false)
-                            }
-                            className="rounded-full border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <span className="w-8 text-center font-semibold text-gray-900">
-                            {qty}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updateTicketQuantity(tier.name, 1)}
-                            disabled={
-                              isSubmitting ||
-                              qty >= available ||
-                              (tier.maxPerOrder
-                                ? qty >= tier.maxPerOrder
-                                : false)
-                            }
-                            className="rounded-full border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
+                        tier.price === 0 ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={qty > 0}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  updateTicketQuantity(tier.name, 1)
+                                } else {
+                                  setTicketSelections((prev) => ({
+                                    ...prev,
+                                    [tier.name]: 0,
+                                  }))
+                                }
+                              }}
+                              disabled={isSubmitting}
+                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <span className="text-sm text-gray-600">
+                              Select
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => updateTicketQuantity(tier.name, -1)}
+                              disabled={
+                                isSubmitting ||
+                                qty === 0 ||
+                                (tier.minPerOrder
+                                  ? qty <= tier.minPerOrder
+                                  : false)
+                              }
+                              className="rounded-full border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-8 text-center font-semibold text-gray-900">
+                              {qty}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateTicketQuantity(tier.name, 1)}
+                              disabled={
+                                isSubmitting ||
+                                qty >= available ||
+                                (tier.maxPerOrder
+                                  ? qty >= tier.maxPerOrder
+                                  : false)
+                              }
+                              className="rounded-full border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )
                       ) : (
                         <span className="text-sm text-red-600">
                           Sold Out
@@ -438,7 +589,11 @@ export default function BookingModal({
               disabled={isSubmitting || getTotalTickets() === 0}
               className="flex-1"
             >
-              {isSubmitting ? "Processing..." : "Complete Booking"}
+              {isSubmitting
+                ? "Processing..."
+                : calculateTotal() === 0
+                ? "Submit RSVP"
+                : "Complete Booking"}
             </Button>
           </div>
         </form>
