@@ -15,7 +15,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${API_URL}/api/vendor/bookings`, {
+    const { searchParams } = request.nextUrl;
+    const eventId = searchParams.get('eventId');
+    const search = searchParams.get('search');
+    const page = searchParams.get('page');
+    const limit = searchParams.get('limit');
+    const url = new URL(`${API_URL}/api/vendor/bookings`);
+    if (eventId) url.searchParams.set('eventId', eventId);
+    if (search) url.searchParams.set('search', search);
+    if (page) url.searchParams.set('page', page);
+    if (limit) url.searchParams.set('limit', limit);
+
+    const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

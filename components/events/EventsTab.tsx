@@ -67,6 +67,15 @@ interface Booking {
   updatedAt: string
 }
 
+interface BookingsPagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
 interface BookingsResponse {
   success: boolean
   data: {
@@ -79,6 +88,7 @@ interface BookingsResponse {
         pending: number
       }
       bookings: Booking[]
+      pagination?: BookingsPagination
     }
   }
 }
@@ -144,6 +154,11 @@ export default function EventsTab({
     totalRevenue: number
     statusCounts: { paid: number; pending: number }
   } | null>(null)
+  const [bookingsPagination, setBookingsPagination] = useState<BookingsPagination | null>(null)
+  const [bookingsEventId, setBookingsEventId] = useState("")
+  const [bookingsSearch, setBookingsSearch] = useState("")
+  const [bookingsPage, setBookingsPage] = useState(1)
+  const BOOKINGS_PAGE_SIZE = 10
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -362,14 +377,25 @@ export default function EventsTab({
     }
   }, [events])
 
-  // Fetch bookings
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setBookingsPage(1)
+  }, [bookingsEventId, bookingsSearch])
+
+  // Fetch bookings (with eventId, search, page, limit)
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         setBookingsLoading(true)
         setBookingsError("")
+        const params = new URLSearchParams()
+        if (bookingsEventId) params.set("eventId", bookingsEventId)
+        if (bookingsSearch.trim()) params.set("search", bookingsSearch.trim())
+        params.set("page", String(bookingsPage))
+        params.set("limit", String(BOOKINGS_PAGE_SIZE))
+        const url = `/api/vendor/bookings?${params.toString()}`
 
-        const response = await fetch("/api/vendor/bookings", {
+        const response = await fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -384,12 +410,15 @@ export default function EventsTab({
         }
 
         if (data.success && data.data?.data) {
-          setBookings(data.data.data.bookings || [])
+          const d = data.data.data
+          setBookings(d.bookings || [])
           setBookingsStats({
-            totalBookings: data.data.data.totalBookings || 0,
-            totalRevenue: data.data.data.totalRevenue || 0,
-            statusCounts: data.data.data.statusCounts || { paid: 0, pending: 0 },
+            totalBookings: d.totalBookings ?? 0,
+            totalRevenue: d.totalRevenue ?? 0,
+            statusCounts: d.statusCounts ?? { paid: 0, pending: 0 },
           })
+          if (d.pagination) setBookingsPagination(d.pagination)
+          else setBookingsPagination(null)
         }
       } catch (error: any) {
         console.error("Error fetching bookings:", error)
@@ -400,7 +429,7 @@ export default function EventsTab({
     }
 
     fetchBookings()
-  }, [])
+  }, [bookingsEventId, bookingsSearch, bookingsPage])
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return ""
@@ -674,19 +703,52 @@ export default function EventsTab({
       {/* Bookings Table */}
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-lg font-semibold dark:text-white">Recent Bookings</h3>
-          {bookingsStats && (
-            <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-              <span>Total: {numberFormatter.format(bookingsStats.totalBookings)}</span>
-              <span>Revenue: {nairaFormatter.format(bookingsStats.totalRevenue)}</span>
-              <span className="text-green-600 dark:text-green-400">
-                Paid: {numberFormatter.format(bookingsStats.statusCounts.paid)}
-              </span>
-              <span className="text-yellow-600 dark:text-yellow-400">
-                Pending: {numberFormatter.format(bookingsStats.statusCounts.pending)}
-              </span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold dark:text-white">Recent Bookings</h3>
+              {bookingsStats && (
+                <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <span>Total: {numberFormatter.format(bookingsStats.totalBookings)}</span>
+                  <span title="This page only">This page — Revenue: {nairaFormatter.format(bookingsStats.totalRevenue)}</span>
+                  <span className="text-green-600 dark:text-green-400" title="This page only">
+                    Paid: {numberFormatter.format(bookingsStats.statusCounts.paid)}
+                  </span>
+                  <span className="text-yellow-600 dark:text-yellow-400" title="This page only">
+                    Pending: {numberFormatter.format(bookingsStats.statusCounts.pending)}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+            <div className="flex flex-col sm:flex-row gap-3 min-w-0">
+              <select
+                value={bookingsEventId}
+                onChange={(e) => setBookingsEventId(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                aria-label="Filter by event"
+              >
+                <option value="">All events</option>
+                {events.map((event, index) => {
+                  const id = event.backendId || String(event.id)
+                  return (
+                    <option key={`${id}-${index}`} value={id}>
+                      {event.title}
+                    </option>
+                  )
+                })}
+              </select>
+              <div className="relative flex-1 min-w-[180px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden />
+                <input
+                  type="search"
+                  placeholder="Search by name, email, ref..."
+                  value={bookingsSearch}
+                  onChange={(e) => setBookingsSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label="Search bookings"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {bookingsLoading ? (
@@ -790,6 +852,38 @@ export default function EventsTab({
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination — use API pagination when present, else fallback to computed */}
+        {!bookingsLoading && !bookingsError && bookings.length > 0 && (bookingsPagination || bookingsStats) && (
+          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Page {bookingsPagination?.page ?? bookingsPage} of {bookingsPagination?.totalPages ?? Math.max(1, Math.ceil((bookingsStats?.totalBookings ?? 0) / BOOKINGS_PAGE_SIZE))}
+              <span className="ml-2">
+                ({numberFormatter.format(bookingsPagination?.total ?? bookingsStats?.totalBookings ?? 0)} total)
+              </span>
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBookingsPage((p) => Math.max(1, p - 1))}
+                disabled={bookingsPagination ? !bookingsPagination.hasPrev : bookingsPage <= 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setBookingsPage((p) => p + 1)}
+                disabled={bookingsPagination ? !bookingsPagination.hasNext : (bookingsPage >= Math.ceil((bookingsStats?.totalBookings ?? 0) / BOOKINGS_PAGE_SIZE))}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
