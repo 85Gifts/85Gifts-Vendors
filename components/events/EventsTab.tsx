@@ -17,6 +17,8 @@ import {
   ChevronRight,
   Mail,
   Phone,
+  MoreHorizontal,
+  MessageSquare,
 } from "lucide-react"
 import { useToast } from "../ui/use-toast"
 
@@ -159,6 +161,8 @@ export default function EventsTab({
   const [bookingsSearch, setBookingsSearch] = useState("")
   const [bookingsPage, setBookingsPage] = useState(1)
   const BOOKINGS_PAGE_SIZE = 10
+  const [reminderModalBooking, setReminderModalBooking] = useState<Booking | null>(null)
+  const [reminderSending, setReminderSending] = useState(false)
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -789,6 +793,9 @@ export default function EventsTab({
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Date
                   </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
@@ -848,6 +855,16 @@ export default function EventsTab({
                         {formatDate(booking.paidAt || booking.createdAt)}
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <button
+                        type="button"
+                        onClick={() => setReminderModalBooking(booking)}
+                        className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                        aria-label="Booking actions"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -887,6 +904,87 @@ export default function EventsTab({
           </div>
         )}
       </div>
+
+      {/* Booking reminder modal */}
+      {reminderModalBooking && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setReminderModalBooking(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reminder-modal-title"
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border dark:border-gray-800 w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="reminder-modal-title" className="text-lg font-semibold dark:text-white mb-1">
+              Send reminder
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              {reminderModalBooking.customer.name} · {reminderModalBooking.bookingReference}
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                disabled={reminderSending}
+                onClick={async () => {
+                  if (!reminderModalBooking) return
+                  setReminderSending(true)
+                  try {
+                    const res = await fetch(
+                      `/api/vendor/bookings/${encodeURIComponent(reminderModalBooking.bookingReference)}/send-reminder`,
+                      { method: "POST", credentials: "include" }
+                    )
+                    const data = await res.json()
+                    if (res.ok && data?.success) {
+                      toast({
+                        title: "Reminder sent",
+                        description: data?.data?.message ?? "Reminder queued and will be sent shortly",
+                        variant: "success",
+                      })
+                      setReminderModalBooking(null)
+                    } else {
+                      toast({
+                        title: "Failed to send reminder",
+                        description: data?.error?.message ?? data?.data?.message ?? "Something went wrong",
+                        variant: "destructive",
+                      })
+                    }
+                  } catch (err) {
+                    toast({
+                      title: "Failed to send reminder",
+                      description: err instanceof Error ? err.message : "Something went wrong",
+                      variant: "destructive",
+                    })
+                  } finally {
+                    setReminderSending(false)
+                  }
+                }}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-left text-gray-900 dark:text-white transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <Mail className="w-5 h-5 text-gray-500 dark:text-gray-400 shrink-0" />
+                <span>{reminderSending ? "Sending…" : "Send email reminder"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setReminderModalBooking(null)}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-left text-gray-900 dark:text-white transition-colors"
+              >
+                <MessageSquare className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <span>Send text reminder</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReminderModalBooking(null)}
+              className="mt-4 w-full py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
