@@ -1,0 +1,63 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+
+export async function POST(request: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: { message: 'Unauthorized - No access token' } },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const amount = body?.amount;
+
+    if (amount == null || typeof amount !== 'number' || amount <= 0) {
+      return NextResponse.json(
+        { error: { message: 'Valid amount is required' } },
+        { status: 400 }
+      );
+    }
+
+    const response = await fetch(`${API_URL}/api/vendor/withdraw`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ amount }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error: {
+            message:
+              data?.error?.message ??
+              data?.message ??
+              data?.error ??
+              'Failed to process withdrawal',
+          },
+        },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    console.error('Vendor withdraw API Error:', error);
+    return NextResponse.json(
+      { error: { message } },
+      { status: 500 }
+    );
+  }
+}
