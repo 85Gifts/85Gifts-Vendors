@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import {
   Wallet,
-  TrendingUp,
   History,
   Clock,
   CheckCircle,
@@ -19,6 +18,8 @@ import {
   Box,
 } from "lucide-react"
 import { redirectToLogin } from "@/lib/authRedirect"
+import PerformanceMetricsCard from "./PerformanceMetricsCard"
+import VendorProfileCard from "./VendorProfileCard"
 
 // Define Wallet type
 interface Wallet {
@@ -822,102 +823,18 @@ export default function DashboardTab() {
 
       {/* Performance Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 dark:text-white">
-            <TrendingUp className="w-5 h-5" />
-            Performance Metrics
-          </h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Wallet Balance</span>
-              <span className="font-medium dark:text-white">
-                {walletLoading ? (
-                  <span className="text-gray-400 dark:text-gray-500">Loading...</span>
-                ) : walletError ? (
-                  <span className="text-red-500 dark:text-red-400 text-sm">Error</span>
-                ) : (
-                  currencyFormatter.format(wallet?.balance || 0)
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Total Earnings</span>
-              <span className="font-medium dark:text-white">
-                {walletLoading ? (
-                  <span className="text-gray-400 dark:text-gray-500">Loading...</span>
-                ) : walletError ? (
-                  <span className="text-red-500 dark:text-red-400 text-sm">Error</span>
-                ) : (
-                  currencyFormatter.format(wallet?.totalEarnings || 0)
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Total Withdrawals</span>
-              <span className="font-medium text-yellow-600 dark:text-yellow-400">
-                {walletLoading ? (
-                  <span className="text-gray-400 dark:text-gray-500">Loading...</span>
-                ) : walletError ? (
-                  <span className="text-red-500 dark:text-red-400 text-sm">Error</span>
-                ) : (
-                  currencyFormatter.format(wallet?.totalWithdrawals || 0)
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">Vendor Profile</h3>
-          {profileLoading ? (
-            <div className="py-4 text-center">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 dark:border-blue-400"></div>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile...</p>
-            </div>
-          ) : profileError ? (
-            <div className="py-4 text-center">
-              <p className="text-red-600 dark:text-red-400 text-sm font-semibold">Error loading profile</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{profileError}</p>
-              <button
-                onClick={fetchProfile}
-                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
-              >
-                Try again
-              </button>
-            </div>
-          ) : vendorProfile ? (
-            <div className="space-y-3">
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Business Name</span>
-                <div className="font-medium dark:text-white">{vendorProfile.businessName || vendorProfile.name}</div>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Contact Name</span>
-                <div className="font-medium dark:text-white">{vendorProfile.name}</div>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Email</span>
-                <div className="font-medium dark:text-white">{vendorProfile.email}</div>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Phone</span>
-                <div className="font-medium dark:text-white">{vendorProfile.phone}</div>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Address</span>
-                <div className="font-medium text-sm dark:text-white">{vendorProfile.address}</div>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Member Since</span>
-                <div className="font-medium dark:text-white">{vendorProfile.joinDate}</div>
-              </div>
-            </div>
-          ) : (
-            <div className="py-4 text-center">
-              <p className="text-gray-600 dark:text-gray-400 text-sm">No profile data available</p>
-            </div>
-          )}
-        </div>
+        <PerformanceMetricsCard
+          wallet={wallet}
+          walletLoading={walletLoading}
+          walletError={walletError}
+          currencyFormatter={currencyFormatter}
+        />
+        <VendorProfileCard
+          profile={vendorProfile}
+          loading={profileLoading}
+          error={profileError}
+          onRetry={fetchProfile}
+        />
       </div>
 
       {/* Fund Wallet Modal */}

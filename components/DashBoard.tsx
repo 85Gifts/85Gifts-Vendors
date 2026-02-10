@@ -115,17 +115,6 @@ export default function DashBoard() {
   };
 
 
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    totalProducts: 45,
-    activeOrders: 23,
-    monthlyRevenue: 0,
-    totalCustomers: 189,
-    pendingOrders: 8,
-    completedOrders: 234,
-    avgRating: 4.8,
-  })
-
-
 
 
   const [events, setEvents] = useState<EventItem[]>([])
@@ -135,65 +124,10 @@ export default function DashBoard() {
   const [eventSearchTerm, setEventSearchTerm] = useState("")
   const [eventFilterStatus, setEventFilterStatus] = useState<EventItem["status"] | "all">("all")
 
-  const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat("en-NG", {
-        style: "currency",
-        currency: "NGN",
-        maximumFractionDigits: 0,
-        currencyDisplay: "narrowSymbol",
-      }),
-    []
-  )
+ 
 
-  const giftCategories = ["Birthday", "Anniversary", "Wedding", "Corporate", "Holiday", "Thank You"]
-  const eventCategories = [
-    "Pop-up Shop",
-    "Workshop",
-    "Launch Event",
-    "Virtual Experience",
-    "Corporate Showcase",
-    "Seasonal Campaign",
-  ]
+ 
   // eventStatuses moved to EventsTab component
-
-  const getStatusColor = (status: EventItem["status"] | "pending" | "processing" | "shipped" | "delivered"): string => {
-    switch (status) {
-      case "upcoming":
-        return "text-blue-600 bg-blue-100"
-      case "ongoing":
-        return "text-purple-600 bg-purple-100"
-      case "completed":
-        return "text-green-600 bg-green-100"
-      case "cancelled":
-        return "text-red-600 bg-red-100"
-      case "delivered":
-        return "text-green-600 bg-green-100"
-      case "pending":
-        return "text-yellow-600 bg-yellow-100"
-      case "processing":
-        return "text-blue-600 bg-blue-100"
-      case "shipped":
-        return "text-purple-600 bg-purple-100"
-      default:
-        return "text-gray-600 bg-gray-100"
-    }
-  }
-
-  const getStatusIcon = (status: "pending" | "processing" | "shipped" | "delivered") => {
-    switch (status) {
-      case "pending":
-        return <Clock className="w-4 h-4" />
-      case "processing":
-        return <Package className="w-4 h-4" />
-      case "shipped":
-      case "delivered":
-        return <CheckCircle className="w-4 h-4" />
-      default:
-        return <XCircle className="w-4 h-4" />
-    }
-  }
 
 
 
