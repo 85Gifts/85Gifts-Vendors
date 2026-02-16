@@ -60,9 +60,9 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="bg-gray-50 overflow-x-hidden">
+    <div className="bg-gray-950 overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-lg bg-white/10 border-b border-white/20">
+      <nav className="fixed top-0 w-full z-50 backdrop-blur-lg bg-gray-900/80 border-b border-gray-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -80,42 +80,42 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center space-x-8">
               <button
                 onClick={() => scrollToSection("features")}
-                className="text-black hover:text-blue-400 transition-colors"
+                className="text-gray-200 hover:text-blue-400 transition-colors"
               >
                 Features
               </button>
               <button
                 onClick={() => scrollToSection("pricing")}
-                className="text-black hover:text-blue-400 transition-colors"
+                className="text-gray-200 hover:text-blue-400 transition-colors"
               >
                 Pricing
               </button>
               <button
                 onClick={() => scrollToSection("testimonials")}
-                className="text-black hover:text-blue-400 transition-colors"
+                className="text-gray-200 hover:text-blue-400 transition-colors"
               >
                 Reviews
               </button>
               <button
                 onClick={() => scrollToSection("contact")}
-                className="text-black hover:text-blue-400 transition-colors"
+                className="text-gray-200 hover:text-blue-400 transition-colors"
               >
                 Contact
               </button>
             </div>
 
             <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-black hover:text-blue-400">
+              <Link href="/login" className="text-gray-200 hover:text-blue-400 transition-colors">
                 Sign In
               </Link>
               <Link 
               href="/dashboard" 
-            className="bg-white from-blue-500 to-blue-400 text-md text-blue-600 hover:bg-white rounded-md p-2 hover:text-blue-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            className="bg-blue-500 text-white text-md hover:bg-blue-400 rounded-md p-2 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >Start Selling</Link>
 
               {/* Mobile menu button */}
               <button
-                className="md:hidden text-black hover:text-blue-300 transition-colors"
+                className="md:hidden text-gray-200 hover:text-blue-400 transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 ☰
@@ -125,41 +125,41 @@ export default function LandingPage() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden backdrop-blur-lg bg-white/10 border-t border-white/20">
+            <div className="md:hidden backdrop-blur-lg bg-gray-900/95 border-t border-gray-700/50">
               <div className="px-4 py-6 space-y-4">
                 <button
                   onClick={() => scrollToSection("features")}
-                  className="block text-black hover:text-blue-200 transition-colors py-2"
+                  className="block text-gray-200 hover:text-blue-400 transition-colors py-2"
                 >
                   Features
                 </button>
                 <button
                   onClick={() => scrollToSection("pricing")}
-                  className="block text-black hover:text-blue-200 transition-colors py-2"
+                  className="block text-gray-200 hover:text-blue-400 transition-colors py-2"
                 >
                   Pricing
                 </button>
                 <button
                   onClick={() => scrollToSection("testimonials")}
-                  className="block text-black hover:text-blue-200 transition-colors py-2"
+                  className="block text-gray-200 hover:text-blue-400 transition-colors py-2"
                 >
                   Reviews
                 </button>
                 <button
                   onClick={() => scrollToSection("contact")}
-                  className="block text-black hover:text-blue-200 transition-colors py-2"
+                  className="block text-gray-200 hover:text-blue-400 transition-colors py-2"
                 >
                   Contact
                 </button>
-                <div className="pt-4 border-t border-white/20 gap-4">
+                <div className="pt-4 border-t border-gray-700/50 gap-4">
                   <Link
                     href="/login"
-                  className="text-black hover:shadow-2xl  duration-300">
+                  className="text-gray-200 hover:text-blue-400 transition-colors">
                     Sign In
                   </Link>
                   <Link  
                    href="/dashboard"
-                  className="bg-white from-blue-500 to-blue-400 text-blue-500 mx-4 p-2 rounded-md hover:bg-white hover:text-blue-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                  className="bg-blue-500 text-white mx-4 p-2 rounded-md hover:bg-blue-400 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 inline-block"
                   >Start Selling</Link>
                 </div>
               </div>
@@ -169,36 +169,25 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen bg-linear-to-l from-[#E2E5FF] to-[#B5B8FF] flex items-center">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="w-full h-full"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ffffff' fillOpacity='0.05'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-          ></div>
-        </div>
-
+      <section className="relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="text-gray-800">
+            <div className="text-gray-100">
               <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-                Sell Perfect
-                <span className="bg-linear-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                AI Powered
+                <span className="bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">
                   {" "}
-                  Gifts{" "}
+                  Business Suite
                 </span>
-                Online
               </h1>
-              <p className="text-xl lg:text-2xl mb-8 text-gray-700 leading-relaxed">
-                Join thousands of vendors creating magical gifting experiences. Manage inventory, track orders, and
-                delight customers with our powerful platform.
+              <p className="text-xl lg:text-2xl mb-8 text-gray-300 leading-relaxed">
+                Manage events and ticket booking, products and inventory, cross-platform ads, invoices and receipts,
+                payment links, and secure buyer–seller escrow—all in one platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Button
                   size="lg"
-                  className="bg-linear-to-r from-blue-500 to-blue-400 text-white hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 to-blue-400 text-white hover:shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300"
                 >
                   🚀 Join Us Today
                 </Button>
@@ -213,7 +202,7 @@ export default function LandingPage() {
                 {/*   <span>Watch Demo </span> */}
                 {/* </Button> */}
               </div>
-              <div className="flex items-center space-x-6 text-gray-700">
+              <div className="flex items-center space-x-6 text-gray-400">
                 {/* <div className="flex items-center space-x-2"> */}
                 {/*   <span className="text-2xl">⭐</span> */}
                 {/*   <span>4.9/5 Rating</span> */}
@@ -231,9 +220,9 @@ export default function LandingPage() {
 
             <div className="relative">
               <div className="relative z-10 animate-bounce">
-                <div className="bg-white rounded-3xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                <div className="bg-gray-800/80 border border-gray-700 rounded-3xl shadow-2xl shadow-black/30 p-8 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-800">Dashboard Preview</h3>
+                    <h3 className="text-xl font-bold text-gray-100">Vendor Dashboard</h3>
                     <div className="flex space-x-2">
                       <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
@@ -241,27 +230,27 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center p-4 bg-linear-to-r from-blue-50 to-blue-50 rounded-xl">
+                    <div className="flex justify-between items-center p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                       <div>
-                        <p className="text-gray-600 text-sm">Monthly Revenue</p>
-                        <p className="text-2xl font-bold text-blue-600">₦2,490,580</p>
+                        <p className="text-gray-400 text-sm">Monthly Revenue</p>
+                        <p className="text-2xl font-bold text-blue-400">₦2,490,580</p>
                       </div>
                       <div className="text-3xl">📈</div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-green-50 rounded-lg">
-                        <p className="text-green-600 text-sm">Orders</p>
-                        <p className="text-lg font-bold">542</p>
+                      <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <p className="text-green-400 text-sm">Tickets Sold</p>
+                        <p className="text-lg font-bold text-gray-100">542</p>
                       </div>
-                      <div className="p-3 bg-blue-50 rounded-lg">
-                        <p className="text-blue-500 text-sm">Products</p>
-                        <p className="text-lg font-bold">86</p>
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <p className="text-blue-400 text-sm">Products</p>
+                        <p className="text-lg font-bold text-gray-100">86</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 w-32 h-32 bg-yellow-400 rounded-full opacity-20 animate-pulse"></div>
+              <div className="absolute -top-4 -right-4 w-32 h-32 bg-blue-500 rounded-full opacity-20 animate-pulse"></div>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-blue-400 rounded-full opacity-20 animate-pulse"></div>
             </div>
           </div>
@@ -275,74 +264,74 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
               Everything You Need to{" "}
-              <span className="bg-linear-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">
                 Succeed
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Powerful tools designed specifically for gift retailers. From inventory management to customer delight.
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              One platform for events, tickets, products, ads, invoices, payment links, and secure escrow.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: "🎁",
-                title: "Gift-Focused Design",
+                icon: "🎫",
+                title: "Events & Ticket Booking",
                 description:
-                  "Built specifically for gift retailers with features like gift wrapping, custom messages, and occasion-based categorization.",
-                gradient: "from-blue-100 to-blue-50",
+                  "Create and manage events, sell tickets online, and track attendance. Full event lifecycle from creation to check-in.",
+                gradient: "from-blue-500/20 to-blue-500/5 border border-blue-500/20",
               },
               {
-                icon: "📊",
-                title: "Smart Analytics",
+                icon: "📦",
+                title: "Product & Inventory",
                 description:
-                  "Track your best-selling gifts, understand seasonal trends, and optimize your inventory with AI-powered insights.",
-                gradient: "from-green-50 to-blue-50",
+                  "Manage your product catalog and stock levels in one place. Track inventory in real time and avoid overselling.",
+                gradient: "from-green-500/20 to-blue-500/10 border border-green-500/20",
               },
               {
-                icon: "🚚",
-                title: "Smart Delivery",
+                icon: "📢",
+                title: "Cross-Platform Ads",
                 description:
-                  "Schedule deliveries for special occasions, track shipments, and ensure gifts arrive exactly when needed.",
-                gradient: "from-purple-50 to-pink-50",
+                  "Run and manage ads across multiple channels from a single dashboard. Reach more buyers and event-goers.",
+                gradient: "from-purple-500/20 to-pink-500/10 border border-purple-500/20",
               },
               {
-                icon: "💬",
-                title: "Customer Care",
+                icon: "🧾",
+                title: "Invoices & Receipts",
                 description:
-                  "Built-in messaging system, order tracking for recipients, and tools to create unforgettable experiences.",
-                gradient: "from-yellow-50 to-orange-50",
+                  "Generate professional invoices and receipts automatically. Keep records clean and tax-ready.",
+                gradient: "from-amber-500/20 to-orange-500/10 border border-amber-500/20",
               },
               {
-                icon: "⚡",
-                title: "Lightning Fast",
+                icon: "🔗",
+                title: "Payment Links",
                 description:
-                  "Optimized for speed with instant updates, real-time notifications, and seamless mobile experience.",
-                gradient: "from-pink-50 to-red-50",
+                  "Share payment links for products, tickets, or custom amounts. Get paid quickly without a full checkout flow.",
+                gradient: "from-pink-500/20 to-red-500/10 border border-pink-500/20",
               },
               {
                 icon: "🔒",
-                title: "Secure & Reliable",
+                title: "Buyer & Seller Escrow",
                 description:
-                  "Bank-level security, automated backups, and 99.9% uptime guarantee. Your business is always protected.",
-                gradient: "from-indigo-50 to-purple-50",
+                  "Secure online escrow for buyers and sellers. Funds are held safely until both parties are satisfied.",
+                gradient: "from-indigo-500/20 to-purple-500/10 border border-indigo-500/20",
               },
             ].map((feature, index) => (
               <div
                 key={index}
-                className={`group bg-linear-to-br ${feature.gradient} p-8 rounded-3xl hover:shadow-lg transform hover:-translate-y-2 transition-all duration-300`}
+                className={`group bg-gradient-to-br ${feature.gradient} bg-gray-800/50 p-8 rounded-3xl hover:shadow-xl hover:shadow-black/20 transform hover:-translate-y-2 transition-all duration-300`}
               >
                 <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
+                <p className="text-gray-400 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -350,11 +339,11 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section ref={statsRef} className="py-20 bg-linear-to-r from-blue-600 to-blue-400 text-white">
+      <section ref={statsRef} className="py-20 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Trusted by Gift Retailers Worldwide</h2>
-            <p className="text-xl text-purple-100">Join the growing community of successful gift vendors</p>
+            <h2 className="text-4xl font-bold mb-4">Trusted by Sellers & Event Organizers</h2>
+            <p className="text-xl text-purple-100">Join the growing community of businesses using omniflow85</p>
           </div>
             {/* data to be filled as company grows  */}
           {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-8"> */}
@@ -387,43 +376,43 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-gray-50">
+      <section id="testimonials" className="py-20 bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">What Vendors Are Saying</h2>
-            <p className="text-xl text-gray-600">Real stories from real gift retailers</p>
+            <h2 className="text-4xl font-bold text-white mb-6">What Our Users Say</h2>
+            <p className="text-xl text-gray-400">Real stories from sellers and event organizers</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
               {
                 name: "Sarah Johnson",
-                role: "Boutique Gift Shop",
+                role: "Event Producer",
                 avatar: "S",
                 color: "bg-yellow-500",
                 testimonial:
-                  "omniflow85 transformed my business! The gift-specific features like custom messages and delivery scheduling are exactly what I needed. Sales increased 300% in 6 months!",
+                  "omniflow85 made ticket sales and event management so simple. Escrow gives my attendees peace of mind, and payment links help me collect deposits in seconds. Game changer!",
               },
               {
                 name: "Tunde Adelabu",
-                role: "Artisan Gifts Co.",
+                role: "Online Seller",
                 avatar: "M",
                 color: "bg-blue-500",
                 testimonial:
-                  "The analytics are incredible! I can see which gifts perform best for each occasion and optimize my inventory accordingly. My profit margins improved by 45%.",
+                  "Product and inventory management is solid, and the escrow system means I get paid safely while buyers feel protected. Invoices and receipts are automatic—no more spreadsheets.",
               },
               {
                 name: "Ahmed Nagode",
-                role: "Luxury Gift Boxes",
+                role: "Vendor & Event Host",
                 avatar: "E",
                 color: "bg-pink-500",
                 testimonial:
-                  "Customer support is phenomenal, and the platform is so intuitive. I was able to launch my gift business in just 2 days. Now I'm processing 500+ orders monthly!",
+                  "I run events and sell products on the side. Having tickets, products, payment links, and ads in one place saved me hours. Setup was quick and support is responsive.",
               },
             ].map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300"
+                className="bg-gray-800/80 border border-gray-700 p-8 rounded-3xl shadow-xl hover:shadow-2xl hover:shadow-black/20 transform hover:-translate-y-2 transition-all duration-300"
               >
                 <div className="flex items-center mb-6">
                   <div
@@ -432,14 +421,14 @@ export default function LandingPage() {
                     {testimonial.avatar}
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                    <p className="text-gray-500">{testimonial.role}</p>
+                    <h4 className="font-bold text-white">{testimonial.name}</h4>
+                    <p className="text-gray-400">{testimonial.role}</p>
                   </div>
                 </div>
                 <div className="flex mb-4">
                   <span className="text-yellow-400 text-xl">⭐⭐⭐⭐⭐</span>
                 </div>
-                <p className="text-gray-700 italic">{testimonial.testimonial}</p>
+                <p className="text-gray-300 italic">{testimonial.testimonial}</p>
               </div>
             ))}
           </div>
@@ -447,7 +436,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-linear-to-br from-blue-800 via-blue-700 to-blue-600 text-white relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-gray-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div
             className="w-full h-full"
@@ -461,11 +450,11 @@ export default function LandingPage() {
             Ready to Transform Your
             <span className="text-blue-200 bg-clip-text">
             {" "}
-            Businesss?
+            Business?
             </span>
           </h2>
           <p className="text-xl lg:text-2xl mb-12 text-purple-100 leading-relaxed">
-            Join thousands of successful vendors who chose omniflow85 to grow their business.
+            Join sellers and event organizers who use omniflow85 for events, tickets, products, payments, and secure escrow.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
@@ -506,7 +495,7 @@ export default function LandingPage() {
       {/* Footer */}
 
 
-     <footer id="contact" className="bg-gray-900 text-white py-16">
+     <footer id="contact" className="bg-gray-950 border-t border-gray-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
@@ -522,8 +511,8 @@ export default function LandingPage() {
   
               </div>
               <p className="text-gray-400 text-lg mb-6 leading-relaxed">
-                Empowering gift retailers with cutting-edge e-commerce solutions. Turn every purchase into a
-                memorable experience.
+                One platform for events & ticket booking, product & inventory management, cross-platform ads,
+                invoices & receipts, payment links, and secure buyer–seller escrow.
               </p>
               {/* <div className="flex space-x-4"> */}
               {/*   <a */}
@@ -602,7 +591,7 @@ export default function LandingPage() {
 
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 mb-4 md:mb-0">
-              © 2025 omniflow85. All rights reserved. Made with ❤️ for retailers.
+              © 2025 omniflow85. All rights reserved. Made with ❤️ for sellers and event organizers.
             </p>
             <div className="flex space-x-6 text-gray-400">
               <a href="#" className="hover:text-white transition-colors">
