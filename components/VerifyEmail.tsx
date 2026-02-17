@@ -370,9 +370,8 @@ export default function VerifyEmailPage() {
   const { toast } = useToast();
 
   const email = searchParams.get("email") || "";
-  const codeFromQuery = searchParams.get("verificationCode") || "";
 
-  const [code, setCode] = useState(codeFromQuery);
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleVerify = async (e: React.FormEvent) => {

@@ -9,7 +9,8 @@ export const redirectToLogin = () => {
   if (currentPath === "/login" || 
       currentPath === "/register" || 
       currentPath.startsWith("/reset-password") || 
-      currentPath.startsWith("/verify-email")) {
+      currentPath.startsWith("/verify-email") ||
+      currentPath === "/verifyEmail") {
     return
   }
   

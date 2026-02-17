@@ -242,7 +242,7 @@ export default function AuthPage() {
         router.push(
           `/verifyEmail?email=${encodeURIComponent(
             signupFormData.email
-          )}&verificationCode=${encodeURIComponent(verificationCode)}`
+          )}`
         );
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "An error occurred";

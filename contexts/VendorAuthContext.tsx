@@ -18,7 +18,8 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     const isAuthPage = pathname === '/login' || 
                        pathname === '/register' || 
                        pathname?.startsWith('/reset-password') || 
-                       pathname?.startsWith('/verify-email');
+                       pathname?.startsWith('/verify-email') ||
+                       pathname === '/verifyEmail';
     
     // Public routes that don't require authentication
     const isPublicRoute = pathname?.startsWith('/event/') || 
