@@ -550,7 +550,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                       type="text"
                       value={values.venue}
                       onChange={handleChange("venue")}
-                      placeholder={values.location === "virtual" ? "enter virtual or registration link" : "e.g., Tafawa Balewa Square"}
+                      placeholder={values.location === "virtual" ? "E.g Google Meet, Skype, Zoom, etc" : "e.g., Tafawa Balewa Square"}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

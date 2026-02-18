@@ -66,15 +66,16 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-             
-                <Image
-             src="https://res.cloudinary.com/dsmc6vtpt/image/upload/v1768827902/omniflow_monogram_blue_segmsg.png"
-              alt="logo"
-               className="h-8"
-               width={50}
-               height={50} 
-            />
-        
+              <Image
+                src="https://res.cloudinary.com/dsmc6vtpt/image/upload/v1768827902/omniflow_monogram_blue_segmsg.png"
+                alt="logo"
+                className="h-8"
+                width={50}
+                height={50}
+              />
+              <span className="md:hidden text-white font-semibold text-lg tracking-tight">
+                OMNIFLOW85
+              </span>
             </div>
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
@@ -105,13 +106,17 @@ export default function LandingPage() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-gray-200 hover:text-blue-400 transition-colors">
-                Sign In
-              </Link>
-              <Link 
-              href="/dashboard" 
-            className="bg-blue-500 text-white text-md hover:bg-blue-400 rounded-md p-2 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-              >Start Selling</Link>
+              <div className="hidden md:flex items-center space-x-4">
+                <Link href="/login" className="text-gray-200 hover:text-blue-400 transition-colors">
+                  Sign In
+                </Link>
+                <Link 
+                  href="/dashboard" 
+                  className="bg-blue-500 text-white text-md hover:bg-blue-400 rounded-md p-2 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                >
+                  Start Selling
+                </Link>
+              </div>
 
               {/* Mobile menu button */}
               <button
@@ -257,9 +262,7 @@ export default function LandingPage() {
         </div>
 
         {/* Floating Elements */}
-        <div className="absolute top-20 left-10 text-4xl animate-bounce">🎄</div>
         <div className="absolute top-40 right-20 text-3xl animate-bounce">🎂</div>
-        <div className="absolute bottom-40 left-20 text-3xl animate-bounce">💝</div>
         <div className="absolute bottom-20 right-10 text-4xl animate-bounce">🎉</div>
       </section>
 

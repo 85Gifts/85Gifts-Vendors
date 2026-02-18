@@ -353,10 +353,10 @@ export default function DashBoard() {
             <nav className="flex min-w-max space-x-4 sm:space-x-8">
             {[
               { id: "dashboard", label: "Dashboard", icon: TrendingUp },
+              { id: "events", label: "Events", icon: Calendar },
               { id: "products", label: "Products", icon: Package },
               { id: "ads", label: "Ads", icon: Megaphone },
               { id: "transactions", label: "Transactions", icon: History },
-              { id: "events", label: "Events", icon: Calendar },
             ].map((tab) => {
               const Icon = tab.icon
               return (
@@ -387,7 +387,9 @@ export default function DashBoard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {activeTab === "dashboard" && <DashboardTab />}
+        {activeTab === "dashboard" && (
+          <DashboardTab onNavigateToTab={(tabId) => setActiveTab(tabId)} />
+        )}
         {activeTab === "products" && (
           <ProductsTab
             onAddProduct={() => setShowAddProduct(true)}

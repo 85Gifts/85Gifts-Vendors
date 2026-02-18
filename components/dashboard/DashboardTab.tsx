@@ -43,7 +43,11 @@ interface VendorProfile {
   updatedAt?: string
 }
 
-export default function DashboardTab() {
+interface DashboardTabProps {
+  onNavigateToTab?: (tabId: string) => void
+}
+
+export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
   const [wallet, setWallet] = useState<Wallet | null>(null)
   const [walletLoading, setWalletLoading] = useState<boolean>(true)
   const [walletError, setWalletError] = useState<string>("")
@@ -566,9 +570,25 @@ export default function DashboardTab() {
           },
         ].map((card) => {
           const Icon = card.icon
+          const handleClick = () => {
+            if (card.id === "inventory") {
+              window.location.href = "/inventory"
+            } else if (onNavigateToTab) {
+              onNavigateToTab(card.id)
+            }
+          }
           return (
             <div
               key={card.id}
+              role="button"
+              tabIndex={0}
+              onClick={handleClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleClick()
+                }
+              }}
               className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform`}
             >
               <div className="flex flex-col items-center justify-center text-center">

@@ -290,62 +290,62 @@ export default function BookingModal({
   if (showSuccessModal && bookingData) {
     return (
       <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
         onClick={handleSuccessClose}
       >
         <div
-          className="bg-white rounded-xl shadow-xl max-w-md w-full"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="rounded-full bg-green-100 p-3 mb-4">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+              <div className="rounded-full bg-green-100 dark:bg-green-900/40 p-3 mb-4">
+                <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Booking Successful!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Your RSVP has been confirmed
               </p>
             </div>
 
-            <div className="space-y-4 border-t border-gray-200 pt-6">
+            <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Event:</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Event:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {bookingData.eventName}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Booking Reference:</span>
-                <span className="text-sm font-semibold text-gray-900 font-mono">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Booking Reference:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono">
                   {bookingData.bookingReference}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Total Amount:</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total Amount:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {formatCurrency(bookingData.totalAmount)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Status:</span>
-                <span className="text-sm font-semibold text-green-600 capitalize">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
+                <span className="text-sm font-semibold text-green-600 dark:text-green-400 capitalize">
                   {bookingData.status}
                 </span>
               </div>
               {bookingData.paidAt && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Confirmed At:</span>
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Confirmed At:</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {formatDate(bookingData.paidAt)}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <Button
                 onClick={handleSuccessClose}
                 className="w-full"
@@ -361,27 +361,27 @@ export default function BookingModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
               Book Tickets
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {eventName}
             </p>
           </div>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -390,12 +390,12 @@ export default function BookingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Customer Information */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Your Information
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Full Name *
                 </label>
                 <Input
@@ -407,10 +407,11 @@ export default function BookingModal({
                   placeholder="John Doe"
                   required
                   disabled={isSubmitting}
+                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Email Address *
                 </label>
                 <Input
@@ -422,10 +423,11 @@ export default function BookingModal({
                   placeholder="john@example.com"
                   required
                   disabled={isSubmitting}
+                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Phone Number *
                 </label>
                 <Input
@@ -437,6 +439,7 @@ export default function BookingModal({
                   placeholder="+2341234567890"
                   required
                   disabled={isSubmitting}
+                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -444,7 +447,7 @@ export default function BookingModal({
 
           {/* Ticket Selection */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Select Tickets
             </h4>
             <div className="space-y-4">
@@ -456,20 +459,20 @@ export default function BookingModal({
                 return (
                   <div
                     key={tier.name}
-                    className="border border-gray-200 rounded-lg p-4"
+                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-700/30"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <Ticket className="w-4 h-4 text-blue-600" />
-                          <h5 className="font-semibold text-gray-900">
+                          <Ticket className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <h5 className="font-semibold text-gray-900 dark:text-white">
                             {tier.name}
                           </h5>
                         </div>
-                        <p className="text-2xl font-bold text-gray-900 mt-2">
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
                           {formatCurrency(tier.price)}
                         </p>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           {available} available
                         </p>
                       </div>
@@ -491,9 +494,9 @@ export default function BookingModal({
                                 }
                               }}
                               disabled={isSubmitting}
-                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-5 h-5 rounded border-gray-300 dark:border-gray-500 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
                               Select
                             </span>
                           </div>
@@ -509,11 +512,11 @@ export default function BookingModal({
                                   ? qty <= tier.minPerOrder
                                   : false)
                               }
-                              className="rounded-full border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="rounded-full border border-gray-300 dark:border-gray-600 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
-                            <span className="w-8 text-center font-semibold text-gray-900">
+                            <span className="w-8 text-center font-semibold text-gray-900 dark:text-white">
                               {qty}
                             </span>
                             <button
@@ -526,21 +529,21 @@ export default function BookingModal({
                                   ? qty >= tier.maxPerOrder
                                   : false)
                               }
-                              className="rounded-full border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="rounded-full border border-gray-300 dark:border-gray-600 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
                           </div>
                         )
                       ) : (
-                        <span className="text-sm text-red-600">
+                        <span className="text-sm text-red-600 dark:text-red-400">
                           Sold Out
                         </span>
                       )}
                     </div>
 
                     {tier.minPerOrder && qty > 0 && qty < tier.minPerOrder && (
-                      <p className="text-xs text-amber-600 mt-2">
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
                         Minimum {tier.minPerOrder} ticket(s) required for this
                         tier
                       </p>
@@ -553,20 +556,20 @@ export default function BookingModal({
 
           {/* Order Summary */}
           {getTotalTickets() > 0 && (
-            <div className="border-t border-gray-200 pt-4">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">
+                <span className="text-gray-600 dark:text-gray-400">
                   Total Tickets:
                 </span>
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {getTotalTickets()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">
                   Total Amount:
                 </span>
-                <span className="text-xl font-bold text-blue-600">
+                <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {formatCurrency(calculateTotal())}
                 </span>
               </div>
@@ -574,7 +577,7 @@ export default function BookingModal({
           )}
 
           {/* Submit Button */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               type="button"
               variant="outline"
