@@ -190,12 +190,14 @@ export default function LandingPage() {
                 payment links, and secure buyer–seller escrow—all in one platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-blue-400 text-white hover:shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300"
-                >
-                  🚀 Join Us Today
-                </Button>
+                <Link href="/login">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-500 to-blue-400 text-white hover:shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300"
+                  >
+                    🚀 Join Us Today
+                  </Button>
+                </Link>
                 {/* <Button */}
                 {/*   size="lg" */}
                 {/*   // variant="outline" */}
@@ -461,12 +463,14 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-            <Button
-              size="lg"
-              className="bg-linear-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
-            >
-              🚀 Join Us Now
-            </Button>
+            <Link href="/login">
+              <Button
+                size="lg"
+                className="bg-linear-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
+              >
+                🚀 Join Us Now
+              </Button>
+            </Link>
             <Button
               size="lg"  
               className="bg-linear-to-r from-blue-400 to-blue-400 text-gray-900 hover:shadow-2xl transform hover:scale-110 transition-all duration-300"
