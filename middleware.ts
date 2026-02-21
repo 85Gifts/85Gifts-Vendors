@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard', '/products'];
+  const protectedRoutes = ['dashboard','/products'];
   
   const isProtectedRoute = protectedRoutes.some(route => 
     pathname.startsWith(route)

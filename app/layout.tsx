@@ -4,6 +4,7 @@ import "./globals.css";
 import { VendorAuthProvider } from '@/contexts/VendorAuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
+import { DevModeBypass } from '@/components/DevModeBypass';
 
 import { Toaster } from "@/components/ui/toaster"
 
@@ -14,8 +15,8 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "85Gifts Vendors",
-  description: "85Gifts Vendors App, Manage your products and profile",
+  title: "Ominiflow85 Vendors",
+  description: "Ominiflow85, Manage your products, profile, inventrory, billing and orders all in one place.",
 
 };
 
@@ -33,6 +34,7 @@ export default function RootLayout({
      <ThemeProvider>
        <VendorAuthProvider>
          <CheckoutProvider>
+          <DevModeBypass />
           {children}
           <Toaster /> 
          </CheckoutProvider>

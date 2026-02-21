@@ -10,10 +10,25 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // Check for dev mode bypass - also check for localhost as fallback
+    const isDevMode = (
+      (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') ||
+      (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+    );
+    
+    console.log('[Auth] Dev mode:', isDevMode, 'NODE_ENV:', process.env.NODE_ENV, 'BYPASS:', process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH);
+    
     // Skip auth check on login/register/auth pages and public pages
     const isAuthPage = pathname === '/login' || 
                        pathname === '/register' || 
@@ -27,13 +42,28 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
                          pathname?.startsWith('/booking-success') ||
                          pathname?.startsWith('/inventory/');
     
-    if (!isAuthPage && !isPublicRoute) {
+    if (isDevMode) {
+      // Dev mode bypass - create mock vendor and skip auth
+      setVendor({
+        id: 'dev-vendor-id',
+        name: 'Dev User',
+        email: 'dev@example.com',
+        role: 'vendor',
+        isEmailVerified: true,
+        businessName: 'Dev Business',
+        address: '123 Dev Street',
+        phone: '555-DEV-TEST'
+      });
+      localStorage.setItem('vendorId', 'dev-vendor-id');
+      localStorage.setItem('vendorName', 'Dev User');
+      setLoading(false);
+    } else if (!isAuthPage && !isPublicRoute) {
       checkAuth();
     } else {
       // On auth pages and public routes, just set loading to false
       setLoading(false);
     }
-  }, [pathname]);
+  }, [pathname, isMounted]);
 
   const checkAuth = async () => {
     try {
