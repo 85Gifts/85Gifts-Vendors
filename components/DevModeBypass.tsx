@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 export function DevModeBypass() {
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
     // Only intercept fetch in development mode with bypass enabled
     const isDevMode = 
       (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') ||
