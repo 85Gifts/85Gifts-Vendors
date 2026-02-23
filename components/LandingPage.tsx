@@ -37,7 +37,7 @@ export default function LandingPage() {
 
   const navItems = [
     { name: "Features", link: "#features" },
-    { name: "Pricing", link: "#pricing" },
+    // { name: "Pricing", link: "#pricing" },
     { name: "Reviews", link: "#testimonials" },
     { name: "Contact", link: "#contact" },
   ]
