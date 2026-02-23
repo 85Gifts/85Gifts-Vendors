@@ -96,7 +96,7 @@ export function CTASection() {
         >
           {/* Primary */}
           <Link
-            href="/signup"
+            href="/login"
             className={cn(
               "group relative inline-flex h-12 items-center gap-2 overflow-hidden rounded-full px-8 text-sm font-semibold text-white shadow-lg transition-all duration-300",
               "bg-gradient-to-r from-sky-500 to-emerald-500",
@@ -119,7 +119,7 @@ export function CTASection() {
 
           {/* Secondary */}
           <Link
-            href="/demo"
+            href="/login"
             className={cn(
               "inline-flex h-12 items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900/60 px-8 text-sm font-medium text-neutral-300 backdrop-blur-sm transition-all duration-300",
               "hover:border-neutral-500 hover:text-white hover:bg-neutral-800/60",
