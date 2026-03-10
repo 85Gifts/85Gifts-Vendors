@@ -67,7 +67,7 @@ export default function EventShareClient({ event }: EventShareClientProps) {
       <main className="min-h-screen bg-white">
         <section className="relative overflow-hidden">
           <div
-            className="absolute inset-0 bg-cover bg-center"
+            className="absolute inset-0 bg-cover bg-center blur-md"
             style={{
               backgroundImage: event.coverImageUrl
                 ? `url(${event.coverImageUrl})`
