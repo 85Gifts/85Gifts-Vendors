@@ -4,7 +4,6 @@ import "./globals.css";
 import { VendorAuthProvider } from '@/contexts/VendorAuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
-import { DevModeBypass } from '@/components/DevModeBypass';
 
 import { Toaster } from "@/components/ui/toaster"
 
@@ -34,7 +33,7 @@ export default function RootLayout({
      <ThemeProvider>
        <VendorAuthProvider>
          <CheckoutProvider>
-          <DevModeBypass />
+          {/* <DevModeBypass /> */}
           {children}
           <Toaster /> 
          </CheckoutProvider>
