@@ -164,12 +164,6 @@ export async function POST(request: NextRequest) {
 
     const data: LoginResponse = await response.json();
 
-    // Log the raw API response structure
-    console.log("=== RAW API RESPONSE ===");
-    console.log("Full response data:", JSON.stringify(data, null, 2));
-    console.log("Response keys:", Object.keys(data));
-    console.log("Response type:", typeof data);
-
     if (!response.ok) {
       const errorData = data as LoginErrorResponse;
       return NextResponse.json(

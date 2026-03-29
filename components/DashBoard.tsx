@@ -83,7 +83,6 @@ interface DashboardStats {
 
 export default function DashBoard() {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [showAddProduct, setShowAddProduct] = useState(false)
   const [showEditProduct, setShowEditProduct] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [refreshProducts, setRefreshProducts] = useState<(() => Promise<void>) | null>(null)
@@ -392,7 +391,6 @@ export default function DashBoard() {
         )}
         {activeTab === "products" && (
           <ProductsTab
-            onAddProduct={() => setShowAddProduct(true)}
             onEditProduct={(product) => {
               setSelectedProduct(product)
               setShowEditProduct(true)
@@ -418,26 +416,6 @@ export default function DashBoard() {
       </main>
 
       {/* Modals */}
-      {showAddProduct && (
-        <ProductForm 
-          onclose={() => {
-            setShowAddProduct(false)
-          }}
-          onSuccess={async () => {
-            // Refresh products list
-            if (refreshProducts) {
-              await refreshProducts()
-            }
-            // Show success toast
-            toast({
-              title: "Product created",
-              description: "The product has been successfully created.",
-              variant: "success",
-            })
-          }}
-          isEdit={false}
-        />
-      )}
       {showEditProduct && selectedProduct && (
         <ProductForm 
           product={{

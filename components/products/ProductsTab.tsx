@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useComingSoon } from "@/contexts/ComingSoonContext"
 import { useToast } from "../ui/use-toast"
 
 // Define Product type (for display)
@@ -50,13 +51,12 @@ interface BackendProduct {
 }
 
 interface ProductsTabProps {
-  onAddProduct: () => void
   onEditProduct: (product: Product) => void
   onDeleteProduct: (id: string | number) => void
   onRefreshRequested?: (refreshFn: () => Promise<void>) => void
 }
 
-export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProduct, onRefreshRequested }: ProductsTabProps) {
+export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshRequested }: ProductsTabProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [productsLoading, setProductsLoading] = useState<boolean>(true)
   const [productsError, setProductsError] = useState<string>("")
@@ -64,7 +64,12 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
   const [filterCategory, setFilterCategory] = useState("all")
   const router = useRouter()
   const { toast } = useToast()
-  
+  const { showComingSoon } = useComingSoon()
+
+  const onAddProductClick = useCallback(() => {
+    showComingSoon({ featureLabel: "Add new product" })
+  }, [showComingSoon])
+
   // Carousel state for mobile
   const [currentSlide, setCurrentSlide] = useState<number>(0)
   const carouselRef = useRef<HTMLDivElement>(null)
@@ -409,7 +414,8 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                 {card.hasButton && (
                   <div className="flex gap-2">
                     <button 
-                      onClick={onAddProduct}
+                      type="button"
+                      onClick={onAddProductClick}
                       className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
@@ -458,7 +464,8 @@ export default function ProductsTab({ onAddProduct, onEditProduct, onDeleteProdu
                     <div className="flex gap-2 h-[32px]">
                       {card.hasButton ? (
                         <button 
-                          onClick={onAddProduct}
+                          type="button"
+                          onClick={onAddProductClick}
                           className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                         >
                           <Plus className="w-4 h-4" />

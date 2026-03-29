@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useEffect, useRef } from "react"
+import React, { useCallback, useMemo, useState, useEffect, useRef } from "react"
 import {
   TrendingUp,
   TrendingDown,
@@ -22,9 +22,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import CreateCampaignModal, { CampaignData } from "./CreateCampaignModal"
 import CampaignDetailsModal from "./CampaignDetailsModal"
 import { useToast } from "@/components/ui/use-toast"
+import { useComingSoon } from "@/contexts/ComingSoonContext"
 
 interface ApiCampaign {
   _id: string
@@ -201,6 +201,11 @@ const mapApiStatus = (status: string, approvalStatus?: string): AdCampaign["stat
 
 export default function AdsTab() {
   const { toast } = useToast()
+  const { showComingSoon } = useComingSoon()
+  const onCreateCampaignClick = useCallback(() => {
+    showComingSoon({ featureLabel: "Create campaign" })
+  }, [showComingSoon])
+
   const [campaigns, setCampaigns] = useState<AdCampaign[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -343,7 +348,6 @@ export default function AdsTab() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterPlatform, setFilterPlatform] = useState<"all" | "meta" | "snapchat" | "tiktok" | "google">("all")
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused" | "completed" | "draft" | "pending">("all")
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedCampaign, setSelectedCampaign] = useState<AdCampaign | null>(null)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   
@@ -471,7 +475,8 @@ export default function AdsTab() {
                 {card.hasButton && (
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => setIsCreateModalOpen(true)}
+                      type="button"
+                      onClick={onCreateCampaignClick}
                       className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
@@ -512,7 +517,8 @@ export default function AdsTab() {
                     <div className="flex gap-2 h-[32px]">
                       {card.hasButton ? (
                         <button 
-                          onClick={() => setIsCreateModalOpen(true)}
+                          type="button"
+                          onClick={onCreateCampaignClick}
                           className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                         >
                           <Plus className="w-4 h-4" />
@@ -941,51 +947,6 @@ export default function AdsTab() {
           )}
         </div>
       </div>
-
-      {/* Create Campaign Modal */}
-      <CreateCampaignModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={async (data: CampaignData) => {
-          const response = await fetch('/api/ads/campaigns', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(data),
-          })
-
-          const result = await response.json()
-
-          if (!response.ok) {
-            const errorMessage = result.error || 'Failed to create campaign'
-            toast({
-              title: "Error",
-              description: errorMessage,
-              variant: "destructive",
-            })
-            throw new Error(errorMessage)
-          }
-
-          toast({
-            title: "Campaign created",
-            description: "Your campaign has been successfully created.",
-            variant: "success",
-          })
-          
-          // Refresh campaigns list
-          const refreshResponse = await fetch('/api/ads/campaigns', {
-            credentials: 'include',
-          })
-          if (refreshResponse.ok) {
-            const refreshData = await refreshResponse.json()
-            const campaignsData = refreshData?.data?.data?.campaigns || []
-            const transformedCampaigns = campaignsData.map(transformCampaign)
-            setCampaigns(transformedCampaigns)
-          }
-        }}
-      />
 
       {/* Campaign Details Modal */}
       <CampaignDetailsModal
