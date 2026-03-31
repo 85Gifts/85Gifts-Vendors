@@ -9,8 +9,10 @@ import {
   Phone,
   MoreHorizontal,
   MessageSquare,
+  Download,
 } from "lucide-react"
 import { useToast } from "../ui/use-toast"
+import { downloadBookingsCsv } from "@/lib/bookingsCsv"
 
 export interface Booking {
   bookingReference: string
@@ -71,6 +73,8 @@ export interface EventOption {
 }
 
 const BOOKINGS_PAGE_SIZE = 10
+/** Page size when fetching every booking for CSV export */
+const BOOKINGS_EXPORT_PAGE_LIMIT = 200
 
 function getPaymentStatusColor(status: string): string {
   switch (status.toLowerCase()) {
@@ -126,6 +130,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
   const [reminderSending, setReminderSending] = useState(false)
   const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set())
   const [bulkSending, setBulkSending] = useState(false)
+  const [csvExporting, setCsvExporting] = useState(false)
 
   const selectedCount = selectedRefs.size
   const allOnPageSelected =
@@ -212,6 +217,79 @@ export default function BookingsTable({ events }: BookingsTableProps) {
     }
   }
 
+  const fetchAllBookingsForExport = async (): Promise<Booking[]> => {
+    const all: Booking[] = []
+    let page = 1
+    for (;;) {
+      const params = new URLSearchParams()
+      if (bookingsEventId) params.set("eventId", bookingsEventId)
+      if (bookingsSearch.trim()) params.set("search", bookingsSearch.trim())
+      params.set("page", String(page))
+      params.set("limit", String(BOOKINGS_EXPORT_PAGE_LIMIT))
+
+      const response = await fetch(`/api/vendor/bookings?${params.toString()}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      })
+
+      const data: BookingsResponse = await response.json()
+
+      if (!response.ok) {
+        const err = data as unknown as { data?: { message?: string }; error?: string }
+        throw new Error(err.data?.message ?? err.error ?? "Failed to fetch bookings for export")
+      }
+
+      if (!data.success || !data.data?.data) break
+
+      const d = data.data.data
+      const list = d.bookings ?? []
+      all.push(...list)
+
+      const pagination = d.pagination
+      if (list.length === 0) break
+      if (pagination) {
+        if (!pagination.hasNext || page >= pagination.totalPages) break
+      } else if (list.length < BOOKINGS_EXPORT_PAGE_LIMIT) {
+        break
+      }
+      page += 1
+    }
+    return all
+  }
+
+  const handleDownloadCsv = async () => {
+    setCsvExporting(true)
+    try {
+      const all = await fetchAllBookingsForExport()
+      if (all.length === 0) {
+        toast({
+          title: "Nothing to export",
+          description: "No bookings match your current filters.",
+          variant: "destructive",
+        })
+        return
+      }
+      const label =
+        bookingsEventId && events.find((e) => (e.backendId || String(e.id)) === bookingsEventId)?.title
+      const base = label ? `bookings_${label}` : "bookings_all"
+      downloadBookingsCsv(all, base)
+      toast({
+        title: "Download ready",
+        description: `Exported ${all.length} booking${all.length === 1 ? "" : "s"} as CSV.`,
+        variant: "success",
+      })
+    } catch (err) {
+      toast({
+        title: "Export failed",
+        description: err instanceof Error ? err.message : "Could not download bookings.",
+        variant: "destructive",
+      })
+    } finally {
+      setCsvExporting(false)
+    }
+  }
+
   useEffect(() => {
     setBookingsPage(1)
   }, [bookingsEventId, bookingsSearch])
@@ -285,7 +363,17 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                 </div>
               )}
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 min-w-0">
+            <div className="flex flex-col sm:flex-row gap-3 min-w-0 sm:items-center">
+              <button
+                type="button"
+                onClick={handleDownloadCsv}
+                disabled={csvExporting || bookingsLoading}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none shrink-0"
+                title="Download all bookings matching current filters as CSV"
+              >
+                <Download className="w-4 h-4 shrink-0" aria-hidden />
+                {csvExporting ? "Preparing…" : "Download CSV"}
+              </button>
               <select
                 value={bookingsEventId}
                 onChange={(e) => setBookingsEventId(e.target.value)}
