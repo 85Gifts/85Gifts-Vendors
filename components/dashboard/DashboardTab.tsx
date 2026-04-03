@@ -12,6 +12,7 @@ import {
   Box,
 } from "lucide-react"
 import { redirectToLogin } from "@/lib/authRedirect"
+import { useComingSoon } from "@/contexts/ComingSoonContext"
 import FundWalletModal from "./FundWalletModal"
 import PerformanceMetricsCard from "./PerformanceMetricsCard"
 import RecentTransactions from "./RecentTransactions"
@@ -48,6 +49,7 @@ interface DashboardTabProps {
 }
 
 export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
+  const { showComingSoon } = useComingSoon()
   const [wallet, setWallet] = useState<Wallet | null>(null)
   const [walletLoading, setWalletLoading] = useState<boolean>(true)
   const [walletError, setWalletError] = useState<string>("")
@@ -572,7 +574,7 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
           const Icon = card.icon
           const handleClick = () => {
             if (card.id === "inventory") {
-              window.location.href = "/inventory"
+              showComingSoon({ featureLabel: "Inventory" })
             } else if (onNavigateToTab) {
               onNavigateToTab(card.id)
             }
