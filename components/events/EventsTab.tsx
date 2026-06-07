@@ -477,7 +477,12 @@ export default function EventsTab({
                   <div className="flex items-center gap-3">
                     <div className="text-4xl">{event.image}</div>
                     <div>
-                      <h3 className="font-semibold text-lg dark:text-white">{event.title}</h3>
+                      <h3
+                        className="font-semibold text-lg dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        onClick={() => router.push(`/dashboard/events/${event.backendId || event.id}`)}
+                      >
+                        {event.title}
+                      </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{event.category}</p>
                     </div>
                   </div>
