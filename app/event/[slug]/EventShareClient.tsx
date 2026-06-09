@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import BookingModal from "../../../components/events/BookingModal"
+import AddResellerModal from "../../../components/events/AddResellerModal"
 
 type TicketTier = {
   name: string
@@ -55,6 +56,7 @@ const formatDateTime = (iso?: string) => {
 
 export default function EventShareClient({ event }: EventShareClientProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [isResellerModalOpen, setIsResellerModalOpen] = useState(false)
 
   const eventTime = formatDateTime(event.startAt)
   const venue = event.location?.venueName
@@ -99,12 +101,18 @@ export default function EventShareClient({ event }: EventShareClientProps) {
               <p className="mt-6 text-lg text-white/90">{event.description}</p>
             ) : null}
 
-            <div className="mt-10">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={() => setIsBookingModalOpen(true)}
                 className="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-base font-semibold text-gray-900 shadow-sm hover:bg-gray-100 transition-colors"
               >
                 Book Now
+              </button>
+              <button
+                onClick={() => setIsResellerModalOpen(true)}
+                className="inline-flex items-center justify-center rounded-lg border border-white/40 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-colors"
+              >
+                Become a Reseller
               </button>
             </div>
           </div>
@@ -129,6 +137,13 @@ export default function EventShareClient({ event }: EventShareClientProps) {
           tiers={event.tiers}
         />
       )}
+
+      <AddResellerModal
+        isOpen={isResellerModalOpen}
+        onClose={() => setIsResellerModalOpen(false)}
+        eventName={event.name}
+        mode="public"
+      />
     </>
   )
 }

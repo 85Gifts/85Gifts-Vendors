@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 interface AddResellerModalProps {
   isOpen: boolean
   onClose: () => void
-  eventId: string
   eventName: string
+  eventId?: string
+  mode?: "vendor" | "public"
 }
 
 interface ResellerResult {
@@ -24,7 +25,11 @@ export default function AddResellerModal({
   onClose,
   eventId,
   eventName,
+  mode = "vendor",
 }: AddResellerModalProps) {
+  const isPublic = mode === "public"
+  const title = isPublic ? "Become a Reseller" : "Add Reseller"
+  const submitLabel = isPublic ? "Become a Reseller" : "Add Reseller"
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -51,6 +56,17 @@ export default function AddResellerModal({
       setError("Please fill in both name and email.")
       return
     }
+
+    if (isPublic) {
+      // TODO: plug in public reseller signup endpoint
+      return
+    }
+
+    if (!eventId) {
+      setError("Event ID is required.")
+      return
+    }
+
     try {
       setSubmitting(true)
       setError("")
@@ -91,7 +107,7 @@ export default function AddResellerModal({
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div className="flex items-center gap-2">
             <UserPlus className="h-5 w-5 text-gray-600" />
-            <h2 className="text-base font-semibold text-gray-900">Add Reseller</h2>
+            <h2 className="text-base font-semibold text-gray-900">{title}</h2>
           </div>
           <button
             onClick={onClose}
@@ -155,17 +171,27 @@ export default function AddResellerModal({
             /* Form state */
             <form onSubmit={handleSubmit} className="space-y-4">
               <p className="text-sm text-gray-500">
-                Add a reseller to{" "}
-                <span className="font-medium text-gray-700">{eventName}</span>. They
-                will be able to sell tickets on your behalf.
+                {isPublic ? (
+                  <>
+                    Sign up to sell tickets for{" "}
+                    <span className="font-medium text-gray-700">{eventName}</span> and
+                    earn on every sale.
+                  </>
+                ) : (
+                  <>
+                    Add a reseller to{" "}
+                    <span className="font-medium text-gray-700">{eventName}</span>. They
+                    will be able to sell tickets on your behalf.
+                  </>
+                )}
               </p>
 
               <div className="space-y-1.5">
-                <label htmlFor="reseller-name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor={`${mode}-reseller-name`} className="block text-sm font-medium text-gray-700">
                   Full Name
                 </label>
                 <input
-                  id="reseller-name"
+                  id={`${mode}-reseller-name`}
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -176,11 +202,11 @@ export default function AddResellerModal({
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="reseller-email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor={`${mode}-reseller-email`} className="block text-sm font-medium text-gray-700">
                   Email Address
                 </label>
                 <input
-                  id="reseller-email"
+                  id={`${mode}-reseller-email`}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -217,7 +243,7 @@ export default function AddResellerModal({
                   ) : (
                     <>
                       <UserPlus className="h-4 w-4" />
-                      Add Reseller
+                      {submitLabel}
                     </>
                   )}
                 </Button>
