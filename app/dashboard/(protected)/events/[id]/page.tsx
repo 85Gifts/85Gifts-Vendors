@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import AddResellerModal from "@/components/events/AddResellerModal"
+import ResellersTable from "@/components/events/ResellersTable"
+import ResellerRequestsTable from "@/components/events/ResellerRequestsTable"
 
 type Tier = {
   _id: string
@@ -109,6 +111,8 @@ export default function EventDetailPage() {
   const [error, setError] = useState("")
 
   const [resellerOpen, setResellerOpen] = useState(false)
+  const [resellersRefreshKey, setResellersRefreshKey] = useState(0)
+  const [requestsRefreshKey, setRequestsRefreshKey] = useState(0)
 
   useEffect(() => {
     if (!eventId) return
@@ -442,6 +446,20 @@ export default function EventDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Resellers */}
+        <div className="mt-6 space-y-6">
+          <ResellersTable eventId={eventId} refreshKey={resellersRefreshKey} />
+          <ResellerRequestsTable
+            eventId={eventId}
+            refreshKey={requestsRefreshKey}
+            onApproved={() => {
+              setRequestsRefreshKey((k) => k + 1)
+              setResellersRefreshKey((k) => k + 1)
+            }}
+            onRejected={() => setRequestsRefreshKey((k) => k + 1)}
+          />
+        </div>
       </div>
 
       {/* Add Reseller Modal */}
@@ -450,6 +468,7 @@ export default function EventDetailPage() {
         onClose={() => setResellerOpen(false)}
         eventId={eventId}
         eventName={event.name}
+        onSuccess={() => setResellersRefreshKey((k) => k + 1)}
       />
     </div>
   )

@@ -9,7 +9,9 @@ interface AddResellerModalProps {
   onClose: () => void
   eventName: string
   eventId?: string
+  eventSlug?: string
   mode?: "vendor" | "public"
+  onSuccess?: () => void
 }
 
 interface ResellerResult {
@@ -24,17 +26,20 @@ export default function AddResellerModal({
   isOpen,
   onClose,
   eventId,
+  eventSlug,
   eventName,
   mode = "vendor",
+  onSuccess,
 }: AddResellerModalProps) {
   const isPublic = mode === "public"
   const title = isPublic ? "Become a Reseller" : "Add Reseller"
-  const submitLabel = isPublic ? "Become a Reseller" : "Add Reseller"
+  const submitLabel = isPublic ? "Submit Application" : "Add Reseller"
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState<ResellerResult | null>(null)
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // Reset form whenever the modal opens
@@ -44,6 +49,7 @@ export default function AddResellerModal({
       setEmail("")
       setError("")
       setResult(null)
+      setApplicationSubmitted(false)
       setCopied(false)
     }
   }, [isOpen])
@@ -58,7 +64,29 @@ export default function AddResellerModal({
     }
 
     if (isPublic) {
-      // TODO: plug in public reseller signup endpoint
+      if (!eventSlug) {
+        setError("Event slug is required.")
+        return
+      }
+      try {
+        setSubmitting(true)
+        setError("")
+        const res = await fetch(`/api/events/resellers/requests/${eventSlug}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name.trim(), email: email.trim() }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          throw new Error(json.message?.message || json.error || "Failed to submit application.")
+        }
+        setApplicationSubmitted(true)
+      } catch (err: any) {
+        console.log(err)
+        setError(err.message || "Failed to submit application.")
+      } finally {
+        setSubmitting(false)
+      }
       return
     }
 
@@ -79,6 +107,7 @@ export default function AddResellerModal({
       const json = await res.json()
       if (!res.ok) throw new Error(json.message || json.error || "Failed to add reseller.")
       setResult(json.data.reseller)
+      onSuccess?.()
     } catch (err: any) {
       setError(err?.message || "Failed to add reseller.")
     } finally {
@@ -119,7 +148,20 @@ export default function AddResellerModal({
 
         {/* Body */}
         <div className="px-6 py-5">
-          {result ? (
+          {applicationSubmitted ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-green-100 bg-green-50 p-4 text-center">
+                <p className="text-sm font-semibold text-green-700">Application submitted!</p>
+                <p className="mt-2 text-sm text-green-600">
+                  Thanks, {name}. We&apos;ll review your application and get back to you at{" "}
+                  <span className="font-medium">{email}</span>.
+                </p>
+              </div>
+              <Button onClick={onClose} className="w-full bg-gray-900 text-white hover:bg-gray-700">
+                Done
+              </Button>
+            </div>
+          ) : result ? (
             /* Success state */
             <div className="space-y-4">
               <div className="rounded-xl bg-green-50 border border-green-100 p-4 text-center">
@@ -238,7 +280,7 @@ export default function AddResellerModal({
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Adding…
+                      {isPublic ? "Submitting…" : "Adding…"}
                     </>
                   ) : (
                     <>

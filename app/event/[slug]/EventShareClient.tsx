@@ -142,6 +142,7 @@ export default function EventShareClient({ event }: EventShareClientProps) {
         isOpen={isResellerModalOpen}
         onClose={() => setIsResellerModalOpen(false)}
         eventName={event.name}
+        eventSlug={event.slug}
         mode="public"
       />
     </>
