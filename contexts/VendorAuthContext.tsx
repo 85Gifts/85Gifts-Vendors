@@ -32,7 +32,8 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     const isPublicRoute = pathname?.startsWith('/event/') || 
                          pathname === '/' ||
                          pathname?.startsWith('/booking-success') ||
-                         pathname?.startsWith('/inventory/');
+                         pathname?.startsWith('/inventory/') ||
+                         pathname?.startsWith('/reseller-dashboard');
     
     if (!isAuthPage && !isPublicRoute) {
       checkAuth();
