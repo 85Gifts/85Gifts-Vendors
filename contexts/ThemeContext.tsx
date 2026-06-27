@@ -1,7 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react"
-import { usePathname } from "next/navigation"
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react"
 
 type Theme = "light" | "dark"
 
@@ -12,87 +11,37 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-// Routes where dark mode should be disabled
-const AUTH_ROUTES = ["/login", "/register", "/reset-password", "/verifyEmail", "/forgot-password"]
-const AUTH_ROUTE_PREFIX = "/auth"
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") return "light"
+  const saved = localStorage.getItem("theme") as Theme | null
+  if (saved === "light" || saved === "dark") return saved
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+}
+
+function applyTheme(theme: Theme) {
+  document.documentElement.classList.toggle("dark", theme === "dark")
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light")
   const [mounted, setMounted] = useState(false)
-  const pathname = usePathname()
 
   useEffect(() => {
+    const initial = getInitialTheme()
+    setTheme(initial)
+    applyTheme(initial)
     setMounted(true)
-    // Check localStorage or system preference
-    const savedTheme = localStorage.getItem("theme") as Theme | null
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-    const initialTheme = savedTheme || systemTheme
-    setTheme(initialTheme)
-    applyTheme(initialTheme)
   }, [])
 
-  // Force light mode on auth pages
-  useEffect(() => {
-    if (!mounted) return
-    
-    const isAuthRoute = AUTH_ROUTES.some(route => pathname?.startsWith(route)) || 
-                       pathname?.startsWith(AUTH_ROUTE_PREFIX) ||
-                       pathname?.includes("/login") ||
-                       pathname?.includes("/register") ||
-                       pathname?.includes("/reset-password") ||
-                       pathname?.includes("/verifyEmail") ||
-                       pathname?.includes("/forgot-password")
-    
-    if (isAuthRoute) {
-      // Force light mode on auth pages
-      applyTheme("light")
-      // Don't change the theme state, just override the class
-    } else {
-      // Apply saved theme on non-auth pages
-      const savedTheme = localStorage.getItem("theme") as Theme | null
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-      const currentTheme = savedTheme || systemTheme
-      setTheme(currentTheme)
-      applyTheme(currentTheme)
-    }
-  }, [pathname, mounted])
-
-  const applyTheme = (newTheme: Theme) => {
-    const root = document.documentElement
-    if (newTheme === "dark") {
-      root.classList.add("dark")
-    } else {
-      root.classList.remove("dark")
-    }
-  }
-
-  const toggleTheme = () => {
-    // Don't allow theme toggle on auth pages
-    const isAuthRoute = AUTH_ROUTES.some(route => pathname?.startsWith(route)) || 
-                       pathname?.startsWith(AUTH_ROUTE_PREFIX) ||
-                       pathname?.includes("/login") ||
-                       pathname?.includes("/register") ||
-                       pathname?.includes("/reset-password") ||
-                       pathname?.includes("/verifyEmail") ||
-                       pathname?.includes("/forgot-password")
-    
-    if (isAuthRoute) {
-      return // Disable theme toggle on auth pages
-    }
-
+  const toggleTheme = useCallback(() => {
     const newTheme = theme === "light" ? "dark" : "light"
     setTheme(newTheme)
     localStorage.setItem("theme", newTheme)
     applyTheme(newTheme)
-  }
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return <>{children}</>
-  }
+  }, [theme])
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: mounted ? theme : "light", toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   )
@@ -100,9 +49,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useTheme must be used within a ThemeProvider")
   }
   return context
 }
-
