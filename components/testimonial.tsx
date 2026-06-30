@@ -2,7 +2,6 @@
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 
-// ─── InfiniteMovingCards (unchanged) ────────────────────────────────────────
 export const InfiniteMovingCards = ({
   items,
   direction = "left",
@@ -78,18 +77,18 @@ export const InfiniteMovingCards = ({
         {items.map((item, idx) => (
           <li
             key={item.name + idx}
-            className="relative w-[350px] max-w-full shrink-0 rounded-2xl border border-b-0 border-zinc-200 bg-[linear-gradient(180deg,#fafafa,#f5f5f5)] px-8 py-6 md:w-[450px] dark:border-zinc-700 dark:bg-[linear-gradient(180deg,#27272a,#18181b)]"
+            className="relative w-[350px] max-w-full shrink-0 rounded-2xl border bg-card px-8 py-6 md:w-[450px] border-border"
           >
             <blockquote>
-              <span className="relative z-20 text-sm font-normal leading-[1.6] text-neutral-800 dark:text-gray-100">
+              <span className="relative z-20 text-sm font-normal leading-[1.6] text-foreground">
                 {item.quote}
               </span>
               <div className="relative z-20 mt-6 flex flex-row items-center">
                 <span className="flex flex-col gap-1">
-                  <span className="text-sm font-normal leading-[1.6] text-neutral-500 dark:text-gray-400">
+                  <span className="text-sm font-normal leading-[1.6] text-muted-foreground">
                     {item.name}
                   </span>
-                  <span className="text-sm font-normal leading-[1.6] text-neutral-500 dark:text-gray-400">
+                  <span className="text-sm font-normal leading-[1.6] text-muted-foreground">
                     {item.title}
                   </span>
                 </span>
@@ -102,7 +101,6 @@ export const InfiniteMovingCards = ({
   );
 };
 
-// ─── Omniflow85 testimonial data ─────────────────────────────────────────────
 const rowOne = [
   {
     quote:
@@ -157,21 +155,18 @@ const rowTwo = [
   },
 ];
 
-// ─── Section wrapper ──────────────────────────────────────────────────────────
 export function TestimonialsSection() {
   return (
     <section className="relative z-20 mx-auto max-w-7xl py-10 lg:py-20">
-      {/* Heading */}
       <div className="px-8 text-center">
-        <h4 className="mx-auto max-w-3xl text-3xl font-medium tracking-tight text-black lg:text-5xl lg:leading-tight dark:text-white">
+        <h4 className="mx-auto max-w-3xl text-3xl font-medium tracking-tight text-foreground lg:text-5xl lg:leading-tight">
           Trusted by Sellers &amp; Event Organizers
         </h4>
-        <p className="mx-auto my-4 max-w-xl text-sm font-normal text-neutral-500 lg:text-base dark:text-neutral-300">
+        <p className="mx-auto my-4 max-w-xl text-sm font-normal text-muted-foreground lg:text-base">
           Real stories from the growing community of businesses using Omniflow85.
         </p>
       </div>
 
-      {/* Row 1 — scrolls left */}
       <InfiniteMovingCards
         items={rowOne}
         direction="left"
@@ -180,7 +175,6 @@ export function TestimonialsSection() {
         className="mt-6"
       />
 
-      {/* Row 2 — scrolls right */}
       <InfiniteMovingCards
         items={rowTwo}
         direction="right"

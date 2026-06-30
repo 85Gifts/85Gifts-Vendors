@@ -136,3 +136,35 @@
 .font-fredoka {
   font-family: var(--font-fredoka), sans-serif;
 }
+
+/* ─── React Flow theme overrides ──────────────────────────────────────────── */
+
+.react-flow__background pattern circle {
+  fill: var(--xy-background-pattern-color, #81818a);
+}
+
+.react-flow__controls-button {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+  fill: var(--foreground);
+}
+
+.react-flow__controls-button:hover {
+  background: var(--accent);
+}
+
+/* Edge animated dash */
+@keyframes dash {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.react-flow__edge-path--animated {
+  stroke-dasharray: 8 4;
+  animation: dash 1s linear infinite;
+}

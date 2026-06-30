@@ -7,6 +7,7 @@ import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { ComingSoonProvider } from '@/contexts/ComingSoonContext';
 
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -26,7 +27,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <body
         className={`${fredoka.variable} antialiased`}
@@ -38,6 +55,7 @@ export default function RootLayout({
             {/* <DevModeBypass /> */}
             {children}
             <Toaster />
+            <SonnerToaster position="bottom-right" richColors closeButton visibleToasts={3} />
           </ComingSoonProvider>
          </CheckoutProvider>
        </VendorAuthProvider>
