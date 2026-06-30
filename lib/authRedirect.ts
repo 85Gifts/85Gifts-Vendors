@@ -18,7 +18,8 @@ export const redirectToLogin = () => {
   if (currentPath?.startsWith("/event/") || 
       currentPath === "/" ||
       currentPath?.startsWith("/booking-success") ||
-      currentPath?.startsWith("/inventory/")) {
+      currentPath?.startsWith("/inventory/") ||
+      currentPath?.startsWith("/reseller-dashboard")){
     return
   }
   
