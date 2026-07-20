@@ -62,7 +62,7 @@ export function ComingSoonModal({
           <motion.div
             className={cn(
               "relative w-full max-w-md overflow-hidden rounded-2xl border border-border/80",
-              "bg-gradient-to-br from-card via-card to-purple-500/[0.07] dark:to-purple-400/[0.09]",
+              "bg-gradient-to-br from-card via-card to-primary/[0.07] dark:to-primary/[0.09]",
               "shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_25px_50px_-12px_rgba(0,0,0,0.35)]"
             )}
             onClick={(e) => e.stopPropagation()}
@@ -72,17 +72,17 @@ export function ComingSoonModal({
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
           >
             <div
-              className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-purple-500/15 blur-3xl"
+              className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-primary/15 blur-3xl"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -bottom-12 -left-12 size-40 rounded-full bg-violet-400/10 blur-2xl"
+              className="pointer-events-none absolute -bottom-12 -left-12 size-40 rounded-full bg-primary/10 blur-2xl"
               aria-hidden
             />
 
             <div className="relative flex items-start justify-between gap-3 border-b border-border/60 px-6 pt-6 pb-4">
               <div className="flex min-w-0 flex-1 items-start gap-3">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-600/12 text-purple-600 dark:bg-purple-400/15 dark:text-purple-300">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary dark:bg-primary/15">
                   <Sparkles className="size-5" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0 pt-0.5">
@@ -120,7 +120,7 @@ export function ComingSoonModal({
               </p>
               <Button
                 type="button"
-                className="mt-5 w-full bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500"
+                className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={onClose}
               >
                 Got it

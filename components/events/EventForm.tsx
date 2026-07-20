@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Calendar, Clock, MapPin, ArrowLeft, Save, Plus, Trash2, Image, Tag, ArrowRight, ChevronLeft, Upload, X, Info } from "lucide-react"
 import { useToast } from "../ui/use-toast"
+import { Button } from "@/components/ui/button"
 import { uploadImageToCloudinary, validateImageFile } from "@/lib/cloudinary"
 import { config } from "../../config"
 import Cookies from "js-cookie"
@@ -362,25 +363,25 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-sky-50 to-rose-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
-          <div className="px-6 py-5 border-b dark:border-gray-800">
+        <div className="bg-card rounded-xl shadow-sm border dark:border-border overflow-hidden">
+          <div className="px-6 py-5 border-b dark:border-border">
             <h1 className="text-xl sm:text-2xl font-bold dark:text-white">
               {props.mode === "edit" ? "Edit Event" : "Schedule New Event"}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {props.mode === "edit" 
                 ? "Update your event details below." 
                 : "Create an experience that matches your brand's vibe."}
@@ -388,7 +389,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
           </div>
 
           {/* Step Indicator */}
-          <div className="px-6 py-4 border-b dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+          <div className="px-6 py-4 border-b dark:border-border bg-muted/50">
             <div className="flex items-center justify-between">
               {steps.map((step, index) => (
                 <React.Fragment key={step.number}>
@@ -396,25 +397,25 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
                         currentStep === step.number
-                          ? "bg-blue-600 text-white"
+                          ? "bg-primary text-primary-foreground"
                           : currentStep > step.number
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted dark:bg-muted text-muted-foreground"
                       }`}
                     >
                       {step.number}
                     </div>
                     <div className="mt-2 text-center hidden sm:block">
-                      <p className={`text-xs font-medium ${currentStep === step.number ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400"}`}>
+                      <p className={`text-xs font-medium ${currentStep === step.number ? "text-primary" : "text-muted-foreground"}`}>
                         {step.title}
                       </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{step.description}</p>
+                      <p className="text-xs text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
                   {index < steps.length - 1 && (
                     <div
                       className={`flex-1 h-1 mx-2 ${
-                        currentStep > step.number ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"
+                        currentStep > step.number ? "bg-primary" : "bg-muted dark:bg-muted"
                       }`}
                     />
                   )}
@@ -427,35 +428,35 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 1: Basic Info */}
             {currentStep === 1 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
+                <h2 className="text-lg font-semibold text-foreground dark:text-white">Basic Information</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Event title</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Event title</label>
                     <input
                       type="text"
                       value={values.title}
                       onChange={handleChange("title")}
                       placeholder="e.g., Holiday Pop-Up Experience"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Keep it short and descriptive.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Keep it short and descriptive.</p>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Organiser name</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Organiser name</label>
                     <input
                       type="text"
                       value={values.organiserName}
                       onChange={handleChange("organiserName")}
                       placeholder="e.g., Naija Events Pro"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Experience type</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Experience type</label>
                     <select
                       value={values.category}
                       onChange={handleChange("category")}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     >
                       <option value="">Select type</option>
                       {validCategories.map((c) => (
@@ -466,58 +467,58 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     </select>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Event Start</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-foreground">Event Start</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.date}
                             onChange={handleChange("date")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Time</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.time}
                             onChange={handleChange("time")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Event End</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-foreground">Event End</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.endDate}
                             onChange={handleChange("endDate")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Time</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.endTime}
                             onChange={handleChange("endTime")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -530,14 +531,14 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 2: Location */}
             {currentStep === 2 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Location Details</h2>
+                <h2 className="text-lg font-semibold text-foreground dark:text-white">Location Details</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Location</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Location</label>
                     <select
                       value={values.location}
                       onChange={handleChange("location")}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     >
                       <option value="">Select location type</option>
                       <option value="physical">Physical</option>
@@ -545,55 +546,55 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     </select>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Venue</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Venue</label>
                     <input
                       type="text"
                       value={values.venue}
                       onChange={handleChange("venue")}
                       placeholder={values.location === "virtual" ? "E.g Google Meet, Skype, Zoom, etc" : "e.g., Tafawa Balewa Square"}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     />
                   </div>
                   {values.location === "physical" && (
                     <>
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-foreground">Address</label>
                         <input
                           type="text"
                           value={values.address}
                           onChange={handleChange("address")}
                           placeholder="Street address"
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">City</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-foreground">City</label>
                         <input
                           type="text"
                           value={values.city}
                           onChange={handleChange("city")}
                           placeholder="e.g., Lagos"
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">State</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-foreground">State</label>
                         <input
                           type="text"
                           value={values.state}
                           onChange={handleChange("state")}
                           placeholder="e.g., Lagos"
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Country</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-foreground">Country</label>
                         <input
                           type="text"
                           value={values.country}
                           onChange={handleChange("country")}
                           placeholder="e.g., Nigeria"
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
                       </div>
                     </>
@@ -606,44 +607,45 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {currentStep === 3 && (
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-foreground dark:text-white flex items-center gap-2">
                     Ticket Tiers
                     <span
-                      className="inline-flex text-gray-500 dark:text-gray-400 cursor-help"
+                      className="inline-flex text-muted-foreground cursor-help"
                       title="For free events, set price to 0."
                     >
                       <Info className="w-4 h-4" />
                     </span>
                   </h2>
-                    <button
+                    <Button
                       type="button"
                       onClick={addTier}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm transition-colors"
+                      size="sm"
+                      className="inline-flex items-center gap-2 text-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Add tier
-                    </button>
+                    </Button>
                   </div>
                   <div className="space-y-4">
                     {tiers.map((tier, index) => (
-                      <div key={index} className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
+                      <div key={index} className="border dark:border-border rounded-lg p-4 bg-muted/50">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-foreground">Name</label>
                             <input
                               type="text"
                               value={tier.name}
                               onChange={(e) => updateTier(index, "name", e.target.value)}
                               placeholder="Regular, VIP, VVIP"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Type</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-foreground">Type</label>
                             <select
                               value={tier.type}
                               onChange={(e) => updateTier(index, "type", e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                             >
                               <option value="general">general</option>
                               <option value="vip">vip</option>
@@ -651,35 +653,35 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Price</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-foreground">Price</label>
                             <input
                               type="number"
                               min={0}
                               value={tier.price}
                               onChange={(e) => updateTier(index, "price", e.target.value)}
                               placeholder="Set price to 0 if event is free"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Capacity</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-foreground">Capacity</label>
                             <input
                               type="number"
                               min={0}
                               value={tier.capacity}
                               onChange={(e) => updateTier(index, "capacity", e.target.value)}
                               placeholder="0"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-foreground">Description</label>
                             <input
                               type="text"
                               value={tier.description}
                               onChange={(e) => updateTier(index, "description", e.target.value)}
                               placeholder="Short summary of this tier"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -704,61 +706,61 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 4: Sales Period */}
             {currentStep === 4 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sales Period</h2>
+                <h2 className="text-lg font-semibold text-foreground dark:text-white">Sales Period</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Sales Start</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-foreground">Sales Start</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.salesStartDate}
                             onChange={handleChange("salesStartDate")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time (optional)</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Time (optional)</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.salesStartTime}
                             onChange={handleChange("salesStartTime")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Sales End</label>
+                    <label className="block text-sm font-medium mb-2 dark:text-foreground">Sales End</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Date</label>
                         <div className="relative">
-                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Calendar className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="date"
                             value={values.salesEndDate}
                             onChange={handleChange("salesEndDate")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Time (optional)</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Time (optional)</label>
                         <div className="relative">
-                          <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Clock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="time"
                             value={values.salesEndTime}
                             onChange={handleChange("salesEndTime")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -771,27 +773,27 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
             {/* Step 5: Branding & Details */}
             {currentStep === 5 && (
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Branding & Details</h2>
+                <h2 className="text-lg font-semibold text-foreground dark:text-white">Branding & Details</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Event icon / emoji</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Event icon / emoji</label>
                     <input
                       type="text"
                       maxLength={2}
                       value={values.emoji}
                       onChange={handleChange("emoji")}
                       placeholder="e.g., 🎄"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Cover image</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Cover image</label>
                     <label
                       htmlFor="event-cover-upload"
-                      className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                      className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
                     >
-                      <Upload className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                      <Upload className="w-5 h-5 mr-2 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
                         {uploadingCoverImage ? "Uploading..." : "Click to upload cover image"}
                       </span>
                       <input
@@ -803,7 +805,7 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                         disabled={uploadingCoverImage}
                       />
                     </label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       JPG, PNG, GIF, WebP. Max 10MB.
                     </p>
                     {values.coverImageUrl && (
@@ -811,57 +813,59 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                         <img
                           src={values.coverImageUrl}
                           alt="Cover preview"
-                          className="h-32 w-auto object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                          className="h-32 w-auto object-cover rounded-lg border border-border dark:border-border"
                         />
-                        <button
+                        <Button
                           type="button"
+                          variant="destructive"
+                          size="icon-xs"
                           onClick={clearCoverImage}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          className="absolute top-1 right-1"
                           disabled={uploadingCoverImage}
                           aria-label="Remove cover image"
                         >
                           <X className="w-3 h-3" />
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tags</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-foreground">Tags</label>
                     <div className="relative">
-                      <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Tag className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         value={values.tags}
                         onChange={handleChange("tags")}
                         placeholder="Comma-separated, e.g., afrobeat, concert, lagos"
-                        className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-9 pr-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     </div>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Use commas to add multiple tags.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Use commas to add multiple tags.</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
+                  <label className="block text-sm font-medium mb-1 dark:text-foreground">Description</label>
                   <textarea
                     rows={4}
                     value={values.description}
                     onChange={handleChange("description")}
                     placeholder="What should attendees expect?"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Highlight the vibe, agenda, speakers, and special perks.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Highlight the vibe, agenda, speakers, and special perks.</p>
                 </div>
               </section>
             )}
 
             {/* Navigation Buttons */}
-            <div className="pt-4 border-t dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div className="pt-4 border-t dark:border-border flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
               <div>
                 {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={handlePrevious}
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-border dark:text-foreground rounded-lg hover:bg-muted dark:hover:bg-muted transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
@@ -869,15 +873,15 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                 )}
               </div>
               <div className="flex gap-3 sm:ml-auto">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => router.push("/dashboard")}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
-                </button>
+                </Button>
                 {currentStep < 5 ? (
-                  <button
+                  <Button
                     type="button"
                     onClick={(e) => {
                       e.preventDefault()
@@ -885,26 +889,20 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                       handleNext(e)
                     }}
                     disabled={!stepValidation[currentStep as keyof typeof stepValidation]}
-                    className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
-                      !stepValidation[currentStep as keyof typeof stepValidation]
-                        ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    }`}
+                    className="flex items-center justify-center gap-2"
                   >
                     Next
                     <ArrowRight className="w-4 h-4" />
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
                     type="submit"
                     disabled={!isValid || submitting}
-                    className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-white ${
-                      !isValid || submitting ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                    }`}
+                    className="flex items-center justify-center gap-2"
                   >
                     <Save className="w-4 h-4" />
                     {submitting ? "Saving..." : "Save Event"}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -913,25 +911,24 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
           {/* Free event warning modal */}
           {showFreeEventModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full p-6">
-                <p className="text-gray-900 dark:text-white font-medium mb-6">
+              <div className="bg-white dark:bg-muted rounded-lg shadow-xl max-w-sm w-full p-6">
+                <p className="text-foreground dark:text-white font-medium mb-6">
                   This is a free event?
                 </p>
                 <div className="flex gap-3 justify-end">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setShowFreeEventModal(false)}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={confirmFreeEventContinue}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                   >
                     Continue
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

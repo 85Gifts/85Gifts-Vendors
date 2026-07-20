@@ -67,11 +67,11 @@ export function CTASection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.28 }}
-          className="mt-10 flex items-center gap-8 divide-x divide-border"
+          className="mt-10 flex items-center gap-3 divide-x divide-border sm:gap-8"
         >
           {stats.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center px-4 first:pl-0 last:pr-0">
-              <span className="text-2xl font-bold text-foreground">{stat.value}</span>
+            <div key={stat.label} className="flex flex-col items-center px-2 first:pl-0 last:pr-0 sm:px-4">
+              <span className="text-xl font-bold text-foreground sm:text-2xl">{stat.value}</span>
               <span className="text-xs text-muted-foreground">{stat.label}</span>
             </div>
           ))}
@@ -82,12 +82,12 @@ export function CTASection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.35 }}
-          className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
+          className="mt-10 flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row"
         >
           <Link
             href="/login"
             className={cn(
-              "group relative inline-flex h-12 items-center gap-2 overflow-hidden rounded-full px-8 text-sm font-semibold text-white shadow-lg transition-all duration-300",
+              "group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-8 text-sm font-semibold text-white shadow-lg transition-all duration-300 sm:w-auto",
               "bg-gradient-to-r from-blue-500 to-blue-400",
               "hover:shadow-blue-500/30 hover:shadow-xl hover:scale-[1.03]",
             )}
@@ -108,7 +108,7 @@ export function CTASection() {
           <Link
             href="/login"
             className={cn(
-              "inline-flex h-12 items-center gap-2 rounded-full border border-border bg-muted/60 px-8 text-sm font-medium text-muted-foreground backdrop-blur-sm transition-all duration-300",
+              "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-8 text-sm font-medium text-muted-foreground backdrop-blur-sm transition-all duration-300 sm:w-auto",
               "hover:border-foreground/30 hover:text-foreground hover:bg-accent/60",
             )}
           >

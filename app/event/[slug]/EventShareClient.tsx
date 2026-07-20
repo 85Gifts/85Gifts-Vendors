@@ -114,7 +114,7 @@ export default function EventShareClient({ event }: EventShareClientProps) {
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 text-center">
             <h2 className="text-2xl font-semibold text-gray-900">Booking</h2>
             <p className="mt-3 text-gray-600">
-              Click the "Book Now" button above to reserve your tickets.
+              Click the &quot;Book Now&quot; button above to reserve your tickets.
             </p>
           </div>
         </section>

@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Package, AlertTriangle, TrendingUp, Activity } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { CardSpotlight } from '@/components/ui/card-spotlight';
+import InventoryStockChart from '@/components/InventoryStockChart';
 
 interface InventoryMovement {
   id: string;
@@ -83,53 +87,73 @@ export default function InventoryDashboard() {
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-blue-500 dark:border-blue-400">
-          <div className="flex items-center justify-between">
+        <CardSpotlight className="p-6" spotColor="rgba(59, 130, 246, 0.18)">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Items</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
                 {summary?.totalItems || 0}
               </p>
             </div>
-            <Package className="w-12 h-12 text-blue-500 dark:text-blue-400" />
+            <span className="flex items-center justify-center rounded-lg bg-blue-500/10 p-2">
+              <Package className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+            </span>
           </div>
-        </div>
+          <Badge variant="outline" className="mt-4 border-blue-500/30 text-blue-600 dark:text-blue-400">
+            All inventory
+          </Badge>
+        </CardSpotlight>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-green-500 dark:border-green-400">
-          <div className="flex items-center justify-between">
+        <CardSpotlight className="p-6" spotColor="rgba(34, 197, 94, 0.18)">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">In Stock</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
                 {summary?.inStock || 0}
               </p>
             </div>
-            <TrendingUp className="w-12 h-12 text-green-500 dark:text-green-400" />
+            <span className="flex items-center justify-center rounded-lg bg-green-500/10 p-2">
+              <TrendingUp className="w-6 h-6 text-green-500 dark:text-green-400" />
+            </span>
           </div>
-        </div>
+          <Badge variant="outline" className="mt-4 border-green-500/30 text-green-600 dark:text-green-400">
+            Healthy
+          </Badge>
+        </CardSpotlight>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-yellow-500 dark:border-yellow-400">
-          <div className="flex items-center justify-between">
+        <CardSpotlight className="p-6" spotColor="rgba(234, 179, 8, 0.18)">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Low Stock Alerts</p>
-              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 tabular-nums">
                 {summary?.lowStock || 0}
               </p>
             </div>
-            <AlertTriangle className="w-12 h-12 text-yellow-500 dark:text-yellow-400" />
+            <span className="flex items-center justify-center rounded-lg bg-yellow-500/10 p-2">
+              <AlertTriangle className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
+            </span>
           </div>
-        </div>
+          <Badge variant="outline" className="mt-4 border-yellow-500/30 text-yellow-600 dark:text-yellow-400">
+            Needs attention
+          </Badge>
+        </CardSpotlight>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-red-500 dark:border-red-400">
-          <div className="flex items-center justify-between">
+        <CardSpotlight className="p-6" spotColor="rgba(239, 68, 68, 0.18)">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Out of Stock</p>
-              <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400 tabular-nums">
                 {summary?.outOfStock || 0}
               </p>
             </div>
-            <AlertTriangle className="w-12 h-12 text-red-500 dark:text-red-400" />
+            <span className="flex items-center justify-center rounded-lg bg-red-500/10 p-2">
+              <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
+            </span>
           </div>
-        </div>
+          <Badge variant="outline" className="mt-4 border-red-500/30 text-red-600 dark:text-red-400">
+            Critical
+          </Badge>
+        </CardSpotlight>
       </div>
 
       {summary && summary.lowStock > 0 && (
@@ -155,7 +179,7 @@ export default function InventoryDashboard() {
               <h4 className="font-semibold text-red-800 dark:text-red-300">Out of Stock Alert</h4>
               <p className="text-sm text-red-700 dark:text-red-400">
                 You have {summary.outOfStock} item(s) out of stock.
-                These products won't be available for purchase until restocked.
+                 These products won&apos;t be available for purchase until restocked.
               </p>
             </div>
           </div>
@@ -176,16 +200,26 @@ export default function InventoryDashboard() {
         </div>
       )}
 
+      <InventoryStockChart summary={summary} />
+
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border dark:border-gray-700">
         <h3 className="text-lg font-semibold mb-4 dark:text-white">Additional Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-800">
             <p className="text-sm text-green-600 dark:text-green-400">In Stock Items</p>
             <p className="text-2xl font-bold text-green-900 dark:text-green-300">{summary?.inStock || 0}</p>
+            <Progress
+              value={summary && summary.totalItems > 0 ? Math.round((summary.inStock / summary.totalItems) * 100) : 0}
+              className="mt-3 bg-green-500/15 [&>div]:bg-green-500"
+            />
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border dark:border-purple-800">
             <p className="text-sm text-purple-600 dark:text-purple-400">Average Stock Level</p>
             <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">{summary?.averageStockLevel || 0}</p>
+            <Progress
+              value={Math.min(100, summary?.averageStockLevel || 0)}
+              className="mt-3 bg-purple-500/15 [&>div]:bg-purple-500"
+            />
           </div>
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border dark:border-blue-800">
             <p className="text-sm text-blue-600 dark:text-blue-400">Total Value</p>

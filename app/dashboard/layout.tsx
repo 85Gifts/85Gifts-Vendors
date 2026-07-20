@@ -1,13 +1,9 @@
-import ProtectedRoute from "@/components/ProtectedRoute"
+import { DashboardShell } from "@/components/dashboard-shell"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <ProtectedRoute>
-      {children}
-    </ProtectedRoute>
-  )
+  return <DashboardShell>{children}</DashboardShell>
 }

@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Vendor, AuthContextType, RegisterData } from '../app/types/vendor';
 import { apiClient, ApiError } from '../lib/api';
 
@@ -11,7 +11,6 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {

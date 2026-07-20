@@ -86,14 +86,19 @@ const steps: StepData[] = [
 ]
 
 const nodeIds = steps.map((s) => s.id)
-const NODE_W = 150
-const NODE_H = 44
+
+function getNodeSize(): { w: number; h: number } {
+  if (typeof window === "undefined") return { w: 150, h: 44 }
+  const small = window.innerWidth < 640
+  return small ? { w: 124, h: 40 } : { w: 150, h: 44 }
+}
 
 function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   direction: "LR" | "TB",
 ) {
+  const { w: NODE_W, h: NODE_H } = getNodeSize()
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
   g.setGraph({
@@ -170,8 +175,13 @@ export default function HowItWorksFlow() {
     return getLayoutedElements(nodes, buildEdges(nodeIds), rankDir)
   }, [rankDir])
 
-  const [nodes, , onNodesChange] = useNodesState(layoutedNodes)
-  const [edges, , onEdgesChange] = useEdgesState(layoutedEdges)
+  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges)
+
+  useEffect(() => {
+    setNodes(layoutedNodes)
+    setEdges(layoutedEdges)
+  }, [layoutedNodes, layoutedEdges, setNodes, setEdges])
 
   const onNodeMouseEnter: NodeMouseHandler = useCallback((_, node) => {
     setHoveredNode(node.id)
@@ -246,12 +256,14 @@ export default function HowItWorksFlow() {
           onNodeMouseLeave={onNodeMouseLeave}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.1 }}
+          fitViewOptions={{ padding: rankDir === "TB" ? 0.18 : 0.1 }}
+          minZoom={0.4}
+          maxZoom={1.75}
           proOptions={{ hideAttribution: true }}
-          panOnDrag={false}
+          panOnDrag
           zoomOnScroll={false}
-          zoomOnPinch={false}
-          nodesDraggable={false}
+          zoomOnPinch
+          nodesDraggable
           nodesConnectable={false}
           elementsSelectable={false}
           className="!bg-transparent"
@@ -263,6 +275,7 @@ export default function HowItWorksFlow() {
           />
         </ReactFlow>
       </div>
+
 
       <AnimatePresence>
         {selectedInfo && (

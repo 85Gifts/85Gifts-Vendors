@@ -7,7 +7,7 @@ interface InventoryItem {
   lastUpdated?: string;
 }
 
-let inventoryData: InventoryItem[] = [
+const inventoryData: InventoryItem[] = [
   { id: '1', quantity: 25, status: 'active' },
   { id: '2', quantity: 5, status: 'active' },
   { id: '3', quantity: 0, status: 'active' },

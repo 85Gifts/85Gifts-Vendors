@@ -31,7 +31,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center space-y-3">
-            <div className="text-lg">We couldn't verify your session.</div>
+            <div className="text-lg">We couldn&apos;t verify your session.</div>
             <div className="text-sm text-gray-500">{authError}</div>
             <button
               onClick={() => refreshAuth?.()}

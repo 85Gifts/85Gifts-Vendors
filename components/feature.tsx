@@ -259,8 +259,8 @@ export const SkeletonTwo = () => {
 // --- Skeleton 3: Invoice + payment link mockup ---
 export const SkeletonThree = () => {
   return (
-    <div className="group/card relative flex h-full items-center justify-center gap-4 p-4">
-      <div className="mx-auto w-full max-w-xs rounded-2xl border border-border bg-card p-5 shadow-xl">
+    <div className="group/card relative flex h-full items-center justify-center gap-4 px-4 py-8 sm:py-4">
+      <div className="mx-auto my-2 w-full max-w-[min(20rem,100%)] rounded-2xl border border-border bg-card p-5 shadow-xl">
         {/* Invoice header */}
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -298,11 +298,11 @@ export const SkeletonThree = () => {
 
         {/* Payment link pill */}
         <div className="mt-4 flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 dark:bg-blue-950">
-          <span className="inline-flex items-center gap-1 text-[10px] text-blue-500">
-            <IconLink className="h-3 w-3" />
+          <span className="inline-flex min-w-0 flex-1 items-center gap-1 truncate text-[10px] text-blue-500">
+            <IconLink className="h-3 w-3 flex-shrink-0" />
             pay.omniflow85.com/u/abc123
           </span>
-          <span className="ml-auto rounded bg-blue-500 px-2 py-0.5 text-[9px] font-bold text-white">
+          <span className="ml-auto flex-shrink-0 rounded bg-blue-500 px-2 py-0.5 text-[9px] font-bold text-white">
             Copy
           </span>
         </div>

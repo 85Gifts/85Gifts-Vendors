@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
+import { useRouter } from "next/navigation"
 import {
   Wallet,
   Clock,
@@ -12,13 +13,15 @@ import {
   Box,
 } from "lucide-react"
 import { redirectToLogin } from "@/lib/authRedirect"
-import { useComingSoon } from "@/contexts/ComingSoonContext"
+import { Button } from "@/components/ui/button"
+import { CardSpotlight } from "@/components/ui/card-spotlight"
 import FundWalletModal from "./FundWalletModal"
 import PerformanceMetricsCard from "./PerformanceMetricsCard"
 import RecentTransactions from "./RecentTransactions"
 import type { Transaction } from "./RecentTransactions"
 import VendorProfileCard from "./VendorProfileCard"
 import WithdrawModal from "./WithdrawModal"
+import EarningsChart from "./EarningsChart"
 
 // Define Wallet type
 interface Wallet {
@@ -44,12 +47,29 @@ interface VendorProfile {
   updatedAt?: string
 }
 
-interface DashboardTabProps {
-  onNavigateToTab?: (tabId: string) => void
+// Defensive extraction of a list array from the inconsistent nested API shapes.
+function extractArray(data: any, key: string): any[] {
+  const candidate =
+    data?.data?.data?.[key] ??
+    data?.data?.[key] ??
+    data?.[key] ??
+    data?.data?.data ??
+    data?.data ??
+    data
+  return Array.isArray(candidate) ? candidate : []
 }
 
-export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
-  const { showComingSoon } = useComingSoon()
+// Prefer an explicit total (pagination) when present, else fall back to array length.
+function extractTotal(data: any, array: any[]): number {
+  const total =
+    data?.data?.data?.pagination?.total ??
+    data?.data?.pagination?.total ??
+    data?.pagination?.total
+  return typeof total === "number" ? total : array.length
+}
+
+export default function DashboardTab() {
+  const router = useRouter()
   const [wallet, setWallet] = useState<Wallet | null>(null)
   const [walletLoading, setWalletLoading] = useState<boolean>(true)
   const [walletError, setWalletError] = useState<string>("")
@@ -70,6 +90,15 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
 
   const [fundWalletModalOpen, setFundWalletModalOpen] = useState<boolean>(false)
   const [withdrawModalOpen, setWithdrawModalOpen] = useState<boolean>(false)
+
+  // Live counts for the dashboard quick-stat tiles
+  const [counts, setCounts] = useState<{
+    events: number
+    products: number
+    ads: number
+    inventory: number
+  }>({ events: 0, products: 0, ads: 0, inventory: 0 })
+  const [countsLoading, setCountsLoading] = useState<boolean>(true)
   
   // Carousel state for mobile
   const [currentSlide, setCurrentSlide] = useState<number>(0)
@@ -99,50 +128,34 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
   const statsCards = useMemo(() => [
     {
       id: 'available-balance',
-      gradient: 'from-purple-500 to-purple-600',
       label: 'Available Balance',
       value: walletLoading ? 'Loading...' : walletError ? 'Error' : currencyFormatter.format(wallet?.availableBalance || 0),
       icon: Wallet,
-      iconColor: 'text-purple-200',
-      errorColor: 'text-red-200',
-      loadingColor: 'text-purple-200',
       hasButton: true,
       buttonLabel: 'Fund Wallet',
       buttonAction: 'fund' as const,
     },
     {
       id: 'total-earnings',
-      gradient: 'from-green-500 to-green-600',
       label: 'Total Earnings',
       value: walletLoading ? 'Loading...' : walletError ? 'Error' : currencyFormatter.format(wallet?.totalEarnings || 0),
       icon: Wallet,
-      iconColor: 'text-green-200',
-      errorColor: 'text-red-200',
-      loadingColor: 'text-green-200',
       hasButton: true,
       buttonLabel: 'Withdraw',
       buttonAction: 'withdraw' as const,
     },
     {
       id: 'total-withdrawals',
-      gradient: 'from-blue-500 to-blue-600',
       label: 'Total Withdrawals',
       value: walletLoading ? 'Loading...' : walletError ? 'Error' : currencyFormatter.format(wallet?.totalWithdrawals || 0),
       icon: Wallet,
-      iconColor: 'text-blue-200',
-      errorColor: 'text-red-200',
-      loadingColor: 'text-blue-200',
       hasButton: false,
     },
     {
       id: 'pending-withdrawals',
-      gradient: 'from-orange-500 to-orange-600',
       label: 'Pending Withdrawals',
       value: walletLoading ? 'Loading...' : walletError ? 'Error' : currencyFormatter.format(wallet?.pendingWithdrawals || 0),
       icon: Clock,
-      iconColor: 'text-orange-200',
-      errorColor: 'text-red-200',
-      loadingColor: 'text-orange-200',
       hasButton: false,
     },
   ], [currencyFormatter, wallet, walletLoading, walletError])
@@ -201,6 +214,59 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
   // Fetch vendor profile from backend
   useEffect(() => {
     fetchProfile()
+  }, [])
+
+  // Fetch live counts for the quick-stat tiles (events, products, ads, inventory)
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      setCountsLoading(true)
+      const next = { events: 0, products: 0, ads: 0, inventory: 0 }
+
+      const safe = async (url: string) => {
+        try {
+          const res = await fetch(url, {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          })
+          if (!res.ok) return null
+          return await res.json().catch(() => null)
+        } catch {
+          return null
+        }
+      }
+
+      const [eventsData, productsData, adsData, inventoryData] = await Promise.all([
+        safe("/api/events"),
+        safe("/api/products"),
+        safe("/api/ads/campaigns"),
+        safe("/api/inventory/products"),
+      ])
+
+      if (cancelled) return
+
+      const events = extractArray(eventsData, "events")
+      next.events = extractTotal(eventsData, events)
+
+      const products = extractArray(productsData, "products")
+      next.products = extractTotal(productsData, products)
+
+      const campaigns = extractArray(adsData, "campaigns")
+      next.ads = campaigns.filter(
+        (c: any) => (c?.status || "").toLowerCase() === "active"
+      ).length
+
+      const inventory = extractArray(inventoryData, "products")
+      next.inventory = extractTotal(inventoryData, inventory)
+
+      setCounts(next)
+      setCountsLoading(false)
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const fetchWallet = async () => {
@@ -411,41 +477,48 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
           {statsCards.map((card) => {
             const Icon = card.icon
             return (
-              <div key={card.id} className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}>
-                <div className={`flex items-center justify-between ${card.hasButton ? 'mb-4' : ''}`}>
+              <CardSpotlight
+                key={card.id}
+                className="p-6"
+                spotColor="rgba(85, 110, 230, 0.18)"
+              >
+                <div className={`flex items-start justify-between ${card.hasButton ? 'mb-4' : ''}`}>
                   <div>
-                    <p className={`${card.gradient.includes('purple') ? 'text-purple-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('blue') ? 'text-blue-100' : 'text-orange-100'} text-sm`}>
+                    <p className="text-muted-foreground text-sm">
                       {card.label}
                     </p>
-                    <p className="text-3xl font-bold">
+                    <p className="text-3xl font-bold tabular-nums">
                       {walletLoading ? (
-                        <span className={card.loadingColor}>{card.value}</span>
+                        <span className="text-muted-foreground">{card.value}</span>
                       ) : walletError ? (
-                        <span className={card.errorColor}>Error</span>
+                        <span className="text-destructive">Error</span>
                       ) : (
                         card.value
                       )}
                     </p>
                   </div>
-                  <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                  <span className="flex items-center justify-center rounded-lg bg-primary/10 p-2">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </span>
                 </div>
                 {card.hasButton && (
                   <div className="flex gap-2">
-                    <button 
+                    <Button
+                      variant={card.buttonAction === 'withdraw' ? 'warning' : 'success'}
+                      size="sm"
                       onClick={() => card.buttonAction === 'withdraw' ? setWithdrawModalOpen(true) : setFundWalletModalOpen(true)}
-                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
                     >
                       {card.buttonLabel}
-                    </button>
+                    </Button>
                   </div>
                 )}
-              </div>
+              </CardSpotlight>
             )
           })}
         </div>
 
         {/* Mobile Carousel */}
-        <div className="md:hidden relative -mx-6 px-6">
+        <div className="md:hidden relative -mx-4 px-4">
           <div
             ref={carouselRef}
             className="flex overflow-x-hidden scroll-smooth snap-x snap-mandatory"
@@ -454,44 +527,50 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
             onTouchEnd={handleTouchEnd}
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
-            {statsCards.map((card, index) => {
+            {statsCards.map((card) => {
               const Icon = card.icon
               return (
                 <div
                   key={card.id}
                   className="min-w-full snap-center"
                 >
-                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white h-full min-h-[160px] flex flex-col justify-between`}>
+                  <CardSpotlight
+                    className="p-6 h-full min-h-[160px] flex flex-col justify-between"
+                    spotColor="rgba(85, 110, 230, 0.18)"
+                  >
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className={`${card.gradient.includes('purple') ? 'text-purple-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('blue') ? 'text-blue-100' : 'text-orange-100'} text-sm`}>
+                        <p className="text-muted-foreground text-sm">
                           {card.label}
                         </p>
-                        <p className="text-3xl font-bold">
+                        <p className="text-3xl font-bold tabular-nums">
                           {walletLoading ? (
-                            <span className={card.loadingColor}>{card.value}</span>
+                            <span className="text-muted-foreground">{card.value}</span>
                           ) : walletError ? (
-                            <span className={card.errorColor}>Error</span>
+                            <span className="text-destructive">Error</span>
                           ) : (
                             card.value
                           )}
                         </p>
                       </div>
-                      <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                      <span className="flex items-center justify-center rounded-lg bg-primary/10 p-2">
+                        <Icon className="w-6 h-6 text-primary" />
+                      </span>
                     </div>
                     <div className="flex gap-2 h-[32px]">
                       {card.hasButton ? (
-                        <button 
+                        <Button
+                          variant={card.buttonAction === 'withdraw' ? 'warning' : 'success'}
+                          size="sm"
                           onClick={() => card.buttonAction === 'withdraw' ? setWithdrawModalOpen(true) : setFundWalletModalOpen(true)}
-                          className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
                         >
                           {card.buttonLabel}
-                        </button>
+                        </Button>
                       ) : (
                         <div></div>
                       )}
                     </div>
-                  </div>
+                  </CardSpotlight>
                 </div>
               )
             })}
@@ -499,22 +578,26 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
 
           {/* Navigation Arrows */}
           {currentSlide > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10"
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-5 h-5" />
-            </button>
+            </Button>
           )}
           {currentSlide < statsCards.length - 1 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10"
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Next slide"
             >
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </Button>
           )}
 
           {/* Dots Indicator */}
@@ -525,8 +608,8 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
                 onClick={() => goToSlide(index)}
                 className={`h-2 rounded-full transition-all ${
                   currentSlide === index
-                    ? 'bg-blue-600 w-8'
-                    : 'bg-gray-300 w-2'
+                    ? 'bg-primary w-8'
+                    : 'bg-muted w-2'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -538,45 +621,22 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
       {/* Product Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          {
-            id: 'events',
-            label: 'Events',
-            icon: Calendar,
-            gradient: 'from-indigo-500 to-indigo-600',
-            accent: 'text-indigo-100',
-            iconColor: 'text-indigo-200',
-          },
-          {
-            id: 'ads',
-            label: 'Ads',
-            icon: Megaphone,
-            gradient: 'from-purple-500 to-purple-600',
-            accent: 'text-purple-100',
-            iconColor: 'text-purple-200',
-          },
-          {
-            id: 'inventory',
-            label: 'Inventory',
-            icon: Box,
-            gradient: 'from-blue-500 to-blue-600',
-            accent: 'text-blue-100',
-            iconColor: 'text-blue-200',
-          },
-          {
-            id: 'products',
-            label: 'Products',
-            icon: Package,
-            gradient: 'from-green-500 to-green-600',
-            accent: 'text-green-100',
-            iconColor: 'text-green-200',
-          },
+          { id: 'events', label: 'Events', icon: Calendar },
+          { id: 'ads', label: 'Ads', icon: Megaphone },
+          { id: 'inventory', label: 'Inventory', icon: Box },
+          { id: 'products', label: 'Products', icon: Package },
         ].map((card) => {
           const Icon = card.icon
           const handleClick = () => {
-            if (card.id === "inventory") {
-              showComingSoon({ featureLabel: "Inventory" })
-            } else if (onNavigateToTab) {
-              onNavigateToTab(card.id)
+            const routes: Record<string, string> = {
+              events: "/dashboard/events",
+              ads: "/dashboard/ads",
+              inventory: "/inventory",
+              products: "/dashboard/products",
+            }
+            const route = routes[card.id]
+            if (route) {
+              router.push(route)
             }
           }
           return (
@@ -591,11 +651,17 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
                   handleClick()
                 }
               }}
-              className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform`}
+              className="group relative cursor-pointer rounded-xl bg-card p-[1.5px] text-foreground transition-transform hover:-translate-y-1"
             >
-              <div className="flex flex-col items-center justify-center text-center">
-                <Icon className={`w-12 h-12 ${card.iconColor} mb-3`} />
-                <p className={`${card.accent} text-lg font-semibold`}>{card.label}</p>
+              <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-primary/60 via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="relative flex flex-col items-center justify-center rounded-[10px] bg-card p-4 sm:p-6 text-center">
+                <span className="mb-3 flex items-center justify-center rounded-xl bg-primary/10 p-3 transition-colors group-hover:bg-primary/20">
+                  <Icon className="w-9 h-9 text-primary" />
+                </span>
+                <p className="text-2xl font-bold tabular-nums text-foreground">
+                  {countsLoading ? "–" : counts[card.id as keyof typeof counts].toLocaleString()}
+                </p>
+                <p className="mt-1 text-sm font-medium text-muted-foreground">{card.label}</p>
               </div>
             </div>
           )
@@ -615,6 +681,8 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
         currencyFormatter={currencyFormatter}
       />
 
+      <EarningsChart transactions={transactions} />
+
       {/* Performance Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PerformanceMetricsCard
@@ -622,6 +690,7 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
           walletLoading={walletLoading}
           walletError={walletError}
           currencyFormatter={currencyFormatter}
+          transactions={transactions}
         />
         <VendorProfileCard
           profile={vendorProfile}

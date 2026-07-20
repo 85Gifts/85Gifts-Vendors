@@ -389,7 +389,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
           onClick={handleCloseModal}
         >
           <div
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

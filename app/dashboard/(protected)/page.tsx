@@ -1,10 +1,5 @@
-import DashBoard from "../../../components/DashBoard"
+import DashboardTab from "@/components/dashboard/DashboardTab"
 
 export default function Home() {
-  return (
-  <>
-
-  <DashBoard/>
-  </>
-  )
+  return <DashboardTab />
 }
