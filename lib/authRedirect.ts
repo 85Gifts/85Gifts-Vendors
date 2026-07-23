@@ -15,11 +15,12 @@ export const redirectToLogin = () => {
   }
   
   // Don't redirect from public routes
-  if (currentPath?.startsWith("/event/") || 
+  if (currentPath?.startsWith("/event/") ||
       currentPath === "/" ||
       currentPath?.startsWith("/booking-success") ||
       currentPath?.startsWith("/inventory/") ||
-      currentPath?.startsWith("/reseller-dashboard")){
+      currentPath?.startsWith("/dashboard") ||
+      currentPath?.startsWith("/reseller-dashboard")) {
     return
   }
   

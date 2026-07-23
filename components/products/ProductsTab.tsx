@@ -18,6 +18,19 @@ import {
 import { useRouter } from "next/navigation"
 import { useComingSoon } from "@/contexts/ComingSoonContext"
 import { useToast } from "../ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import ProductForm from "@/components/ProductForm"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // Define Product type (for display)
 interface Product {
@@ -50,21 +63,53 @@ interface BackendProduct {
   updatedAt?: string
 }
 
-interface ProductsTabProps {
-  onEditProduct: (product: Product) => void
-  onDeleteProduct: (id: string | number) => void
-  onRefreshRequested?: (refreshFn: () => Promise<void>) => void
-}
-
-export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshRequested }: ProductsTabProps) {
+export default function ProductsTab() {
   const [products, setProducts] = useState<Product[]>([])
   const [productsLoading, setProductsLoading] = useState<boolean>(true)
   const [productsError, setProductsError] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
+  const [showEditProduct, setShowEditProduct] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
   const router = useRouter()
   const { toast } = useToast()
   const { showComingSoon } = useComingSoon()
+
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product)
+    setShowEditProduct(true)
+  }
+
+  const confirmDeleteProduct = async () => {
+    const id = productToDelete?.id
+    if (!id) return
+    try {
+      const response = await fetch(`/api/productId?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to delete product")
+      }
+
+      await fetchProducts()
+      toast({
+        title: "Product deleted",
+        description: "The product has been successfully deleted.",
+        variant: "success",
+      })
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Failed to delete product",
+        variant: "destructive",
+      })
+    } finally {
+      setProductToDelete(null)
+    }
+  }
 
   const onAddProductClick = useCallback(() => {
     showComingSoon({ featureLabel: "Add new product" })
@@ -168,13 +213,6 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
     fetchProducts()
   }, [fetchProducts])
 
-  // Expose refresh function to parent component
-  useEffect(() => {
-    if (onRefreshRequested) {
-      onRefreshRequested(fetchProducts)
-    }
-  }, [onRefreshRequested, fetchProducts])
-
   const handleManageInventory = async (product: Product) => {
     if (!product.id) {
       toast({
@@ -224,48 +262,8 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
     }
   }
 
-  const handleDeleteProduct = async (id: string | number) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
-      return
-    }
-
-    if (!id) {
-      toast({
-        title: "Delete failed",
-        description: "Product ID is required",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/productId?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to delete product')
-      }
-
-      // Refresh products list after deletion
-      await fetchProducts()
-      
-      toast({
-        title: "Product deleted",
-        description: "The product has been successfully deleted.",
-        variant: "success",
-      })
-      
-      // Call parent's onDeleteProduct callback
-      onDeleteProduct(id)
-    } catch (err) {
-      toast({
-        title: "Delete failed",
-        description: err instanceof Error ? err.message : 'Failed to delete product',
-        variant: "destructive",
-      })
-    }
+  const handleDeleteProduct = (product: Product) => {
+    setProductToDelete(product)
   }
 
   const getStatusColor = (status: Product["status"]): string => {
@@ -275,9 +273,9 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
       case "out_of_stock":
         return "text-red-600 bg-red-100"
       case "inactive":
-        return "text-gray-600 bg-gray-100"
+        return "text-muted-foreground bg-muted"
       default:
-        return "text-gray-600 bg-gray-100"
+        return "text-muted-foreground bg-muted"
     }
   }
 
@@ -300,40 +298,28 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
   const statsCards = useMemo(() => [
     {
       id: 'total-products',
-      gradient: 'from-blue-500 to-blue-600',
       label: 'Total Products',
       value: productsLoading ? 'Loading...' : productStats.totalProducts.toString(),
       icon: Package,
-      iconColor: 'text-blue-200',
-      loadingColor: 'text-blue-200',
       hasButton: true,
     },
     {
       id: 'active-products',
-      gradient: 'from-green-500 to-green-600',
       label: 'Active Products',
       value: productsLoading ? 'Loading...' : productStats.activeProducts.toString(),
       icon: CheckCircle,
-      iconColor: 'text-green-200',
-      loadingColor: 'text-green-200',
     },
     {
       id: 'out-of-stock',
-      gradient: 'from-red-500 to-red-600',
       label: 'Out of Stock',
       value: productsLoading ? 'Loading...' : productStats.outOfStockProducts.toString(),
       icon: XCircle,
-      iconColor: 'text-red-200',
-      loadingColor: 'text-red-200',
     },
     {
       id: 'total-revenue',
-      gradient: 'from-purple-500 to-purple-600',
       label: 'Total Revenue',
       value: productsLoading ? 'Loading...' : currencyFormatter.format(productStats.totalRevenue),
       icon: DollarSign,
-      iconColor: 'text-purple-200',
-      loadingColor: 'text-purple-200',
     },
   ], [productStats, productsLoading, currencyFormatter])
 
@@ -395,32 +381,33 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
           {statsCards.map((card) => {
             const Icon = card.icon
             return (
-              <div key={card.id} className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}>
+              <div key={card.id} className="bg-card border border-border rounded-xl p-6 text-foreground">
                 <div className={`flex items-center justify-between ${card.hasButton ? 'mb-4' : ''}`}>
                   <div>
-                    <p className={`${card.gradient.includes('blue') ? 'text-blue-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('red') ? 'text-red-100' : 'text-purple-100'} text-sm`}>
+                    <p className="text-muted-foreground text-sm">
                       {card.label}
                     </p>
                     <p className="text-3xl font-bold">
                       {productsLoading ? (
-                        <span className={card.loadingColor}>{card.value}</span>
+                        <span className="text-muted-foreground">{card.value}</span>
                       ) : (
                         card.value
                       )}
                     </p>
                   </div>
-                  <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                  <Icon className="w-8 h-8 text-primary" />
                 </div>
                 {card.hasButton && (
                   <div className="flex gap-2">
-                    <button 
+                    <Button
                       type="button"
                       onClick={onAddProductClick}
-                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                      size="sm"
+                      className="flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Add New Product
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -445,32 +432,33 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
                   key={card.id}
                   className="min-w-full snap-center"
                 >
-                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white h-full min-h-[160px] flex flex-col justify-between`}>
+                  <div className="bg-card border border-border rounded-xl p-6 text-foreground h-full min-h-[160px] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className={`${card.gradient.includes('blue') ? 'text-blue-100' : card.gradient.includes('green') ? 'text-green-100' : card.gradient.includes('red') ? 'text-red-100' : 'text-purple-100'} text-sm`}>
+                        <p className="text-muted-foreground text-sm">
                           {card.label}
                         </p>
                         <p className="text-3xl font-bold">
                           {productsLoading ? (
-                            <span className={card.loadingColor}>{card.value}</span>
+                            <span className="text-muted-foreground">{card.value}</span>
                           ) : (
                             card.value
                           )}
                         </p>
                       </div>
-                      <Icon className={`w-8 h-8 ${card.iconColor}`} />
+                      <Icon className="w-8 h-8 text-primary" />
                     </div>
                     <div className="flex gap-2 h-[32px]">
                       {card.hasButton ? (
-                        <button 
+                        <Button
                           type="button"
                           onClick={onAddProductClick}
-                          className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                          size="sm"
+                          className="flex items-center gap-2"
                         >
                           <Plus className="w-4 h-4" />
                           Add New Product
-                        </button>
+                        </Button>
                       ) : (
                         <div></div>
                       )}
@@ -483,22 +471,26 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
 
           {/* Navigation Arrows */}
           {currentSlide > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-10"
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-5 h-5" />
-            </button>
+            </Button>
           )}
           {currentSlide < statsCards.length - 1 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-10"
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Next slide"
             >
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </Button>
           )}
 
           {/* Dots Indicator */}
@@ -509,8 +501,8 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
                 onClick={() => goToSlide(index)}
                 className={`h-2 rounded-full transition-all ${
                   currentSlide === index
-                    ? 'bg-blue-600 w-8'
-                    : 'bg-gray-300 w-2'
+                    ? 'bg-primary w-8'
+                    : 'bg-muted w-2'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -522,19 +514,19 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
         {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <input
             type="text"
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
           />
         </div>
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="px-4 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
         >
           <option value="all">All Categories</option>
           {categories.map((category) => (
@@ -549,7 +541,7 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
       {productsLoading && (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading products...</p>
+          <p className="mt-2 text-muted-foreground">Loading products...</p>
         </div>
       )}
 
@@ -572,24 +564,25 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <Package className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400 text-lg">No products found</p>
-              <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Add your first product to get started</p>
+              <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground text-lg">No products found</p>
+              <p className="text-muted-foreground dark:text-muted-foreground text-sm mt-2">Add your first product to get started</p>
             </div>
           ) : (
             filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow overflow-hidden">
+              <div key={product.id} className="bg-card rounded-xl shadow-sm border dark:border-border hover:shadow-md transition-shadow overflow-hidden">
                 {/* Product Image */}
-                <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                <div className="relative w-full h-48 bg-muted flex items-center justify-center overflow-hidden">
                   {/* Manage Inventory Button */}
-                  <button
+                  <Button
                     onClick={() => handleManageInventory(product)}
-                    className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-3 py-1.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-1.5 text-xs font-semibold backdrop-blur-sm bg-opacity-90 hover:scale-105 z-10"
+                    size="xs"
+                    className="absolute top-2 right-2 z-10 flex items-center gap-1.5"
                     title="Manage Inventory"
                   >
                     <Boxes className="w-3 h-3" />
                     <span>Manage Inventory</span>
-                  </button>
+                  </Button>
                   
                   {product.image && product.image.startsWith('http') ? (
                     <img 
@@ -621,15 +614,15 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
                     </div>
                     <div className="flex gap-2 ml-2">
                       <button
-                        onClick={() => onEditProduct(product)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        onClick={() => handleEditProduct(product)}
+                        className="text-muted-foreground hover:text-primary transition-colors"
                         title="Edit product"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        onClick={() => handleDeleteProduct(product)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
                         title="Delete product"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -638,13 +631,13 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
                   </div>
 
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-gray-600 dark:text-gray-400">{product.category}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+                    <span className="text-muted-foreground">{product.category}</span>
+                    <Badge className={getStatusColor(product.status)}>
                       {product.status.replace("_", " ")}
-                    </span>
+                    </Badge>
                   </div>
 
-                  <div className="flex items-center gap-4 mb-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-4 mb-3 text-sm text-muted-foreground">
                     <span>Stock: {product.stock}</span>
                     <span>Sales: {product.sales}</span>
                     <div className="flex items-center gap-1">
@@ -654,10 +647,10 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    <span className="text-2xl font-bold text-foreground">
                       {currencyFormatter.format(product.price)}
                     </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{product.giftCategory}</span>
+                    <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">{product.giftCategory}</span>
                   </div>
                 </div>
               </div>
@@ -665,6 +658,64 @@ export default function ProductsTab({ onEditProduct, onDeleteProduct, onRefreshR
           )}
         </div>
       )}
+
+      {showEditProduct && selectedProduct && (
+        <ProductForm
+          product={{
+            id: selectedProduct.id.toString(),
+            name: selectedProduct.name,
+            description: selectedProduct.description || "",
+            price: selectedProduct.price,
+            category: selectedProduct.category,
+            stock: selectedProduct.stock,
+            images:
+              selectedProduct.images && selectedProduct.images.length > 0
+                ? selectedProduct.images.join(",")
+                : selectedProduct.image.startsWith("http")
+                ? selectedProduct.image
+                : "",
+          }}
+          isEdit={true}
+          onclose={() => {
+            setShowEditProduct(false)
+            setSelectedProduct(null)
+          }}
+          onSuccess={async () => {
+            await fetchProducts()
+            toast({
+              title: "Product updated",
+              description: "The product has been successfully updated.",
+              variant: "success",
+            })
+          }}
+        />
+      )}
+
+      <AlertDialog
+        open={!!productToDelete}
+        onOpenChange={(open) => {
+          if (!open) setProductToDelete(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete
+              &ldquo;{productToDelete?.name}&rdquo;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteProduct}
+              variant="destructive"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

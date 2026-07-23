@@ -17,39 +17,10 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useToast } from "../ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { EventItem, useEvents } from "@/hooks/useEvents"
 import BookingsTable from "./BookingsTable"
-
-interface EventItem {
-  id: number
-  backendId?: string
-  slug?: string
-  title: string
-  category: string
-  date: string
-  time: string
-  location: string
-  price: number
-  capacity: number
-  attendees: number
-  status: "upcoming" | "ongoing" | "completed" | "cancelled"
-  image: string
-  description?: string
-  approvalStatus?: string
-  isApproved?: boolean
-  approved?: boolean
-  isPublished?: boolean
-}
-
-interface EventsTabProps {
-  events: EventItem[]
-  eventsLoading: boolean
-  eventsError: string
-  eventSearchTerm: string
-  setEventSearchTerm: (value: string) => void
-  eventFilterStatus: EventItem["status"] | "all"
-  setEventFilterStatus: (value: EventItem["status"] | "all") => void
-  handleDeleteEvent: (event: EventItem) => void
-}
 
 const eventStatuses: EventItem["status"][] = ["upcoming", "ongoing", "completed", "cancelled"]
 
@@ -64,22 +35,22 @@ const getStatusColor = (status: EventItem["status"]): string => {
     case "cancelled":
       return "text-red-600 bg-red-100"
     default:
-      return "text-gray-600 bg-gray-100"
+      return "text-muted-foreground bg-muted"
   }
 }
 
-export default function EventsTab({
-  events,
-  eventsLoading,
-  eventsError,
-  eventSearchTerm,
-  setEventSearchTerm,
-  eventFilterStatus,
-  setEventFilterStatus,
-  handleDeleteEvent,
-}: EventsTabProps) {
+export default function EventsTab() {
   const router = useRouter()
   const { toast } = useToast()
+  const { events, eventsLoading, eventsError, fetchEvents, deleteEvent } = useEvents()
+
+  const [eventSearchTerm, setEventSearchTerm] = useState("")
+  const [eventFilterStatus, setEventFilterStatus] = useState<EventItem["status"] | "all">("all")
+
+  useEffect(() => {
+    fetchEvents()
+  }, [fetchEvents])
+
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), [])
   const nairaFormatter = useMemo(
     () => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }),
@@ -166,9 +137,6 @@ export default function EventsTab({
       id: 'total-events',
       label: "Total Events",
       value: numberFormatter.format(eventStats.totalEvents),
-      gradient: "from-indigo-500 to-indigo-600",
-      accent: "text-indigo-100",
-      iconAccent: "text-indigo-200",
       icon: Calendar,
       hasButton: true,
     },
@@ -176,27 +144,18 @@ export default function EventsTab({
       id: 'upcoming-events',
       label: "Upcoming Events",
       value: numberFormatter.format(eventStats.upcomingEvents),
-      gradient: "from-blue-500 to-blue-600",
-      accent: "text-blue-100",
-      iconAccent: "text-blue-200",
       icon: Clock,
     },
     {
       id: 'confirmed-guests',
       label: "Confirmed Guests",
       value: numberFormatter.format(eventStats.registeredAttendees),
-      gradient: "from-pink-500 to-pink-600",
-      accent: "text-pink-100",
-      iconAccent: "text-pink-200",
       icon: Users,
     },
     {
       id: 'avg-fill-rate',
       label: "Avg Fill Rate",
       value: `${eventStats.averageFillRate}%`,
-      gradient: "from-emerald-500 to-emerald-600",
-      accent: "text-emerald-100",
-      iconAccent: "text-emerald-200",
       icon: TrendingUp,
     },
   ], [eventStats, numberFormatter])
@@ -321,24 +280,25 @@ export default function EventsTab({
             return (
               <div
                 key={card.id}
-                className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white`}
+                className="bg-card border border-border rounded-xl p-6 text-foreground"
               >
                 <div className={`flex items-center justify-between ${card.hasButton ? 'mb-4' : ''}`}>
                   <div>
-                    <p className={`${card.accent} text-sm`}>{card.label}</p>
+                    <p className="text-muted-foreground text-sm">{card.label}</p>
                     <p className="text-3xl font-bold">{card.value}</p>
                   </div>
-                  <Icon className={`w-8 h-8 ${card.iconAccent}`} />
+                  <Icon className="w-8 h-8 text-primary" />
                 </div>
                 {card.hasButton && (
                   <div className="flex gap-2">
-                    <button 
+                    <Button
                       onClick={() => router.push("/dashboard/events/schedule")}
-                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                      size="sm"
+                      className="flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Schedule Event
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -363,23 +323,24 @@ export default function EventsTab({
                   key={card.id}
                   className="min-w-full snap-center"
                 >
-                  <div className={`bg-gradient-to-r ${card.gradient} rounded-xl p-6 text-white h-full min-h-[160px] flex flex-col justify-between`}>
+                  <div className="bg-card border border-border rounded-xl p-6 text-foreground h-full min-h-[160px] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className={`${card.accent} text-sm`}>{card.label}</p>
+                        <p className="text-muted-foreground text-sm">{card.label}</p>
                         <p className="text-3xl font-bold">{card.value}</p>
                       </div>
-                      <Icon className={`w-8 h-8 ${card.iconAccent}`} />
+                      <Icon className="w-8 h-8 text-primary" />
                     </div>
                     <div className="flex gap-2 h-[32px]">
                       {card.hasButton ? (
-                        <button 
+                        <Button
                           onClick={() => router.push("/dashboard/events/schedule")}
-                          className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
+                          size="sm"
+                          className="flex items-center gap-2"
                         >
                           <Plus className="w-4 h-4" />
                           Schedule Event
-                        </button>
+                        </Button>
                       ) : (
                         <div></div>
                       )}
@@ -392,22 +353,26 @@ export default function EventsTab({
 
           {/* Navigation Arrows */}
           {currentSlide > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-10"
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-5 h-5" />
-            </button>
+            </Button>
           )}
           {currentSlide < statsCards.length - 1 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-10"
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 text-white transition-colors z-10"
               aria-label="Next slide"
             >
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </Button>
           )}
 
           {/* Dots Indicator */}
@@ -418,8 +383,8 @@ export default function EventsTab({
                 onClick={() => goToSlide(index)}
                 className={`h-2 rounded-full transition-all ${
                   currentSlide === index
-                    ? 'bg-blue-600 w-8'
-                    : 'bg-gray-300 w-2'
+                    ? 'bg-primary w-8'
+                    : 'bg-muted w-2'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -430,19 +395,19 @@ export default function EventsTab({
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <input
             type="text"
             placeholder="Search events by name, location or type..."
             value={eventSearchTerm}
             onChange={(e) => setEventSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
           />
         </div>
         <select
           value={eventFilterStatus}
           onChange={(e) => setEventFilterStatus(e.target.value as EventItem["status"] | "all")}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
+          className="px-4 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent capitalize"
         >
           <option value="all">All Statuses</option>
           {eventStatuses.map((status) => (
@@ -454,15 +419,15 @@ export default function EventsTab({
       </div>
 
       {eventsLoading ? (
-        <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-12 text-center text-gray-500 dark:text-gray-400">
+        <div className="bg-card border border-dashed border-border rounded-xl p-12 text-center text-muted-foreground">
           Loading events...
         </div>
       ) : eventsError ? (
-        <div className="bg-white dark:bg-gray-900 border border-dashed border-red-300 dark:border-red-800 rounded-xl p-12 text-center text-red-600 dark:text-red-400">
+        <div className="bg-card border border-dashed border-red-300 dark:border-red-800 rounded-xl p-12 text-center text-red-600 dark:text-red-400">
           {eventsError}
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-12 text-center text-gray-500 dark:text-gray-400">
+        <div className="bg-card border border-dashed border-border rounded-xl p-12 text-center text-muted-foreground">
           No events match your filters. Try adjusting your search or add a new experience.
         </div>
       ) : (
@@ -470,7 +435,7 @@ export default function EventsTab({
           {filteredEvents.map((event) => (
             <div
               key={event.backendId ?? `${event.id}-${event.title}-${event.date}-${event.time}`}
-              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 hover:shadow-md transition-shadow"
+              className="bg-card rounded-xl shadow-sm border dark:border-border hover:shadow-md transition-shadow"
             >
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between gap-3">
@@ -491,53 +456,49 @@ export default function EventsTab({
                       onClick={() => {
                         router.push(`/dashboard/events/${event.backendId || event.id}/edit`)
                       }}
-                      className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      className="text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteEvent(event)}
-                      className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      onClick={() => deleteEvent(event)}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <span>
                     {event.date} • {event.time}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="w-4 h-4" />
                   <span>{event.location}</span>
                 </div>
 
                 {event.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{event.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
                 )}
 
-                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
                     <span>
                       {event.attendees}/{event.capacity} attending
                     </span>
                   </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                      event.status
-                    )}`}
-                  >
+                  <Badge className={`capitalize ${getStatusColor(event.status)}`}>
                     {event.status}
-                  </span>
+                  </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{event.category}</span>
-                  <span className="flex items-center gap-2 text-xl font-semibold text-blue-600 dark:text-blue-400">
+                  <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">{event.category}</span>
+                  <span className="flex items-center gap-2 text-xl font-semibold text-foreground">
                     <Ticket className="w-4 h-4" />
                     {event.price > 0 ? nairaFormatter.format(event.price) : "Free RSVP"}
                   </span>
@@ -546,8 +507,8 @@ export default function EventsTab({
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => handleGenerateLink(event)}
-                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                      onClick={() => handleGenerateLink(event)}
+                      className="text-sm font-medium text-primary hover:underline"
                   >
                     Generate Link
                   </button>
@@ -567,21 +528,21 @@ export default function EventsTab({
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+        <div className="bg-card rounded-xl shadow-sm border dark:border-border p-6">
           <h3 className="text-lg font-semibold mb-4 dark:text-white">Event Performance</h3>
           <div className="space-y-4">
             {eventAnalytics.statusBreakdown.map(({ status, count, percentage }) => {
               const [statusTextClass] = getStatusColor(status).split(" ")
-              const progressColor = statusTextClass ? statusTextClass.replace("text-", "bg-") : "bg-blue-500"
+              const progressColor = statusTextClass ? statusTextClass.replace("text-", "bg-") : "bg-primary"
               return (
                 <div key={status} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 capitalize">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground capitalize">
                     <span>{status}</span>
                     <span>
                       {count} • {percentage}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-2">
                     <div
                       className={`h-2 rounded-full ${progressColor}`}
                       style={{ width: `${percentage}%` }}
@@ -593,31 +554,31 @@ export default function EventsTab({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+        <div className="bg-card rounded-xl shadow-sm border dark:border-border p-6">
           <h3 className="text-lg font-semibold mb-4 dark:text-white">Revenue Insights</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Event Revenue</div>
-              <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
+              <div className="text-sm text-muted-foreground">Total Event Revenue</div>
+              <div className="text-xl font-semibold text-foreground">
                 {nairaFormatter.format(eventAnalytics.totalRevenue)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Average Ticket Price</span>
               <span>{nairaFormatter.format(eventAnalytics.averageTicketPrice)}</span>
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Average Attendance</span>
               <span>{numberFormatter.format(eventAnalytics.averageAttendance)} guests</span>
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Capacity Utilization</span>
               <span>{eventAnalytics.capacityUtilization}%</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 p-6">
+        <div className="bg-card rounded-xl shadow-sm border dark:border-border p-6">
           <h3 className="text-lg font-semibold mb-4 dark:text-white">Engagement Highlights</h3>
           {eventAnalytics.topEvent ? (
             <div className="space-y-4">
@@ -625,24 +586,24 @@ export default function EventsTab({
                 <div className="text-3xl">{eventAnalytics.topEvent.image}</div>
                 <div>
                   <h4 className="font-semibold text-lg dark:text-white">{eventAnalytics.topEvent.title}</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{eventAnalytics.topEvent.category}</p>
+                  <p className="text-sm text-muted-foreground">{eventAnalytics.topEvent.category}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 <span>
                   {eventAnalytics.topEvent.date} • {eventAnalytics.topEvent.time}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
                 <span>{eventAnalytics.topEvent.attendees} guests confirmed</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
                 <span>{eventAnalytics.topEvent.location}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Ticket className="w-4 h-4" />
                 <span>
                   {eventAnalytics.topEvent.price > 0
@@ -652,7 +613,7 @@ export default function EventsTab({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Add events to unlock engagement insights.</p>
+            <p className="text-sm text-muted-foreground">Add events to unlock engagement insights.</p>
           )}
         </div>
       </div>

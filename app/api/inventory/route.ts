@@ -21,7 +21,7 @@ interface InventoryVariant {
   priceAdjustment?: number;
 }
 
-let inventoryData: InventoryItem[] = [
+const inventoryData: InventoryItem[] = [
   {
     id: '1',
     productId: 'prod-1',

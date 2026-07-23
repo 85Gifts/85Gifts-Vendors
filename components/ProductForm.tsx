@@ -4,6 +4,7 @@ import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadMultipleImagesToCloudinary, validateImageFile } from '@/lib/cloudinary';
 import { X, Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 // import { Product } from '@/types/product';
 
 interface ProductFormProps {
@@ -288,10 +289,10 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
   return (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 p-4">
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+    <div className="bg-card rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
       <button
         onClick={onclose}
-        className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        className="absolute top-3 right-3 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors"
       >
         ✕
       </button>
@@ -309,69 +310,69 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Product Name</label>
+          <label className="block text-sm font-medium mb-1 dark:text-foreground">Product Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
+          <label className="block text-sm font-medium mb-1 dark:text-foreground">Description</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Price</label>
+            <label className="block text-sm font-medium mb-1 dark:text-foreground">Price</label>
             <input
               type="number"
               name="price"
               value={formData.price}
               onChange={handleChange}
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Stock</label>
+            <label className="block text-sm font-medium mb-1 dark:text-foreground">Stock</label>
             <input
               type="number"
               name="stock"
               value={formData.stock}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Category</label>
+          <label className="block text-sm font-medium mb-1 dark:text-foreground">Category</label>
           <input
             type="text"
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+          <label className="block text-sm font-medium mb-1 dark:text-foreground">
             Product Images (Max 5)
           </label>
           
@@ -379,10 +380,10 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
           <div className="mb-3">
             <label
               htmlFor="image-upload"
-              className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+              className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
             >
-              <Upload className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <Upload className="w-5 h-5 mr-2 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
                 {uploadingImages ? 'Uploading images...' : 'Click to upload images'}
               </span>
               <input
@@ -395,7 +396,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
                 disabled={uploadingImages || loading}
               />
             </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Supported formats: JPG, PNG, GIF, WebP. Max 10MB per image.
             </p>
           </div>
@@ -408,16 +409,18 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
                   <img
                     src={preview}
                     alt={`Preview ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                    className="w-full h-24 object-cover rounded-lg border border-border dark:border-border"
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="destructive"
+                    size="icon-xs"
                     onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     disabled={uploadingImages || loading}
                   >
                     <X className="w-3 h-3" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -425,7 +428,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
           {/* Fallback: Manual URL input (optional) */}
           <div className="mt-3">
-            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs text-muted-foreground mb-1">
               Or enter image URLs manually (comma-separated):
             </label>
             <input
@@ -434,24 +437,25 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
               value={formData.images}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg, https://example.com/image2.jpg"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-transparent"
               disabled={imageFiles.length > 0 || uploadingImages || loading}
             />
           </div>
         </div>
 
         <div className="flex gap-3 pt-4">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            className="flex-1"
             onClick={onclose}
-            className="flex-1 border border-gray-300 dark:border-gray-700 dark:text-gray-300 rounded-md py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            className="flex-1"
             disabled={loading || uploadingImages}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {uploadingImages
               ? "Uploading images..."
@@ -462,7 +466,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
               : isEdit
               ? "Update Product"
               : "Create Product"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

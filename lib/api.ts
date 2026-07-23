@@ -10,7 +10,7 @@ export async function apiClient(
   endpoint: string, 
   options: FetchOptions = {}
 ) {
-  const { requiresAuth = false, ...fetchOptions } = options;
+  const { ...fetchOptions } = options;
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

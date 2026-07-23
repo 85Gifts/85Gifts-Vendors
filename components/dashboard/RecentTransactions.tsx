@@ -8,6 +8,7 @@ import {
   Clock,
   XCircle,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export interface Transaction {
   _id: string
@@ -53,8 +54,8 @@ export default function RecentTransactions({
   currencyFormatter,
 }: RecentTransactionsProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800">
-      <div className="p-6 border-b dark:border-gray-800">
+    <div className="bg-card rounded-xl shadow-sm border dark:border-border">
+      <div className="p-6 border-b dark:border-border">
         <h3 className="text-lg font-semibold flex items-center gap-2 dark:text-white">
           <History className="w-5 h-5" />
           Recent Transactions
@@ -64,55 +65,57 @@ export default function RecentTransactions({
         {loading ? (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400" />
-            <p className="mt-2 text-gray-600 dark:text-gray-400">Loading transactions...</p>
+            <p className="mt-2 text-muted-foreground">Loading transactions...</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center">
             <p className="text-red-600 dark:text-red-400 font-semibold">Error loading transactions</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{error}</p>
-            <button
+            <p className="text-sm text-muted-foreground mt-1">{error}</p>
+             <Button
+              variant="link"
+              size="sm"
               onClick={onRetry}
-              className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+              className="mt-4 h-auto p-0 text-sm"
             >
               Try again
-            </button>
+            </Button>
           </div>
         ) : transactions.length === 0 ? (
           <div className="p-8 text-center">
-            <History className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">No transactions found</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+            <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No transactions found</p>
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
               Your transaction history will appear here
             </p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Balance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-border dark:divide-border">
               {transactions.map((transaction) => {
                 const date = new Date(transaction.processedAt || transaction.createdAt)
                 const formattedDate = date.toLocaleDateString("en-US", {
@@ -125,9 +128,9 @@ export default function RecentTransactions({
                 return (
                   <tr
                     key={transaction._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="hover:bg-muted dark:hover:bg-muted"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-4">
                       <div className="flex items-center gap-2">
                         {transaction.type === "credit" ? (
                           <ArrowDownRight className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -145,20 +148,20 @@ export default function RecentTransactions({
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-4">
                       <div className="font-medium dark:text-white">
                         {transaction.description || "N/A"}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-sm text-muted-foreground">
                         {transaction.reference}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium capitalize">
+                    <td className="px-3 sm:px-6 py-4">
+                      <span className="px-2 py-1 bg-muted text-foreground rounded-full text-xs font-medium capitalize">
                         {transaction.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-4">
                       <span
                         className={`font-bold ${
                           transaction.type === "credit"
@@ -170,18 +173,18 @@ export default function RecentTransactions({
                         {currencyFormatter.format(transaction.amount)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-4">
                       <div className="font-medium dark:text-white">
                         {currencyFormatter.format(transaction.balanceAfter)}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         From {currencyFormatter.format(transaction.balanceBefore)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="px-3 sm:px-6 py-4 text-sm text-muted-foreground">
                       {formattedDate}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-4">
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                           transaction.status === "completed"
@@ -212,20 +215,20 @@ export default function RecentTransactions({
         )}
       </div>
       {!loading && !error && transactions.length > 0 && (totalPages > 1 || transactions.length >= limit) && (
-        <div className="px-6 py-4 border-t dark:border-gray-800 flex items-center justify-between">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="px-6 py-4 border-t dark:border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-muted-foreground">
             Showing {(currentPage - 1) * limit + 1} to{" "}
             {Math.min(currentPage * limit, totalTransactions)} of {totalTransactions}{" "}
             transactions
           </div>
-          <div className="flex items-center gap-2">
-            <button
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+            <Button
+              variant="outline"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
-            </button>
+            </Button>
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum: number
@@ -239,27 +242,23 @@ export default function RecentTransactions({
                   pageNum = currentPage - 2 + i
                 }
                 return (
-                  <button
+                  <Button
                     key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
                     onClick={() => onPageChange(pageNum)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    }`}
                   >
                     {pageNum}
-                  </button>
+                  </Button>
                 )
               })}
             </div>
-            <button
+            <Button
+              variant="outline"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}

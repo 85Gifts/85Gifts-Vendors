@@ -6,24 +6,21 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Protected routes that require authentication
-  const protectedRoutes = ['dashboard','/products'];
-  
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const protectedRoutes = ['/dashboard', '/products'];
+
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname.startsWith(route)
   );
 
   if (isProtectedRoute) {
-    // const accessToken = request.cookies.get('accessToken');
-    
-    // if (!accessToken) {
-    //   const loginUrl = new URL('/login', request.url);
-    //   return NextResponse.redirect(loginUrl);
-    // }
+    const accessToken = request.cookies.get('accessToken');
+
+    if (!accessToken) {
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  // Don't redirect from login to dashboard based on cookie alone
-  // The cookie might be expired, let the client-side auth check handle it
-  
   return NextResponse.next();
 }
 

@@ -115,7 +115,7 @@ export default function LandingPage() {
         animate="visible"
         className="relative min-h-screen flex items-center pt-2 z-10"
       >
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-8 lg:py-12">
           <div className="flex flex-col lg:flex-row gap-4 items-center">
            <div className="text-foreground flex-1">
               <MaskReveal delay={0.2}>
@@ -130,7 +130,7 @@ export default function LandingPage() {
               <MaskReveal delay={0.4}>
                 <p className="text-lg lg:text-xl mb-8 text-muted-foreground leading-relaxed">
                   Manage events and ticket booking, products and inventory, cross-platform ads, invoices and receipts,
-                  payment links, and secure buyer–seller escrow—all in one platform.
+                  payment links, and secure buyer–seller escrow all in one platform.
                 </p>
               </MaskReveal>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -141,7 +141,7 @@ export default function LandingPage() {
                 >
                   <Button
                     size="lg"
-                    className="bg-transparent text-foreground hover:text-lg hover:bg-transparent"
+                    className="bg-transparent text-foreground hover:text-lg hover:bg-transparent transition-none hover:!-translate-y-0 hover:!scale-100 hover:!shadow-none"
                   >
                     <Link href="/login">
                       Join Us Today
@@ -338,7 +338,7 @@ export default function LandingPage() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
-        className="relative py-20 overflow-hidden"
+        className="relative py-24 sm:py-16 lg:py-20 overflow-hidden"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
@@ -346,7 +346,7 @@ export default function LandingPage() {
               How Omniflow85 Works
             </h2>
             <p className="text-muted-foreground text-sm lg:text-base max-w-2xl mx-auto">
-              From setup to growth — see how the platform powers your business end-to-end.
+              From setup to growth, see how the platform powers your business end-to-end.
             </p>
           </div>
           <div className="h-[400px] lg:h-[500px]">
@@ -362,7 +362,7 @@ export default function LandingPage() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
-        className="relative z-20 py-20"
+        className="relative z-20 py-24 sm:py-16 lg:py-20"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FeatureSectionDemo />
@@ -370,36 +370,38 @@ export default function LandingPage() {
       </motion.section>
 
       {/* Testimonials */}
-      <motion.div
-        id="testimonials"
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-      >
-        <TestimonialsSection />
-      </motion.div>
+      <div className="space-y-16 sm:space-y-0">
+        <motion.div
+          id="testimonials"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <TestimonialsSection />
+        </motion.div>
 
-      {/* CTA Section */}
-      <motion.div
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-      >
-        <CTASection />
-      </motion.div>
+        {/* CTA Section */}
+        <motion.div
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <CTASection />
+        </motion.div>
 
-      {/* Footer */}
-      <motion.div
-        id="contact"
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-      >
-        <Footer2 />
-      </motion.div>
+        {/* Footer */}
+        <motion.div
+          id="contact"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <Footer2 />
+        </motion.div>
+      </div>
     </div>
   )
 }

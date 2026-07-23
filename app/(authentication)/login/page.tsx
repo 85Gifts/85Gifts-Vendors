@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import { useVendorAuth } from "@/contexts/VendorAuthContext";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
-import { config } from "@/config";
+
 import LoginArt from "@/components/LoginArt";
 
 export default function AuthPage() {

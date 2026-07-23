@@ -8,11 +8,11 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized - No access token' },
-        { status: 401 }
-      );
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
     const { searchParams } = new URL(request.url);
@@ -40,10 +40,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(`${API_URL}/api/vendors/inventory/products?${queryParams.toString()}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
+      headers,
     });
 
     const data = await response.json();

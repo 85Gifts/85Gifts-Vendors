@@ -294,7 +294,7 @@ export default function BookingModal({
         onClick={handleSuccessClose}
       >
         <div
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-muted rounded-xl shadow-xl max-w-md w-full border border-border dark:border-border"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6">
@@ -302,50 +302,50 @@ export default function BookingModal({
               <div className="rounded-full bg-green-100 dark:bg-green-900/40 p-3 mb-4">
                 <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-2xl font-bold text-foreground dark:text-white mb-2">
                 Booking Successful!
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 Your RSVP has been confirmed
               </p>
             </div>
 
-            <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div className="space-y-4 border-t border-border dark:border-border pt-6">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Event:</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm text-muted-foreground">Event:</span>
+                <span className="text-sm font-semibold text-foreground dark:text-foreground">
                   {bookingData.eventName}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Booking Reference:</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono">
+                <span className="text-sm text-muted-foreground">Booking Reference:</span>
+                <span className="text-sm font-semibold text-foreground dark:text-foreground font-mono">
                   {bookingData.bookingReference}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Total Amount:</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm text-muted-foreground">Total Amount:</span>
+                <span className="text-sm font-semibold text-foreground dark:text-foreground">
                   {formatCurrency(bookingData.totalAmount)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
+                <span className="text-sm text-muted-foreground">Status:</span>
                 <span className="text-sm font-semibold text-green-600 dark:text-green-400 capitalize">
                   {bookingData.status}
                 </span>
               </div>
               {bookingData.paidAt && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Confirmed At:</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <span className="text-sm text-muted-foreground">Confirmed At:</span>
+                  <span className="text-sm font-semibold text-foreground dark:text-foreground">
                     {formatDate(bookingData.paidAt)}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-6 pt-6 border-t border-border dark:border-border">
               <Button
                 onClick={handleSuccessClose}
                 className="w-full"
@@ -365,23 +365,23 @@ export default function BookingModal({
       onClick={handleClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
+        className="bg-white dark:bg-muted rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border dark:border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+        <div className="flex items-center justify-between p-6 border-b border-border dark:border-border sticky top-0 bg-white dark:bg-muted z-10">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-semibold text-foreground dark:text-white">
               Book Tickets
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {eventName}
             </p>
           </div>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -390,12 +390,12 @@ export default function BookingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Customer Information */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <h4 className="text-lg font-semibold text-foreground dark:text-white mb-4">
               Your Information
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-2 text-foreground">
                   Full Name *
                 </label>
                 <Input
@@ -407,11 +407,11 @@ export default function BookingModal({
                   placeholder="John Doe"
                   required
                   disabled={isSubmitting}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
+                  className="dark:bg-muted dark:border-border dark:text-white dark:placeholder:text-muted-foreground"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-2 text-foreground">
                   Email Address *
                 </label>
                 <Input
@@ -423,11 +423,11 @@ export default function BookingModal({
                   placeholder="john@example.com"
                   required
                   disabled={isSubmitting}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
+                  className="dark:bg-muted dark:border-border dark:text-white dark:placeholder:text-muted-foreground"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-2 text-foreground">
                   Phone Number *
                 </label>
                 <Input
@@ -439,7 +439,7 @@ export default function BookingModal({
                   placeholder="+2341234567890"
                   required
                   disabled={isSubmitting}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"
+                  className="dark:bg-muted dark:border-border dark:text-white dark:placeholder:text-muted-foreground"
                 />
               </div>
             </div>
@@ -447,7 +447,7 @@ export default function BookingModal({
 
           {/* Ticket Selection */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <h4 className="text-lg font-semibold text-foreground dark:text-white mb-4">
               Select Tickets
             </h4>
             <div className="space-y-4">
@@ -459,20 +459,20 @@ export default function BookingModal({
                 return (
                   <div
                     key={tier.name}
-                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50/50 dark:bg-gray-700/30"
+                    className="border border-border dark:border-border rounded-lg p-4 bg-muted/50 dark:bg-muted/30"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Ticket className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          <h5 className="font-semibold text-gray-900 dark:text-white">
+                          <h5 className="font-semibold text-foreground dark:text-white">
                             {tier.name}
                           </h5>
                         </div>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                        <p className="text-2xl font-bold text-foreground dark:text-white mt-2">
                           {formatCurrency(tier.price)}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {available} available
                         </p>
                       </div>
@@ -494,9 +494,9 @@ export default function BookingModal({
                                 }
                               }}
                               disabled={isSubmitting}
-                              className="w-5 h-5 rounded border-gray-300 dark:border-gray-500 text-blue-600 focus:ring-blue-500 dark:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-5 h-5 rounded border-border dark:border-border text-primary focus:ring-ring dark:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                             />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-sm text-muted-foreground">
                               Select
                             </span>
                           </div>
@@ -512,11 +512,11 @@ export default function BookingModal({
                                   ? qty <= tier.minPerOrder
                                   : false)
                               }
-                              className="rounded-full border border-gray-300 dark:border-gray-600 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
+                              className="rounded-full border border-border dark:border-border p-1.5 hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-foreground dark:text-foreground"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
-                            <span className="w-8 text-center font-semibold text-gray-900 dark:text-white">
+                            <span className="w-8 text-center font-semibold text-foreground dark:text-white">
                               {qty}
                             </span>
                             <button
@@ -529,7 +529,7 @@ export default function BookingModal({
                                   ? qty >= tier.maxPerOrder
                                   : false)
                               }
-                              className="rounded-full border border-gray-300 dark:border-gray-600 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
+                              className="rounded-full border border-border dark:border-border p-1.5 hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-foreground dark:text-foreground"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -556,20 +556,20 @@ export default function BookingModal({
 
           {/* Order Summary */}
           {getTotalTickets() > 0 && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div className="border-t border-border dark:border-border pt-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-muted-foreground">
                   Total Tickets:
                 </span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-foreground dark:text-white">
                   {getTotalTickets()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                <span className="text-lg font-semibold text-foreground dark:text-white">
                   Total Amount:
                 </span>
-                <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                <span className="text-xl font-bold text-foreground">
                   {formatCurrency(calculateTotal())}
                 </span>
               </div>
@@ -577,7 +577,7 @@ export default function BookingModal({
           )}
 
           {/* Submit Button */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3 pt-4 border-t border-border dark:border-border">
             <Button
               type="button"
               variant="outline"

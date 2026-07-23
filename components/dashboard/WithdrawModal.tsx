@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { AmountStepper } from "@/components/ui/amount-stepper"
 
 interface WithdrawModalProps {
   open: boolean
@@ -60,48 +62,47 @@ export default function WithdrawModal({
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
       <div
-        className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-md w-full mx-4"
+        className="bg-card rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+        <div className="flex items-center justify-between p-6 border-b dark:border-border">
           <h3 className="text-lg font-semibold dark:text-white">Withdraw</h3>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             disabled={loading}
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="text-muted-foreground hover:text-foreground"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
             <label
               htmlFor="withdraw-amount"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              className="block text-sm font-medium text-foreground mb-2"
             >
               Amount
             </label>
-            <input
-              type="number"
+            <AmountStepper
               id="withdraw-amount"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={setAmount}
               placeholder="Enter amount"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-              min="0"
-              step="0.01"
               disabled={loading}
             />
           </div>
-          <button
+          <Button
             type="submit"
+            variant="warning"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors"
+            className="w-full font-medium py-2.5"
           >
             {loading ? "Processing..." : "Proceed"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

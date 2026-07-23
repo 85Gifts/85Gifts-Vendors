@@ -280,13 +280,13 @@ function BookingSuccessContent() {
         {/* Important Information */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h4 className="font-semibold text-blue-900 mb-2">
-            What's Next?
+            What&apos;s Next?
           </h4>
           <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
             <li>A confirmation email has been sent to your email address</li>
             <li>Please arrive at the venue 30 minutes before the event starts</li>
             <li>Bring a valid ID and your booking reference</li>
-            <li>Check your spam folder if you don't see the email</li>
+            <li>Check your spam folder if you don&apos;t see the email</li>
           </ul>
         </div>
 

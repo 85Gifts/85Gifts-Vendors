@@ -85,7 +85,7 @@ function getPaymentStatusColor(status: string): string {
     case "failed":
       return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30"
     default:
-      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-700"
+      return "text-muted-foreground bg-muted dark:text-muted-foreground dark:bg-muted"
   }
 }
 
@@ -343,13 +343,13 @@ export default function BookingsTable({ events }: BookingsTableProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+      <div className="bg-card rounded-xl shadow-sm border dark:border-border overflow-hidden">
+        <div className="p-6 border-b border-border dark:border-border">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold dark:text-white">Recent Bookings</h3>
               {bookingsStats && (
-                <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <span>Total: {numberFormatter.format(bookingsStats.totalBookings)}</span>
                   <span title="This page only">
                     This page — Revenue: {nairaFormatter.format(bookingsStats.totalRevenue)}
@@ -368,7 +368,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                 type="button"
                 onClick={handleDownloadCsv}
                 disabled={csvExporting || bookingsLoading}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none shrink-0"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border dark:border-border bg-white dark:bg-muted text-foreground dark:text-white text-sm font-medium hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:pointer-events-none shrink-0"
                 title="Download all bookings matching current filters as CSV"
               >
                 <Download className="w-4 h-4 shrink-0" aria-hidden />
@@ -377,7 +377,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
               <select
                 value={bookingsEventId}
                 onChange={(e) => setBookingsEventId(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-2 rounded-lg border border-border dark:border-border bg-white dark:bg-muted text-foreground dark:text-white text-sm focus:ring-2 focus:ring-ring focus:border-transparent"
                 aria-label="Filter by event"
               >
                 <option value="">All events</option>
@@ -391,13 +391,13 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                 })}
               </select>
               <div className="relative flex-1 min-w-[180px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden />
                 <input
                   type="search"
                   placeholder="Search by name, email, ref..."
                   value={bookingsSearch}
                   onChange={(e) => setBookingsSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-border dark:border-border bg-white dark:bg-muted text-foreground dark:text-white text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
                   aria-label="Search bookings"
                 />
               </div>
@@ -406,7 +406,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
         </div>
 
         {bookingsLoading ? (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+          <div className="p-12 text-center text-muted-foreground">
             Loading bookings...
           </div>
         ) : bookingsError ? (
@@ -414,21 +414,21 @@ export default function BookingsTable({ events }: BookingsTableProps) {
             {bookingsError}
           </div>
         ) : bookings.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+          <div className="p-12 text-center text-muted-foreground">
             No bookings found.
           </div>
         ) : (
           <>
             {selectedCount > 0 && (
-              <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-blue-50 dark:bg-blue-900/20 flex flex-wrap items-center gap-3">
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="px-6 py-3 border-b border-border dark:border-border bg-primary/10 dark:bg-primary/15 flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium text-foreground dark:text-white">
                   {selectedCount} selected
                 </span>
                 <button
                   type="button"
                   onClick={() => sendBulkReminders("email")}
                   disabled={bulkSending}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-muted border border-border dark:border-border text-sm font-medium text-foreground dark:text-foreground hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <Mail className="w-4 h-4" />
                   {bulkSending ? "Sending…" : "Send email reminder"}
@@ -437,7 +437,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                   type="button"
                   onClick={() => sendBulkReminders("text")}
                   disabled={bulkSending}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-muted border border-border dark:border-border text-sm font-medium text-foreground dark:text-foreground hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <MessageSquare className="w-4 h-4" />
                   Send text reminder
@@ -445,7 +445,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-white"
                 >
                   Clear selection
                 </button>
@@ -453,7 +453,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
             )}
             <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800">
+              <thead className="bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left w-10">
                     <input
@@ -463,79 +463,79 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                         if (el) el.indeterminate = someOnPageSelected && !allOnPageSelected
                       }}
                       onChange={toggleSelectAll}
-                      className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                      className="rounded border-border dark:border-border text-primary focus:ring-ring dark:bg-muted"
                       aria-label="Select all rows on this page"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Booking Ref
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Event
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Customer
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Tickets
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+              <tbody className="bg-card divide-y divide-border dark:divide-border">
                 {bookings.map((booking) => (
                   <tr
                     key={booking.bookingReference}
-                    className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedRefs.has(booking.bookingReference) ? "bg-blue-50/50 dark:bg-blue-900/10" : ""}`}
+                    className={`hover:bg-muted dark:hover:bg-muted ${selectedRefs.has(booking.bookingReference) ? "bg-primary/5 dark:bg-primary/10" : ""}`}
                   >
                     <td className="px-4 py-4 w-10">
                       <input
                         type="checkbox"
                         checked={selectedRefs.has(booking.bookingReference)}
                         onChange={() => toggleSelectRow(booking.bookingReference)}
-                        className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                        className="rounded border-border dark:border-border text-primary focus:ring-ring dark:bg-muted"
                         aria-label={`Select ${booking.bookingReference}`}
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono text-gray-900 dark:text-white">
+                      <span className="text-sm font-mono text-foreground dark:text-white">
                         {booking.bookingReference}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-sm font-medium text-foreground dark:text-white">
                         {booking.eventName}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {booking.eventSlug}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-sm font-medium text-foreground dark:text-white">
                         {booking.customer.name}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                         <Mail className="w-3 h-3" />
                         {booking.customer.email}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                         <Phone className="w-3 h-3" />
                         {booking.customer.phone}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 dark:text-white">
+                      <div className="text-sm text-foreground dark:text-white">
                         {booking.tickets.map((ticket, idx) => (
                           <div key={ticket._id || idx} className="text-xs">
                             {ticket.tierName}: {ticket.quantity}
@@ -544,7 +544,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <span className="text-sm font-semibold text-foreground dark:text-white">
                         {nairaFormatter.format(booking.totalAmount)}
                       </span>
                     </td>
@@ -558,7 +558,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 dark:text-white">
+                      <div className="text-sm text-foreground dark:text-white">
                         {formatDate(booking.paidAt || booking.createdAt)}
                       </div>
                     </td>
@@ -566,7 +566,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                       <button
                         type="button"
                         onClick={() => setReminderModalBooking(booking)}
-                        className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted dark:text-muted-foreground dark:hover:text-foreground dark:hover:bg-muted transition-colors"
                         aria-label="Booking actions"
                       >
                         <MoreHorizontal className="w-4 h-4" />
@@ -581,8 +581,8 @@ export default function BookingsTable({ events }: BookingsTableProps) {
         )}
 
         {!bookingsLoading && !bookingsError && bookings.length > 0 && (bookingsPagination || bookingsStats) && (
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="px-6 py-4 border-t border-border dark:border-border flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
               Page {bookingsPagination?.page ?? bookingsPage} of{" "}
               {bookingsPagination?.totalPages ??
                 Math.max(1, Math.ceil((bookingsStats?.totalBookings ?? 0) / BOOKINGS_PAGE_SIZE))}
@@ -595,7 +595,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                 type="button"
                 onClick={() => setBookingsPage((p) => Math.max(1, p - 1))}
                 disabled={bookingsPagination ? !bookingsPagination.hasPrev : bookingsPage <= 1}
-                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-1"
+                className="px-3 py-1.5 rounded-lg border border-border dark:border-border bg-white dark:bg-muted text-foreground text-sm font-medium hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-1"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -608,7 +608,7 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                     ? !bookingsPagination.hasNext
                     : bookingsPage >= Math.ceil((bookingsStats?.totalBookings ?? 0) / BOOKINGS_PAGE_SIZE)
                 }
-                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-1"
+                className="px-3 py-1.5 rounded-lg border border-border dark:border-border bg-white dark:bg-muted text-foreground text-sm font-medium hover:bg-muted dark:hover:bg-muted disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-1"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -628,13 +628,13 @@ export default function BookingsTable({ events }: BookingsTableProps) {
           aria-labelledby="reminder-modal-title"
         >
           <div
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border dark:border-gray-800 w-full max-w-md p-6"
+            className="bg-card rounded-xl shadow-xl border dark:border-border w-full max-w-md p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="reminder-modal-title" className="text-lg font-semibold dark:text-white mb-1">
               Send reminder
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               {reminderModalBooking.customer.name} · {reminderModalBooking.bookingReference}
             </p>
             <div className="flex flex-col gap-3">
@@ -674,24 +674,24 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                     setReminderSending(false)
                   }
                 }}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-left text-gray-900 dark:text-white transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-border dark:border-border hover:bg-muted dark:hover:bg-muted text-left text-foreground dark:text-white transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
-                <Mail className="w-5 h-5 text-gray-500 dark:text-gray-400 shrink-0" />
+                <Mail className="w-5 h-5 text-muted-foreground shrink-0" />
                 <span>{reminderSending ? "Sending…" : "Send email reminder"}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setReminderModalBooking(null)}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-left text-gray-900 dark:text-white transition-colors"
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-border dark:border-border hover:bg-muted dark:hover:bg-muted text-left text-foreground dark:text-white transition-colors"
               >
-                <MessageSquare className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <MessageSquare className="w-5 h-5 text-muted-foreground" />
                 <span>Send text reminder</span>
               </button>
             </div>
             <button
               type="button"
               onClick={() => setReminderModalBooking(null)}
-              className="mt-4 w-full py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="mt-4 w-full py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-white"
             >
               Cancel
             </button>
