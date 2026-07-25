@@ -23,9 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import LoginArt from "@/components/LoginArt";
 
 export default function AuthPage() {
-  const [activeTab, setActiveTab] = useState<"login" | "signup" | "forgot">(
-    "login"
-  );
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,15 +44,12 @@ export default function AuthPage() {
     password: "",
     confirmPassword: "",
   });
-  const [forgotFormData, setForgotFormData] = useState({
-    email: "",
-  });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isSwiping, setIsSwiping] = useState(false);
   const formContainerRef = useRef<HTMLDivElement>(null);
 
-  const { login, register, forgotPassword, isAuthenticated, loading: authLoading } = useVendorAuth();
-  const forms = ["login", "signup", "forgot"] as const;
+  const { login, register, isAuthenticated, loading: authLoading } = useVendorAuth();
+  const forms = ["login", "signup"] as const;
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -254,50 +249,6 @@ export default function AuthPage() {
     }
   };
 
-  // Handlers for Forgot Password Form
-  const handleForgotInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForgotFormData({
-      ...forgotFormData,
-      [e.target.name]: e.target.value,
-    });
-    setError("");
-  };
-
-  const handleForgotSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const response = await forgotPassword(forgotFormData.email);
-      setSuccess("Password reset link sent! Please check your email.");
-      toast({
-        title: "Reset link sent",
-        description: "Password reset link sent! Please check your email.",
-        variant: "success",
-      });
-      setForgotFormData({ email: "" });
-      setTimeout(() => {
-        setActiveTab("login");
-      }, 2000);
-      router.push(
-        `/reset-password?email=${encodeURIComponent(
-          forgotFormData.email
-        )}&token=${response.data.resetCode}`
-      );
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred";
-      setError(errorMessage);
-      toast({
-        title: "Password reset failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Swipe Handlers
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (loading) return;
@@ -350,27 +301,17 @@ export default function AuthPage() {
             <div className="inline-flex items-center space-x-2 bg-blue-100/30 dark:bg-blue-950 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Gift className="w-4 h-4" />
               <span>
-                {activeTab === "login"
-                  ? "Welcome Back!"
-                  : activeTab === "signup"
-                  ? "Join Our Community"
-                  : "Reset Your Password"}
+                {activeTab === "login" ? "Welcome Back!" : "Join Our Community"}
               </span>
             </div>
 
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {activeTab === "login"
-                ? "Sign In"
-                : activeTab === "signup"
-                ? "Create Account"
-                : "Reset Password"}
+              {activeTab === "login" ? "Sign In" : "Create Account"}
             </h1>
             <p className="text-muted-foreground">
               {activeTab === "login"
                 ? "Sign in to access your vendor dashboard"
-                : activeTab === "signup"
-                ? "Start your journey as a vendor"
-                : "Enter your email to reset your password"}
+                : "Start your journey as a vendor"}
             </p>
           </div>
 
@@ -393,14 +334,7 @@ export default function AuthPage() {
               >
                 Sign Up
               </Button>
-              <Button
-                variant={activeTab === "forgot" ? "default" : "outline"}
-                onClick={() => setActiveTab("forgot")}
-                className="px-4 py-2"
-                disabled={loading}
-              >
-                Forgot Password
-              </Button>
+
             </div>
 
             {/* Mobile Swipe Indicator */}
@@ -491,14 +425,12 @@ export default function AuthPage() {
                       </div>
 
                       <div className="flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab("forgot")}
+                        <Link
+                          href="/forgot-password"
                           className="text-sm text-primary hover:brightness-125 transition-colors"
-                          disabled={loading}
                         >
                           Forgot password?
-                        </button>
+                        </Link>
                       </div>
 
                       <Button
@@ -770,73 +702,6 @@ export default function AuthPage() {
                   )}
                 </div>
 
-                {/* Forgot Password Form */}
-                <div className="min-w-full">
-                  {activeTab === "forgot" && (
-                    <form onSubmit={handleForgotSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="email"
-                          className="text-sm font-medium text-foreground"
-                        >
-                          Email Address
-                        </label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={forgotFormData.email}
-                            onChange={handleForgotInputChange}
-                            className="pl-10 shadow-none focus-visible:ring-0 focus-visible:border-blue-500"
-                            placeholder="Enter your email"
-                            required
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-
-                      <Button
-                        type="submit"
-                        disabled={loading}
-                        size="lg"
-                        className="w-full bg-blue-500 hover:bg-blue-700"
-                      >
-                        {loading ? (
-                          <span className="flex items-center justify-center">
-                            <svg
-                              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
-                            Sending reset link...
-                          </span>
-                        ) : (
-                          <>
-                            Send Reset Link
-                            <ArrowRight className="w-5 h-5 ml-2" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -886,32 +751,21 @@ export default function AuthPage() {
             <p className="text-muted-foreground">
               {activeTab === "login" ? (
                 <>
-                  Don&apos;t have an account?
+                  Don&apos;t have an account?{" "}
                   <button
                     onClick={() => setActiveTab("signup")}
-                    className="ml-2 text-primary hover:brightness-125 font-semibold transition-colors"
+                    className="ml-1 text-primary hover:brightness-125 font-semibold transition-colors"
                     disabled={loading}
                   >
                     Sign up
                   </button>
                 </>
-              ) : activeTab === "signup" ? (
-                <>
-                  Already have an account?
-                  <button
-                    onClick={() => setActiveTab("login")}
-                    className="ml-2 text-primary hover:brightness-125 font-semibold transition-colors"
-                    disabled={loading}
-                  >
-                    Sign in
-                  </button>
-                </>
               ) : (
                 <>
-                  Remembered your password?
+                  Already have an account?{" "}
                   <button
                     onClick={() => setActiveTab("login")}
-                    className="ml-2 text-primary hover:brightness-125 font-semibold transition-colors"
+                    className="ml-1 text-primary hover:brightness-125 font-semibold transition-colors"
                     disabled={loading}
                   >
                     Sign in
