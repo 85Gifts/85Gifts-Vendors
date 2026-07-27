@@ -23,6 +23,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     // Skip auth check on login/register/auth pages and public pages
     const isAuthPage = pathname === '/login' || 
                        pathname === '/register' || 
+                       pathname === '/forgot-password' ||
                        pathname?.startsWith('/reset-password') || 
                        pathname?.startsWith('/verify-email') ||
                        pathname === '/verifyEmail';
