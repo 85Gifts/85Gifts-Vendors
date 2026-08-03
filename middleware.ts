@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { RESELLER_ACCESS_TOKEN_COOKIE } from '@/lib/reseller-constants';
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
@@ -17,6 +18,16 @@ export function middleware(request: NextRequest) {
 
     if (!accessToken) {
       const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Reseller dashboard is protected, except the login screen
+  if (pathname.startsWith('/reseller-dashboard') && !pathname.startsWith('/reseller-dashboard/login')) {
+    const resellerToken = request.cookies.get(RESELLER_ACCESS_TOKEN_COOKIE);
+
+    if (!resellerToken) {
+      const loginUrl = new URL('/reseller-dashboard/login', request.url);
       return NextResponse.redirect(loginUrl);
     }
   }
