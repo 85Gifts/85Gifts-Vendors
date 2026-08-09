@@ -3,6 +3,8 @@
 import { useState } from "react"
 import BookingModal from "../../../components/events/BookingModal"
 import AddResellerModal from "../../../components/events/AddResellerModal"
+import { PublicNavbar } from "@/components/public-navbar"
+import { PublicFooter } from "@/components/public-footer"
 
 type TicketTier = {
   name: string
@@ -25,6 +27,7 @@ type PublicEvent = {
   endAt?: string
   coverImageUrl?: string
   location?: {
+    venue?: string
     venueName?: string
     address?: string
     city?: string
@@ -59,14 +62,15 @@ export default function EventShareClient({ event }: EventShareClientProps) {
   const [isResellerModalOpen, setIsResellerModalOpen] = useState(false)
 
   const eventTime = formatDateTime(event.startAt)
-  const venue = event.location?.venueName
+  const venue = event.location?.venue ?? event.location?.venueName
   const city = event.location?.city
   const country = event.location?.country
   const locationText = [venue, city, country].filter(Boolean).join(" • ")
 
   return (
     <>
-      <main className="min-h-screen bg-white">
+      <PublicNavbar />
+      <main className="min-h-screen bg-background text-foreground">
         <section className="relative overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center blur-md"
@@ -119,14 +123,16 @@ export default function EventShareClient({ event }: EventShareClientProps) {
         </section>
 
         <section id="book" className="mx-auto max-w-4xl px-6 py-16">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 text-center">
-            <h2 className="text-2xl font-semibold text-gray-900">Booking</h2>
-            <p className="mt-3 text-gray-600">
+          <div className="rounded-2xl border border-border bg-card p-8 text-center">
+            <h2 className="text-2xl font-semibold text-foreground">Booking</h2>
+            <p className="mt-3 text-muted-foreground">
               Click the &quot;Book Now&quot; button above to reserve your tickets.
             </p>
           </div>
         </section>
       </main>
+
+      <PublicFooter />
 
       {event.tiers && event.tiers.length > 0 && (
         <BookingModal

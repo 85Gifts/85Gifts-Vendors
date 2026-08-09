@@ -29,7 +29,8 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
                        pathname === '/verifyEmail';
     
     // Public routes that don't require authentication
-    const isPublicRoute = pathname?.startsWith('/event/') || 
+    const isPublicRoute = pathname?.startsWith("/events") || 
+                         pathname?.startsWith('/event/') || 
                          pathname === '/' ||
                          pathname?.startsWith('/booking-success') ||
                          pathname?.startsWith('/inventory/') ||

@@ -131,16 +131,16 @@ export default function AddResellerModal({
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card text-foreground shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-gray-600" />
-            <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+            <UserPlus className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-base font-semibold">{title}</h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -150,38 +150,38 @@ export default function AddResellerModal({
         <div className="px-6 py-5">
           {applicationSubmitted ? (
             <div className="space-y-4">
-              <div className="rounded-xl border border-green-100 bg-green-50 p-4 text-center">
-                <p className="text-sm font-semibold text-green-700">Application submitted!</p>
-                <p className="mt-2 text-sm text-green-600">
+              <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center dark:border-green-900 dark:bg-green-950/40">
+                <p className="text-sm font-semibold text-green-700 dark:text-green-400">Application submitted!</p>
+                <p className="mt-2 text-sm text-green-600 dark:text-green-500">
                   Thanks, {name}. We&apos;ll review your application and get back to you at{" "}
                   <span className="font-medium">{email}</span>.
                 </p>
               </div>
-              <Button onClick={onClose} className="w-full bg-gray-900 text-white hover:bg-gray-700">
+              <Button onClick={onClose} className="w-full">
                 Done
               </Button>
             </div>
           ) : result ? (
             /* Success state */
             <div className="space-y-4">
-              <div className="rounded-xl bg-green-50 border border-green-100 p-4 text-center">
-                <p className="text-sm font-semibold text-green-700">Reseller added successfully!</p>
-                <p className="mt-1 text-xs text-green-600">
+              <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center dark:bg-green-950/40 dark:border-green-900">
+                <p className="text-sm font-semibold text-green-700 dark:text-green-400">Reseller added successfully!</p>
+                <p className="mt-1 text-xs text-green-600 dark:text-green-500">
                   {result.name} · <span className="font-mono">{result.referralCode}</span>
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reseller Link</p>
-                <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-                  <span className="flex-1 truncate font-mono text-xs text-gray-700">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Reseller Link</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5">
+                  <span className="flex-1 truncate font-mono text-xs text-foreground">
                     {result.resellerLink}
                   </span>
                   <div className="flex shrink-0 items-center gap-1">
                     <button
                       onClick={copyLink}
                       title="Copy link"
-                      className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                      className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     >
                       {copied ? (
                         <Check className="h-3.5 w-3.5 text-green-600" />
@@ -194,7 +194,7 @@ export default function AddResellerModal({
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Open link"
-                      className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                      className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                     </a>
@@ -205,31 +205,31 @@ export default function AddResellerModal({
                 )}
               </div>
 
-              <Button onClick={onClose} className="w-full bg-gray-900 text-white hover:bg-gray-700">
+              <Button onClick={onClose} className="w-full">
                 Done
               </Button>
             </div>
           ) : (
             /* Form state */
             <form onSubmit={handleSubmit} className="space-y-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {isPublic ? (
                   <>
                     Sign up to sell tickets for{" "}
-                    <span className="font-medium text-gray-700">{eventName}</span> and
+                    <span className="font-medium text-foreground">{eventName}</span> and
                     earn on every sale.
                   </>
                 ) : (
                   <>
                     Add a reseller to{" "}
-                    <span className="font-medium text-gray-700">{eventName}</span>. They
+                    <span className="font-medium text-foreground">{eventName}</span>. They
                     will be able to sell tickets on your behalf.
                   </>
                 )}
               </p>
 
               <div className="space-y-1.5">
-                <label htmlFor={`${mode}-reseller-name`} className="block text-sm font-medium text-gray-700">
+                <label htmlFor={`${mode}-reseller-name`} className="block text-sm font-medium text-foreground">
                   Full Name
                 </label>
                 <input
@@ -239,12 +239,12 @@ export default function AddResellerModal({
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. John Doe"
                   disabled={submitting}
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-gray-400 focus:bg-white focus:ring-2 focus:ring-gray-200 disabled:opacity-50"
+                  className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary focus:bg-background focus:ring-2 focus:ring-ring disabled:opacity-50"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor={`${mode}-reseller-email`} className="block text-sm font-medium text-gray-700">
+                <label htmlFor={`${mode}-reseller-email`} className="block text-sm font-medium text-foreground">
                   Email Address
                 </label>
                 <input
@@ -254,12 +254,12 @@ export default function AddResellerModal({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. john@example.com"
                   disabled={submitting}
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-gray-400 focus:bg-white focus:ring-2 focus:ring-gray-200 disabled:opacity-50"
+                  className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary focus:bg-background focus:ring-2 focus:ring-ring disabled:opacity-50"
                 />
               </div>
 
               {error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-600">{error}</p>
+                <p className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">{error}</p>
               )}
 
               <div className="flex gap-3 pt-1">
@@ -275,7 +275,7 @@ export default function AddResellerModal({
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 gap-2 bg-gray-900 text-white hover:bg-gray-700"
+                  className="flex-1 gap-2"
                 >
                   {submitting ? (
                     <>

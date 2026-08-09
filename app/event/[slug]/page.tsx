@@ -23,6 +23,7 @@ type PublicEvent = {
   endAt?: string
   coverImageUrl?: string
   location?: {
+    venue?: string
     venueName?: string
     address?: string
     city?: string
@@ -51,7 +52,7 @@ const normalizeEvent = (payload: any): PublicEvent | null => {
   return event
 }
 
-const getEventBySlug = async (slug: string): Promise<PublicEvent | null> => {
+const fetchEventFromApi = async (slug: string): Promise<PublicEvent | null> => {
   if (!slug) return null
   const res = await fetch(`${API_URL}/api/public/events/${slug}`, {
     next: { revalidate: 60 },
@@ -60,6 +61,10 @@ const getEventBySlug = async (slug: string): Promise<PublicEvent | null> => {
   if (!res.ok) throw new Error("Failed to fetch event")
   const payload = await res.json()
   return normalizeEvent(payload)
+}
+
+const getEventBySlug = async (slug: string): Promise<PublicEvent | null> => {
+  return fetchEventFromApi(slug)
 }
 
 export async function generateMetadata({
