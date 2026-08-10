@@ -1,22 +1,10 @@
 "use client"
-import { useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Sun, Moon } from "lucide-react"
 import Link from "next/link"
-import { useTheme } from "@/contexts/ThemeContext"
 
-import {
-  Navbar,
-  NavBody,
-  NavItems,
-  MobileNav,
-  MobileNavHeader,
-  MobileNavMenu,
-  MobileNavToggle,
-  NavbarLogo,
-  NavbarButton,
-} from "@/components/ui/resizable-navbar"
+import { PublicNavbar } from "@/components/public-navbar"
+import { PublicFooter } from "@/components/public-footer"
 import { MaskReveal } from "@/components/ui/text-mask-reveal"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,7 +13,6 @@ import { HoverBorderGradient } from "@/components/ui/hover-border-gradient"
 import FeatureSectionDemo from "@/components/feature"
 import { TestimonialsSection } from "@/components/testimonial"
 import { CTASection } from "@/components/cta-section"
-import { Footer2 } from "@/components/footer-2"
 import HowItWorksFlow from "@/components/ui/flow/HowItWorksFlow"
 
 const sectionVariants = {
@@ -38,75 +25,10 @@ const sectionVariants = {
 }
 
 export default function LandingPage() {
-  const [isOpen, setIsOpen] = useState(false)
-  const { theme, toggleTheme } = useTheme()
-
-  const navItems = [
-    { name: "Features", link: "#features" },
-    { name: "Reviews", link: "#testimonials" },
-    { name: "Contact", link: "#contact" },
-  ]
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-    }
-    setIsOpen(false)
-  }
-
   return (
     <div className="bg-background text-foreground overflow-x-clip">
       {/* Navigation */}
-      <Navbar>
-        <NavBody className="w-full">
-          <div className="flex items-center justify-between w-full">
-            <NavbarLogo />
-            <NavItems items={navItems} />
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-9 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-              <NavbarButton href="/login" className="bg-blue-500 hover:bg-blue-700 text-white">Start Selling</NavbarButton>
-            </div>
-          </div>
-        </NavBody>
-
-        <MobileNav>
-          <MobileNavHeader>
-            <NavbarLogo />
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-9 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-              <MobileNavToggle isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
-            </div>
-          </MobileNavHeader>
-          <MobileNavMenu isOpen={isOpen} onClose={() => setIsOpen(false)}>
-            {navItems.map((item, idx) => (
-              <a
-                key={`mobile-link-${idx}`}
-                href={item.link}
-                onClick={() => scrollToSection(item.link.replace("#", ""))}
-                className="text-sm font-medium text-muted-foreground py-2"
-              >
-                {item.name}
-              </a>
-            ))}
-            <div className="flex flex-col gap-4 pt-4 border-t border-border">
-              <NavbarButton href="/dashboard" className="bg-blue-500 hover:bg-blue-700 text-white">Start Selling</NavbarButton>
-            </div>
-          </MobileNavMenu>
-        </MobileNav>
-      </Navbar>
+      <PublicNavbar />
 
       {/* Hero Section */}
       <motion.section
@@ -399,7 +321,7 @@ export default function LandingPage() {
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
         >
-          <Footer2 />
+          <PublicFooter />
         </motion.div>
       </div>
     </div>

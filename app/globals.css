@@ -151,6 +151,63 @@
 
 /* ─── React Flow theme overrides ──────────────────────────────────────────── */
 
+/* Thin blue scrollbars (main + popups) */
+html::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 9999px;
+}
+body::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+body::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 9999px;
+}
+
+/* Scrollbars inside modal/popup overlays */
+.fixed.inset-0 .overflow-y-auto::-webkit-scrollbar,
+.fixed.inset-0 .overflow-x-auto::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+.fixed.inset-0 .overflow-y-auto::-webkit-scrollbar-track,
+.fixed.inset-0 .overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.fixed.inset-0 .overflow-y-auto::-webkit-scrollbar-thumb,
+.fixed.inset-0 .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 9999px;
+}
+
+/* Firefox / Zen: standard scrollbar properties (no ::-webkit-scrollbar support) */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+  }
+  body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+  }
+  .fixed.inset-0 .overflow-y-auto,
+  .fixed.inset-0 .overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+  }
+}
+
 .react-flow__background pattern circle {
   fill: var(--xy-background-pattern-color, #81818a);
 }

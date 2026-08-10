@@ -9,9 +9,8 @@ export function middleware(request: NextRequest) {
   // Protected routes that require authentication
   const protectedRoutes = ['/dashboard', '/products'];
 
-  const isProtectedRoute = protectedRoutes.some(route =>
-    pathname.startsWith(route)
-  );
+  const isProtectedRoute =
+    protectedRoutes.some((route) => pathname.startsWith(route));
 
   if (isProtectedRoute) {
     const accessToken = request.cookies.get('accessToken');

@@ -123,23 +123,43 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         className,
       )}
     >
-      {items.map((item, idx) => (
-        <a
-          onMouseEnter={() => setHovered(idx)}
-          onClick={onItemClick}
-          className="relative px-4 py-2 text-muted-foreground"
-          key={`link-${idx}`}
-          href={item.link}
-        >
-          {hovered === idx && (
-            <motion.div
-              layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-accent"
-            />
-          )}
-          <span className="relative z-20">{item.name}</span>
-        </a>
-      ))}
+      {items.map((item, idx) => {
+        const isRouteLink = item.link.startsWith("/")
+        const content = (
+          <>
+            {hovered === idx && (
+              <motion.div
+                layoutId="hovered"
+                className="absolute inset-0 h-full w-full rounded-full bg-accent"
+              />
+            )}
+            <span className="relative z-20">{item.name}</span>
+          </>
+        )
+        const className = "relative px-4 py-2 text-muted-foreground"
+
+        return isRouteLink ? (
+          <Link
+            href={item.link}
+            onMouseEnter={() => setHovered(idx)}
+            onClick={onItemClick}
+            className={className}
+            key={`link-${idx}`}
+          >
+            {content}
+          </Link>
+        ) : (
+          <a
+            onMouseEnter={() => setHovered(idx)}
+            onClick={onItemClick}
+            className={className}
+            key={`link-${idx}`}
+            href={item.link}
+          >
+            {content}
+          </a>
+        )
+      })}
     </motion.div>
   );
 };
