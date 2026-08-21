@@ -59,7 +59,7 @@ export interface AdminEvent {
     state?: string
   }
   vendor?: AdminVendorRef
-  vendorId?: string
+  vendorId?: string | AdminVendorRef
   totalCapacity?: number
   totalSold?: number
   tiers?: Array<{ name?: string; price?: number; capacity?: number; sold?: number }>

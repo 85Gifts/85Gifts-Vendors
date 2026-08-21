@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { adminApi } from "@/lib/adminApi"
-import { AdminEvent } from "@/app/types/admin"
+import { AdminEvent, AdminVendorRef } from "@/app/types/admin"
 
 const STATUS_STYLES: Record<string, string> = {
   draft: "text-muted-foreground bg-muted",
@@ -47,6 +47,17 @@ const STATUS_STYLES: Record<string, string> = {
   rejected: "text-red-600 bg-red-100",
   cancelled: "text-red-600 bg-red-100",
   ended: "text-blue-600 bg-blue-100",
+}
+
+function vendorRef(event: AdminEvent): AdminVendorRef | string | undefined {
+  return event.vendor || event.vendorId
+}
+
+function vendorName(event: AdminEvent): string {
+  const v = vendorRef(event)
+  if (!v) return "Unknown"
+  if (typeof v === "string") return v
+  return v.businessName || v.name || v._id || "Unknown"
 }
 
 const formatDate = (iso?: string) =>
@@ -169,7 +180,6 @@ export default function AdminEventDetail() {
     )
   }
 
-  const vendor = event.vendor
   const tiers = Array.isArray(event.tiers) ? event.tiers : []
   const minPrice = tiers.length ? Math.min(...tiers.map((t) => Number(t.price || 0))) : 0
   const location =
@@ -222,7 +232,7 @@ export default function AdminEventDetail() {
               <MapPin className="h-4 w-4" /> {location}
             </span>
             <span className="inline-flex items-center gap-1">
-              <Users className="h-4 w-4" /> {vendor?.businessName || vendor?.name || event.vendorId || "Unknown"}
+              <Users className="h-4 w-4" /> {vendorName(event)}
             </span>
           </div>
         </div>
