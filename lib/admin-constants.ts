@@ -1,0 +1,6 @@
+export const ADMIN_ACCESS_TOKEN_COOKIE = 'adminAccessToken'
+export const ADMIN_REFRESH_TOKEN_COOKIE = 'adminRefreshToken'
+export const ADMIN_ID_COOKIE = 'adminId'
+export const ADMIN_NAME_COOKIE = 'adminName'
+export const ADMIN_ROLE_COOKIE = 'adminRole'
+export const ADMIN_EMAIL_COOKIE = 'adminEmail'

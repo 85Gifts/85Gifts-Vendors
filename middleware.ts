@@ -31,6 +31,22 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Admin dashboard is protected, except the login screen.
+  // Disabled while NEXT_PUBLIC_ADMIN_PREVIEW is enabled (preview mode).
+  const isAdminPreview = process.env.NEXT_PUBLIC_ADMIN_PREVIEW === 'true';
+  if (
+    pathname.startsWith('/admin') &&
+    !pathname.startsWith('/admin/login') &&
+    !isAdminPreview
+  ) {
+    const adminToken = request.cookies.get('adminAccessToken');
+
+    if (!adminToken) {
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 

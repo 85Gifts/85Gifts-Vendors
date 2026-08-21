@@ -21,7 +21,8 @@ export const redirectToLogin = () => {
       currentPath?.startsWith("/booking-success") ||
       currentPath?.startsWith("/inventory/") ||
       currentPath?.startsWith("/dashboard") ||
-      currentPath?.startsWith("/reseller-dashboard")) {
+      currentPath?.startsWith("/reseller-dashboard") ||
+      currentPath?.startsWith("/admin")) {
     return
   }
   

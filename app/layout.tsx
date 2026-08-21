@@ -3,6 +3,7 @@ import {  Fredoka } from "next/font/google";
 import "./globals.css";
 import { VendorAuthProvider } from '@/contexts/VendorAuthContext';
 import { ResellerAuthProvider } from '@/contexts/ResellerAuthContext';
+import { AdminAuthProvider } from '@/contexts/AdminAuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { ComingSoonProvider } from '@/contexts/ComingSoonContext';
@@ -54,7 +55,8 @@ export default function RootLayout({
      <ThemeProvider>
        <VendorAuthProvider>
         <ResellerAuthProvider>
-         <CheckoutProvider>
+         <AdminAuthProvider>
+          <CheckoutProvider>
           <ComingSoonProvider>
             {/* <DevModeBypass /> */}
             {children}
@@ -62,6 +64,7 @@ export default function RootLayout({
             <SonnerToaster position="bottom-right" richColors closeButton visibleToasts={3} />
           </ComingSoonProvider>
          </CheckoutProvider>
+        </AdminAuthProvider>
         </ResellerAuthProvider>
        </VendorAuthProvider>
      </ThemeProvider>
