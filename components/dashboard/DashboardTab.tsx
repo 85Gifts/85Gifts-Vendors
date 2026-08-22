@@ -479,6 +479,7 @@ export default function DashboardTab() {
             return (
               <CardSpotlight
                 key={card.id}
+                data-tour-id={card.id === 'available-balance' ? 'dash-wallet' : card.id === 'total-earnings' ? 'dash-withdraw' : undefined}
                 className="p-6"
                 spotColor="rgba(85, 110, 230, 0.18)"
               >
@@ -535,6 +536,7 @@ export default function DashboardTab() {
                   className="min-w-full snap-center"
                 >
                   <CardSpotlight
+                    data-tour-id={card.id === 'available-balance' ? 'dash-wallet' : card.id === 'total-earnings' ? 'dash-withdraw' : undefined}
                     className="p-6 h-full min-h-[160px] flex flex-col justify-between"
                     spotColor="rgba(85, 110, 230, 0.18)"
                   >

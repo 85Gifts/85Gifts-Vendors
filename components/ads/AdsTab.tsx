@@ -467,6 +467,7 @@ export default function AdsTab() {
                     <Button
                       type="button"
                       onClick={onCreateCampaignClick}
+                      data-tour-id="ads-create"
                       size="sm"
                       className="flex items-center gap-2"
                     >
@@ -510,6 +511,7 @@ export default function AdsTab() {
                         <Button
                           type="button"
                           onClick={onCreateCampaignClick}
+                          data-tour-id="ads-create"
                           size="sm"
                           className="flex items-center gap-2"
                         >

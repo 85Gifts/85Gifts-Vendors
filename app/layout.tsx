@@ -10,6 +10,9 @@ import { ComingSoonProvider } from '@/contexts/ComingSoonContext';
 
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
+import { TourProvider } from '@/components/onboarding/TourContext';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -58,10 +61,14 @@ export default function RootLayout({
          <AdminAuthProvider>
           <CheckoutProvider>
           <ComingSoonProvider>
+           <TourProvider>
             {/* <DevModeBypass /> */}
             {children}
+            <OnboardingTour />
+            <WelcomeModal />
             <Toaster />
             <SonnerToaster position="bottom-right" richColors closeButton visibleToasts={3} />
+           </TourProvider>
           </ComingSoonProvider>
          </CheckoutProvider>
         </AdminAuthProvider>

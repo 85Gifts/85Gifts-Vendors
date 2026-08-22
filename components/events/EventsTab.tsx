@@ -293,6 +293,7 @@ export default function EventsTab() {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => router.push("/dashboard/events/schedule")}
+                      data-tour-id="events-schedule"
                       size="sm"
                       className="flex items-center gap-2"
                     >
@@ -335,6 +336,7 @@ export default function EventsTab() {
                       {card.hasButton ? (
                         <Button
                           onClick={() => router.push("/dashboard/events/schedule")}
+                          data-tour-id="events-schedule"
                           size="sm"
                           className="flex items-center gap-2"
                         >

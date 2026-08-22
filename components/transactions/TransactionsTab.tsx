@@ -174,7 +174,7 @@ export default function TransactionsTab() {
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-card rounded-xl shadow-sm border dark:border-border">
+      <div data-tour-id="transactions-table" className="bg-card rounded-xl shadow-sm border dark:border-border">
         <div className="p-6 border-b dark:border-border">
           <h3 className="text-lg font-semibold flex items-center gap-2 dark:text-white">
             <History className="w-5 h-5" />
