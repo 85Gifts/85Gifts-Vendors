@@ -402,6 +402,7 @@ export default function ProductsTab() {
                     <Button
                       type="button"
                       onClick={onAddProductClick}
+                      data-tour-id="products-add"
                       size="sm"
                       className="flex items-center gap-2"
                     >
@@ -453,6 +454,7 @@ export default function ProductsTab() {
                         <Button
                           type="button"
                           onClick={onAddProductClick}
+                          data-tour-id="products-add"
                           size="sm"
                           className="flex items-center gap-2"
                         >

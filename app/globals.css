@@ -237,3 +237,149 @@ body::-webkit-scrollbar-thumb {
   stroke-dasharray: 8 4;
   animation: dash 1s linear infinite;
 }
+
+.driver-popover.of85-popover {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  padding: 20px;
+  max-width: 320px;
+  font-family: inherit;
+}
+
+.driver-popover.of85-popover .driver-popover-arrow {
+  display: none;
+}
+
+.driver-popover.of85-popover .driver-popover-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 6px;
+  color: var(--card-foreground);
+}
+
+.driver-popover.of85-popover .driver-popover-description {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.driver-popover.of85-popover .driver-popover-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.of85-footer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.driver-popover.of85-popover .of85-footer-top .driver-popover-navigation-btns,
+.of85-footer-top .driver-popover-navigation-btns {
+  flex-shrink: 0;
+}
+
+.of85-dots {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+}
+
+.of85-dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 9999px;
+  background: var(--muted);
+  transition: all 200ms ease;
+}
+
+.of85-dot-visited {
+  background: color-mix(in oklab, var(--primary) 50%, transparent);
+}
+
+.of85-dot-active {
+  width: 20px;
+  background: var(--primary);
+}
+
+.driver-popover.of85-popover .driver-popover-progress-text {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+.driver-popover.of85-popover .driver-popover-navigation-btns {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-grow: 0;
+  gap: 8px;
+}
+
+.driver-popover.of85-popover button.driver-popover-footer-btn,
+.driver-popover.of85-popover .driver-popover-navigation-btns button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 64px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.driver-popover.of85-popover button.driver-popover-footer-btn:hover,
+.driver-popover.of85-popover .driver-popover-navigation-btns button:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.driver-popover.of85-popover button.driver-popover-footer-btn + button,
+.driver-popover.of85-popover .driver-popover-navigation-btns button:last-child {
+  min-width: 72px;
+  margin-left: 0;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+}
+
+.driver-popover.of85-popover button.driver-popover-footer-btn + button:hover {
+  background: color-mix(in oklab, var(--primary) 88%, black);
+}
+
+.driver-popover.of85-popover button.driver-popover-footer-btn:first-child,
+.driver-popover.of85-popover .driver-popover-navigation-btns button:first-child {
+  background: transparent;
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+}
+
+.driver-popover.of85-popover button.driver-popover-footer-btn:first-child:hover,
+.driver-popover.of85-popover .driver-popover-navigation-btns button:first-child:hover {
+  background: var(--accent);
+}
+
+.driver-popover.of85-popover .driver-popover-close-btn {
+  top: 14px;
+  right: 14px;
+  color: var(--muted-foreground);
+}
+
+.driver-popover.of85-popover .driver-popover-close-btn:hover,
+.driver-popover.of85-popover .driver-popover-close-btn:focus {
+  color: var(--foreground);
+}

@@ -27,12 +27,12 @@ import {
 } from "@/components/ui/sidebar"
 
 const navItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Products", url: "/dashboard/products", icon: Package },
-  { title: "Inventory", url: "/inventory", icon: Boxes },
-  { title: "Ads", url: "/dashboard/ads", icon: Megaphone },
-  { title: "Transactions", url: "/dashboard/transactions", icon: History },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, tourId: "side-dashboard" },
+  { title: "Events", url: "/dashboard/events", icon: CalendarDays, tourId: "side-events" },
+  { title: "Products", url: "/dashboard/products", icon: Package, tourId: "side-products" },
+  { title: "Inventory", url: "/inventory", icon: Boxes, tourId: "side-inventory" },
+  { title: "Ads", url: "/dashboard/ads", icon: Megaphone, tourId: "side-ads" },
+  { title: "Transactions", url: "/dashboard/transactions", icon: History, tourId: "side-transactions" },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -72,7 +72,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navItems.map((item) => {
                 const Icon = item.icon
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} data-tour-id={item.tourId}>
                     <SidebarMenuButton
                       asChild
                       tooltip={item.title}

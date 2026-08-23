@@ -2,8 +2,11 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
+import { CircleHelp } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { useTour } from "@/components/onboarding/TourContext"
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -16,6 +19,7 @@ const titles: Record<string, string> = {
 
 export function SiteHeader() {
   const pathname = usePathname()
+  const { startTour, status } = useTour()
   const title =
     Object.entries(titles).find(([key]) =>
       key === "/dashboard" ? pathname === key : pathname.startsWith(key)
@@ -27,6 +31,16 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium">{title}</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="ml-auto"
+          onClick={startTour}
+          disabled={status !== "idle"}
+          aria-label="Replay product tour"
+        >
+          <CircleHelp className="size-5" />
+        </Button>
       </div>
     </header>
   )

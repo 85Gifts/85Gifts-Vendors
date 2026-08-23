@@ -61,7 +61,7 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 mb-6">
+        <div data-tour-id="inventory-list" className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 mb-6">
           <nav className="flex space-x-8 px-6">
             <button
               onClick={() => setActiveView('dashboard')}

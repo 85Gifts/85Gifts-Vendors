@@ -63,7 +63,7 @@ export default function EarningsChart({
 
   if (data.length === 0) {
     return (
-      <Card className="border-dashed">
+      <Card data-tour-id="dash-chart" className="border-dashed">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -83,7 +83,7 @@ export default function EarningsChart({
   const showDebit = mode === "all"
 
   return (
-    <Card className="bg-gradient-to-t from-primary/5 to-card shadow-sm">
+    <Card data-tour-id="dash-chart" className="bg-gradient-to-t from-primary/5 to-card shadow-sm">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle className="flex items-center gap-2 text-lg">

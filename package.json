@@ -28,6 +28,7 @@
     "clsx": "^2.1.1",
     "cobe": "^0.6.5",
     "dagre": "^0.8.5",
+    "driver.js": "^1.8.0",
     "framer-motion": "^12.34.2",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.541.0",
