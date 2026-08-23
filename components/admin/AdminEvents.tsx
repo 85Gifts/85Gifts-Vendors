@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { adminApi } from "@/lib/adminApi"
-import { AdminEvent, AdminEventStatus } from "@/app/types/admin"
+import { AdminEvent, AdminEventStatus, AdminVendorRef } from "@/app/types/admin"
 
 const STATUS_FILTERS: Array<AdminEventStatus | "all"> = [
   "all",
@@ -58,9 +58,15 @@ const STATUS_STYLES: Record<string, string> = {
 const formatDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"
 
+function vendorRef(event: AdminEvent): AdminVendorRef | string | undefined {
+  return event.vendor || event.vendorId
+}
+
 function vendorName(event: AdminEvent): string {
-  const v = event.vendor
-  return v?.businessName || v?.name || event.vendorId || "Unknown"
+  const v = vendorRef(event)
+  if (!v) return "Unknown"
+  if (typeof v === "string") return v
+  return v.businessName || v.name || v._id || "Unknown"
 }
 
 export default function AdminEvents() {
