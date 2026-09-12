@@ -114,8 +114,8 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
       case 'in_stock': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
       case 'low_stock': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
       case 'out_of_stock': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
-      case 'discontinued': return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
-      default: return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
+      case 'discontinued': return 'text-muted-foreground bg-muted';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -164,12 +164,12 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="flex items-center gap-2">
           <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-2xl font-bold dark:text-white">Inventory</h2>
+          <h2 className="text-2xl font-bold text-foreground">Inventory</h2>
         </div>
         <div className="flex gap-2">
           <button
             onClick={fetchInventory}
-            className="p-2 rounded-lg border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-300"
+            className="p-2 rounded-lg border border-border hover:bg-muted text-muted-foreground"
             title="Refresh"
           >
             <RefreshCw className="w-5 h-5" />
@@ -183,7 +183,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
           placeholder="Search products..."
           value={searchTerm}
           onChange={handleSearch}
-          className="flex-1 px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
           value={filter}
@@ -191,7 +191,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
             setFilter(e.target.value as any);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All Status</option>
           <option value="in_stock">In Stock</option>
@@ -205,7 +205,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
             setCategoryFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All Categories</option>
           {categories.map((cat) => (
@@ -217,58 +217,58 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading inventory...</div>
+        <div className="text-center py-12 text-muted-foreground">Loading inventory...</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <Package className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <p className="text-gray-600 dark:text-gray-300 mb-2">No inventory items found</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filter</p>
+        <div className="text-center py-12 bg-muted rounded-lg">
+          <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-2">No inventory items found</p>
+          <p className="text-sm text-muted-foreground">Try adjusting your search or filter</p>
         </div>
       ) : (
         <>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border dark:border-gray-700">
+          <div className="bg-card rounded-lg shadow overflow-hidden border border-border">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-900">
+                <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Quantity</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reserved</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Items</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Quantity</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Reserved</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Available</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Items</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="bg-card divide-y divide-border">
                   {products.map((product) => {
                     const { status, label, icon: StatusIcon } = getStockStatus(product.inventory.status);
                     return (
-                      <tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <tr key={product._id} className="hover:bg-muted">
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{product.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{product.description}</div>
+                          <div className="text-sm font-medium text-foreground">{product.name}</div>
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-1">{product.description}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {product.category}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium dark:text-white">
+                          <span className="text-sm font-medium text-foreground">
                             ₦{product.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium dark:text-white">{product.inventory.totalQuantity}</span>
+                          <span className="text-sm font-medium text-foreground">{product.inventory.totalQuantity}</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {product.inventory.reservedQuantity}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                           {product.inventory.availableQuantity}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {product.inventory.itemCount}
                           {product.inventory.hasVariants && (
                             <span className="ml-1 text-xs text-blue-600 dark:text-blue-400">(variants)</span>
@@ -299,26 +299,26 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
 
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-3 border-t dark:border-gray-700 rounded-lg">
+            <div className="flex items-center justify-between bg-card px-4 py-3 border-t border-border rounded-lg">
               <div className="flex-1 flex justify-between sm:hidden">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={!pagination.hasPrev}
-                  className="relative inline-flex items-center px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-foreground text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={!pagination.hasNext}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-border bg-card text-foreground text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
               </div>
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <p className="text-sm text-muted-foreground">
                     Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
                     <span className="font-medium">
                       {Math.min(pagination.page * pagination.limit, pagination.total)}
@@ -331,7 +331,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={!pagination.hasPrev}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-foreground text-sm font-medium hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
@@ -350,16 +350,16 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                         return (
                           <div key={page} className="flex items-center">
                             {showEllipsisBefore && (
-                              <span className="relative inline-flex items-center px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium">
+                              <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-foreground text-sm font-medium">
                                 ...
                               </span>
                             )}
                             <button
                               onClick={() => handlePageChange(page)}
-                              className={`relative inline-flex items-center px-4 py-2 border dark:border-gray-700 text-sm font-medium ${
+                              className={`relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium ${
                                 currentPage === page
                                   ? 'z-10 bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                                  : 'dark:bg-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                                  : 'bg-card text-foreground hover:bg-muted'
                               }`}
                             >
                               {page}
@@ -370,7 +370,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={!pagination.hasNext}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border dark:border-gray-700 dark:bg-gray-800 dark:text-white text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-foreground text-sm font-medium hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
@@ -385,22 +385,22 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
       {/* Actions Modal */}
       {isActionsModalOpen && selectedProduct && (
         <div
-          className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={handleCloseModal}
         >
           <div
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
-                <h3 className="text-xl font-semibold dark:text-white">Product Actions</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{selectedProduct.name}</p>
+                <h3 className="text-xl font-semibold text-foreground">Product Actions</h3>
+                <p className="text-sm text-muted-foreground mt-1">{selectedProduct.name}</p>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <XCircle className="w-5 h-5" />
               </button>

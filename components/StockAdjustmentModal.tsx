@@ -83,36 +83,36 @@ export default function StockAdjustmentModal({
   };
 
   return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <h3 className="text-lg font-semibold dark:text-white">Adjust Stock</h3>
+            <h3 className="text-lg font-semibold text-foreground">Adjust Stock</h3>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-muted-foreground hover:text-foreground"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Product ID</p>
-            <p className="font-semibold dark:text-white">{item.productId}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Current Stock: {item.quantity}</p>
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground mb-1">Product ID</p>
+            <p className="font-semibold text-foreground">{item.productId}</p>
+            <p className="text-sm text-muted-foreground">Current Stock: {item.quantity}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Operation
             </label>
             <select
               value={operation}
               onChange={(e) => setOperation(e.target.value as any)}
-              className="w-full px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
               <option value="add">Add Stock (Add to existing)</option>
@@ -122,14 +122,14 @@ export default function StockAdjustmentModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Quantity
             </label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setQuantity(Math.max(0, quantity - 1))}
-                className="p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="p-2 border border-border bg-card text-foreground rounded-lg hover:bg-muted"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -138,13 +138,13 @@ export default function StockAdjustmentModal({
                 min="0"
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-                className="flex-1 px-4 py-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-2 border border-border bg-background text-foreground rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
               <button
                 type="button"
                 onClick={() => setQuantity(quantity + 1)}
-                className="p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="p-2 border border-border bg-card text-foreground rounded-lg hover:bg-muted"
               >
                 <Plus className="w-4 h-4" />
               </button>
