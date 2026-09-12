@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Sun, Moon } from "lucide-react"
 import Link from "next/link"
 import { useTheme } from "@/contexts/ThemeContext"
+import { useVendorAuth } from "@/contexts/VendorAuthContext"
 
 import {
   Navbar,
@@ -28,6 +29,12 @@ const navItems = [
 export function PublicNavbar() {
   const [isOpen, setIsOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
+  // Session-aware CTA: logged-in vendors go straight to the dashboard.
+  // Default to the logged-out target while the session check is loading
+  // to avoid flicker for logged-out visitors.
+  const { isAuthenticated, loading: authLoading } = useVendorAuth()
+  const ctaHref = !authLoading && isAuthenticated ? "/dashboard" : "/login"
+  const ctaLabel = !authLoading && isAuthenticated ? "Go to Dashboard" : "Start Selling"
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -51,8 +58,8 @@ export function PublicNavbar() {
             >
               {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            <NavbarButton href="/login" className="bg-blue-500 hover:bg-blue-700 text-white">
-              Start Selling
+            <NavbarButton href={ctaHref} className="bg-blue-500 hover:bg-blue-700 text-white">
+              {ctaLabel}
             </NavbarButton>
           </div>
         </div>
@@ -98,10 +105,10 @@ export function PublicNavbar() {
           })}
           <div className="flex flex-col gap-4 pt-4 border-t border-border">
             <NavbarButton
-              href="/dashboard"
+              href={ctaHref}
               className="bg-blue-500 hover:bg-blue-700 text-white"
             >
-              Start Selling
+              {ctaLabel}
             </NavbarButton>
           </div>
         </MobileNavMenu>
