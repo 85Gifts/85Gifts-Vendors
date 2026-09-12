@@ -300,24 +300,24 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-card rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
           <div>
-            <h3 className="text-xl font-semibold dark:text-white">Checkout</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <h3 className="text-xl font-semibold text-foreground">Checkout</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -327,74 +327,74 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         <div className="p-6">
           {items.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">Your checkout is empty</p>
+              <p className="text-muted-foreground">Your checkout is empty</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b dark:border-gray-700">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Product
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Category
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Price
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Available Stock
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Quantity
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Total
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="divide-y divide-border">
                   {items.map((item) => (
                     <tr
                       key={item._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                      className="hover:bg-muted transition-colors"
                     >
                       <td className="px-4 py-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-foreground">
                           {item.name}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {item.description}
                         </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {item.category}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium dark:text-white">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         ₦{item.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium dark:text-white">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {item.inventory.availableQuantity}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                            className="p-1 rounded-md border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="p-1 rounded-md border border-border hover:bg-muted transition-colors"
                             disabled={item.quantity <= 1}
                           >
                             <Minus className="w-4 h-4" />
                           </button>
-                          <span className="text-sm font-medium dark:text-white min-w-[2rem] text-center">
+                          <span className="text-sm font-medium text-foreground min-w-[2rem] text-center">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                            className="p-1 rounded-md border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="p-1 rounded-md border border-border hover:bg-muted transition-colors"
                             disabled={item.quantity >= item.inventory.availableQuantity}
                           >
                             <Plus className="w-4 h-4" />
@@ -402,7 +402,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-right">
-                        <span className="text-sm font-semibold dark:text-white">
+                        <span className="text-sm font-semibold text-foreground">
                           ₦{(item.price * item.quantity).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </td>
@@ -425,12 +425,12 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
 
         {/* Subtotal */}
         {items.length > 0 && (
-          <div className="px-6 pb-6 border-b dark:border-gray-800">
+          <div className="px-6 pb-6 border-b border-border">
             <div className="flex justify-end">
               <div className="w-full max-w-md">
                 <div className="flex justify-between items-center py-3">
-                  <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Subtotal:</span>
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  <span className="text-lg font-semibold text-muted-foreground">Subtotal:</span>
+                  <span className="text-lg font-bold text-foreground">
                     ₦{subtotal.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -441,7 +441,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
 
         {/* Action Buttons */}
         {items.length > 0 && (
-          <div className="p-6 bg-gray-50 dark:bg-gray-800/50">
+          <div className="p-6 bg-muted">
             <div className="grid grid-cols-2 gap-4">
               {/* Generate Invoice */}
               <button
@@ -514,21 +514,21 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           onClick={() => !isGeneratingInvoice && setShowCustomerInfoModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-sm w-full"
+            className="bg-card rounded-lg shadow-xl max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Customer Information</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <h3 className="text-lg font-semibold text-foreground">Customer Information</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Provide customer details
                 </p>
               </div>
               <button
                 onClick={() => setShowCustomerInfoModal(false)}
                 disabled={isGeneratingInvoice}
-                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -539,7 +539,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Full Name *
                 </label>
@@ -551,7 +551,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, name: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="John Doe"
                   disabled={isGeneratingInvoice}
                 />
@@ -560,7 +560,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Email Address *
                 </label>
@@ -572,7 +572,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, email: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="customer@example.com"
                   disabled={isGeneratingInvoice}
                 />
@@ -581,7 +581,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Phone Number *
                 </label>
@@ -593,7 +593,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, phone: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="+1234567890"
                   disabled={isGeneratingInvoice}
                 />
@@ -602,7 +602,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="address"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Address *
                 </label>
@@ -613,7 +613,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, address: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="123 Main St, City, State"
                   rows={2}
                   disabled={isGeneratingInvoice}
@@ -625,7 +625,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   type="button"
                   onClick={() => setShowCustomerInfoModal(false)}
                   disabled={isGeneratingInvoice}
-                  className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-3 py-1.5 text-sm border border-border rounded-md text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Cancel
                 </button>
@@ -656,21 +656,21 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
           onClick={() => !isGeneratingReceipt && setShowReceiptCustomerInfoModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-sm w-full"
+            className="bg-card rounded-lg shadow-xl max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Customer Information</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <h3 className="text-lg font-semibold text-foreground">Customer Information</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Provide customer details
                 </p>
               </div>
               <button
                 onClick={() => setShowReceiptCustomerInfoModal(false)}
                 disabled={isGeneratingReceipt}
-                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -681,7 +681,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="receipt-name"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Full Name *
                 </label>
@@ -693,7 +693,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setReceiptCustomerInfo({ ...receiptCustomerInfo, name: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="John Doe"
                   disabled={isGeneratingReceipt}
                 />
@@ -702,7 +702,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="receipt-email"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Email Address *
                 </label>
@@ -714,7 +714,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setReceiptCustomerInfo({ ...receiptCustomerInfo, email: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="customer@example.com"
                   disabled={isGeneratingReceipt}
                 />
@@ -723,7 +723,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="receipt-phone"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Phone Number *
                 </label>
@@ -735,7 +735,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setReceiptCustomerInfo({ ...receiptCustomerInfo, phone: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="+1234567890"
                   disabled={isGeneratingReceipt}
                 />
@@ -744,7 +744,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div>
                 <label
                   htmlFor="receipt-address"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block text-xs font-medium text-foreground mb-1"
                 >
                   Address *
                 </label>
@@ -755,7 +755,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   onChange={(e) =>
                     setReceiptCustomerInfo({ ...receiptCustomerInfo, address: e.target.value })
                   }
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="123 Main St, City, State"
                   rows={2}
                   disabled={isGeneratingReceipt}
@@ -767,7 +767,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   type="button"
                   onClick={() => setShowReceiptCustomerInfoModal(false)}
                   disabled={isGeneratingReceipt}
-                  className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-3 py-1.5 text-sm border border-border rounded-md text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Cancel
                 </button>
