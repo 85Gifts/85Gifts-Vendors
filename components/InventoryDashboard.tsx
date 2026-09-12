@@ -71,17 +71,17 @@ export default function InventoryDashboard() {
       case 'adjusted':
         return <Package className="w-4 h-4 text-orange-600" />;
       default:
-        return <Package className="w-4 h-4 text-gray-600" />;
+        return <Package className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading dashboard...</div>;
+    return <div className="text-center py-12 text-muted-foreground">Loading dashboard...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
+      <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
         <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
         Inventory Dashboard
       </h2>
@@ -90,8 +90,8 @@ export default function InventoryDashboard() {
         <CardSpotlight className="p-6" spotColor="rgba(59, 130, 246, 0.18)">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Items</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
+              <p className="text-sm text-muted-foreground">Total Items</p>
+              <p className="text-3xl font-bold text-foreground tabular-nums">
                 {summary?.totalItems || 0}
               </p>
             </div>
@@ -107,8 +107,8 @@ export default function InventoryDashboard() {
         <CardSpotlight className="p-6" spotColor="rgba(34, 197, 94, 0.18)">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">In Stock</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
+              <p className="text-sm text-muted-foreground">In Stock</p>
+              <p className="text-3xl font-bold text-foreground tabular-nums">
                 {summary?.inStock || 0}
               </p>
             </div>
@@ -124,7 +124,7 @@ export default function InventoryDashboard() {
         <CardSpotlight className="p-6" spotColor="rgba(234, 179, 8, 0.18)">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Low Stock Alerts</p>
+              <p className="text-sm text-muted-foreground">Low Stock Alerts</p>
               <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 tabular-nums">
                 {summary?.lowStock || 0}
               </p>
@@ -141,7 +141,7 @@ export default function InventoryDashboard() {
         <CardSpotlight className="p-6" spotColor="rgba(239, 68, 68, 0.18)">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Out of Stock</p>
+              <p className="text-sm text-muted-foreground">Out of Stock</p>
               <p className="text-3xl font-bold text-red-600 dark:text-red-400 tabular-nums">
                 {summary?.outOfStock || 0}
               </p>
@@ -202,8 +202,8 @@ export default function InventoryDashboard() {
 
       <InventoryStockChart summary={summary} />
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Additional Details</h3>
+      <div className="bg-card rounded-lg shadow p-6 border border-border">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Additional Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-800">
             <p className="text-sm text-green-600 dark:text-green-400">In Stock Items</p>
@@ -231,9 +231,9 @@ export default function InventoryDashboard() {
               }).format(summary.totalValue) : '₦0'}
             </p>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border dark:border-gray-600">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Discontinued</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-300">{summary?.discontinued || 0}</p>
+          <div className="bg-muted p-4 rounded-lg border border-border">
+            <p className="text-sm text-muted-foreground">Discontinued</p>
+            <p className="text-2xl font-bold text-foreground">{summary?.discontinued || 0}</p>
           </div>
         </div>
       </div>
