@@ -4,6 +4,7 @@ import { BackgroundBeams } from "@/components/ui/background-beams";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useVendorAuth } from "@/contexts/VendorAuthContext";
 
 const trustBadges = [
   { icon: "✓", label: "No credit card required" },
@@ -18,6 +19,9 @@ const stats = [
 ];
 
 export function CTASection() {
+  const { isAuthenticated, loading: authLoading } = useVendorAuth();
+  const ctaHref = !authLoading && isAuthenticated ? "/dashboard" : "/login";
+  const ctaLabel = !authLoading && isAuthenticated ? "Go to Dashboard" : "Get Started Free";
   return (
     <section className="relative flex min-h-[600px] w-full flex-col items-center justify-center overflow-hidden rounded-md bg-muted dark:bg-neutral-950 antialiased">
       <BackgroundBeams />
@@ -85,7 +89,7 @@ export function CTASection() {
           className="mt-10 flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row"
         >
           <Link
-            href="/login"
+            href={ctaHref}
             className={cn(
               "group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-8 text-sm font-semibold text-white shadow-lg transition-all duration-300 sm:w-auto",
               "bg-gradient-to-r from-blue-500 to-blue-400",
@@ -93,7 +97,7 @@ export function CTASection() {
             )}
           >
             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-            <span>Get Started Free</span>
+            <span>{ctaLabel}</span>
             <svg
               className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
               fill="none"

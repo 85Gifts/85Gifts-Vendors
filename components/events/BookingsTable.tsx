@@ -57,8 +57,8 @@ interface BookingsResponse {
       totalBookings: number
       totalRevenue: number
       statusCounts: {
-        paid: number
-        pending: number
+        paid?: number
+        pending?: number
       }
       bookings: Booking[]
       pagination?: BookingsPagination
@@ -120,8 +120,13 @@ export default function BookingsTable({ events }: BookingsTableProps) {
   const [bookingsStats, setBookingsStats] = useState<{
     totalBookings: number
     totalRevenue: number
-    statusCounts: { paid: number; pending: number }
+    statusCounts: { paid?: number; pending?: number }
   } | null>(null)
+  // The backend builds statusCounts dynamically from the bookings on the
+  // page, so keys can be missing (e.g. `{}` when there are no bookings).
+  // Default each known key to keep formatters from rendering NaN.
+  const paidCount = bookingsStats?.statusCounts?.paid ?? 0
+  const pendingCount = bookingsStats?.statusCounts?.pending ?? 0
   const [bookingsPagination, setBookingsPagination] = useState<BookingsPagination | null>(null)
   const [bookingsEventId, setBookingsEventId] = useState("")
   const [bookingsSearch, setBookingsSearch] = useState("")
@@ -355,10 +360,10 @@ export default function BookingsTable({ events }: BookingsTableProps) {
                     This page — Revenue: {nairaFormatter.format(bookingsStats.totalRevenue)}
                   </span>
                   <span className="text-green-600 dark:text-green-400" title="This page only">
-                    Paid: {numberFormatter.format(bookingsStats.statusCounts.paid)}
+                    Paid: {numberFormatter.format(paidCount)}
                   </span>
                   <span className="text-yellow-600 dark:text-yellow-400" title="This page only">
-                    Pending: {numberFormatter.format(bookingsStats.statusCounts.pending)}
+                    Pending: {numberFormatter.format(pendingCount)}
                   </span>
                 </div>
               )}

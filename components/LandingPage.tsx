@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 import { PublicNavbar } from "@/components/public-navbar"
+import { useVendorAuth } from "@/contexts/VendorAuthContext"
 import { PublicFooter } from "@/components/public-footer"
 import { MaskReveal } from "@/components/ui/text-mask-reveal"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -25,6 +26,9 @@ const sectionVariants = {
 }
 
 export default function LandingPage() {
+  const { isAuthenticated, loading: authLoading } = useVendorAuth()
+  const heroHref = !authLoading && isAuthenticated ? "/dashboard" : "/login"
+  const heroLabel = !authLoading && isAuthenticated ? "Go to Dashboard" : "Join Us Today"
   return (
     <div className="bg-background text-foreground overflow-x-clip">
       {/* Navigation */}
@@ -65,8 +69,8 @@ export default function LandingPage() {
                     size="lg"
                     className="bg-transparent text-foreground hover:text-lg hover:bg-transparent transition-none hover:!-translate-y-0 hover:!scale-100 hover:!shadow-none"
                   >
-                    <Link href="/login">
-                      Join Us Today
+                    <Link href={heroHref}>
+                      {heroLabel}
                     </Link>
                   </Button>
                 </HoverBorderGradient>

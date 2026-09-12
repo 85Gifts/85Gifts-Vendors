@@ -37,11 +37,21 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
                          pathname?.startsWith('/inventory/') ||
                          pathname?.startsWith('/reseller-dashboard') ||
                          pathname?.startsWith('/admin');
-    
+
+    // Pages that should still validate an existing session (logged-in users
+    // get redirected or see session-aware CTAs). The check is silent: a 401
+    // simply leaves `vendor` null.
+    const isSessionAwarePage =
+      pathname === '/' ||
+      pathname === '/login' ||
+      pathname === '/register';
+
     if (!isAuthPage && !isPublicRoute) {
       checkAuth();
+    } else if (isSessionAwarePage) {
+      checkAuth();
     } else {
-      // On auth pages and public routes, just set loading to false
+      // On other auth pages and public routes, just set loading to false
       setLoading(false);
     }
   }, [pathname, isMounted]);
