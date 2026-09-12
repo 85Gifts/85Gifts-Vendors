@@ -15,6 +15,7 @@ export interface AuthContextType {
   authError?: string;
   register: (userData: RegisterData) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
+  loginWithGoogle: () => void;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<Vendor>) => Promise<any>;
   forgotPassword: (email: string) => Promise<any>;

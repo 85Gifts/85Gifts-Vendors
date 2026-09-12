@@ -169,6 +169,13 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     return data;
   };
 
+  // Google OAuth (server redirect flow via backend).
+  // Navigates to /api/auth/google which 302s to
+  // {BACKEND}/api/vendors/auth/google -> Google consent.
+  const loginWithGoogle = () => {
+    window.location.href = '/api/auth/google';
+  };
+
   return (
     <VendorAuthContext.Provider
       value={{
@@ -177,6 +184,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
         authError,
         register,
         login,
+        loginWithGoogle,
         logout,
         updateProfile,
         forgotPassword, // Add this line

@@ -46,6 +46,7 @@ export default function AuthPage() {
   });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const formContainerRef = useRef<HTMLDivElement>(null);
 
   const { login, register, isAuthenticated, loading: authLoading } = useVendorAuth();
@@ -57,6 +58,23 @@ export default function AuthPage() {
       router.push('/dashboard');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  // Surface Google OAuth failures redirected back as ?error=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('error');
+    if (oauthError) {
+      const message = decodeURIComponent(oauthError);
+      setError(message);
+      toast({
+        title: "Google sign-in failed",
+        description: message,
+        variant: "destructive",
+      });
+      // Clean the URL so refresh doesn't re-show the error
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [toast]);
 
   const [, setErrors] = useState<{
     name?: string;
@@ -286,6 +304,14 @@ export default function AuthPage() {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
+
+  const handleGoogleAuth = () => {
+    setGoogleLoading(true);
+    setError("");
+    // Server route redirects to the backend Google consent entry point
+    // (GET {BACKEND}/api/vendors/auth/google -> 302 to accounts.google.com).
+    window.location.href = "/api/auth/google";
+  };
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background">
@@ -719,7 +745,8 @@ export default function AuthPage() {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    disabled={loading}
+                    disabled={loading || googleLoading}
+                    onClick={handleGoogleAuth}
                   >
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
@@ -739,7 +766,11 @@ export default function AuthPage() {
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                       />
                     </svg>
-                    Continue with Google
+                    {googleLoading
+                      ? "Redirecting to Google..."
+                      : activeTab === "login"
+                        ? "Continue with Google"
+                        : "Sign up with Google"}
                   </Button>
                 </div>
               </>
