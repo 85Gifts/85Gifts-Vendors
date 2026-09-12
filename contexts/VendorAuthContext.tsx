@@ -24,6 +24,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     const isAuthPage = pathname === '/login' || 
                        pathname === '/register' || 
                        pathname === '/forgot-password' ||
+                       pathname?.startsWith('/auth/') ||
                        pathname?.startsWith('/reset-password') || 
                        pathname?.startsWith('/verify-email') ||
                        pathname === '/verifyEmail';
