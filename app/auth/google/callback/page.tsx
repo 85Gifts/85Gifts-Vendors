@@ -21,6 +21,7 @@ function GoogleCallbackInner() {
       searchParams.get('token') ||
       undefined;
     const refreshToken = searchParams.get('refreshToken') || undefined;
+    const vendor = searchParams.get('vendor') || undefined;
 
     if (!accessToken && !refreshToken) {
       setError(
@@ -38,7 +39,7 @@ function GoogleCallbackInner() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ accessToken, refreshToken }),
+          body: JSON.stringify({ accessToken, refreshToken, vendor }),
         });
         const data = await response.json().catch(() => ({}));
         if (cancelled) return;

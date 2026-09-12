@@ -5,6 +5,23 @@ import { config } from '@/config';
 interface SessionBody {
   accessToken?: string;
   refreshToken?: string;
+  vendor?: { _id?: string; id?: string; name?: string } | string;
+}
+
+function parseVendorParam(raw: SessionBody['vendor']): {
+  _id?: string;
+  id?: string;
+  name?: string;
+} | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === 'object') return raw;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') return parsed;
+  } catch {
+    // Not JSON — ignore.
+  }
+  return undefined;
 }
 
 function setSessionCookies(
@@ -57,6 +74,16 @@ function setSessionCookies(
   }
 }
 
+// Backend error envelopes carry the message at different spots — and may
+// nest it inside an object (which can even contain a stack trace, so never
+// forward `error` itself, only its message string).
+function extractErrorMessage(data: any, fallback: string): string {
+  if (typeof data?.message === 'string') return data.message;
+  if (typeof data?.error === 'string') return data.error;
+  if (typeof data?.error?.message === 'string') return data.error.message;
+  return fallback;
+}
+
 // The backend wraps payloads inconsistently; unwrap every known envelope.
 function unwrap(data: any) {
   return data?.data?.data ?? data?.data ?? data ?? {};
@@ -83,21 +110,27 @@ function extractTokens(payload: any): {
 /**
  * Completes a vendor Google OAuth sign-in in the browser.
  *
- * The backend redirects here (via /auth/google/callback) with only a
- * `refreshToken` query param. The vendor session in this frontend runs on
- * the `accessToken` cookie, so this endpoint exchanges the refresh token
- * at the backend (POST /api/vendors/auth/refresh, Bearer auth) and
- * persists the resulting session cookies.
+ * The backend redirects here (via /auth/google/callback) with
+ * `?accessToken=...&refreshToken=...&vendor=...`. The vendor session in
+ * this frontend runs on the `accessToken` cookie:
  *
- * If an access token is supplied directly it is stored without exchange.
+ * - access token present  -> stored directly, no exchange needed.
+ * - only refresh token    -> exchanged at the backend's refresh endpoint
+ *   (POST /api/vendors/refresh-tokens, JSON body { refreshToken }) and
+ *   the resulting session cookies are persisted.
  */
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as SessionBody;
   const cookieStore = await cookies();
+  const queryVendor = parseVendorParam(body.vendor);
 
   // 1. Direct access-token handoff — no exchange needed.
   if (body.accessToken) {
-    setSessionCookies(cookieStore, { accessToken: body.accessToken });
+    setSessionCookies(cookieStore, {
+      accessToken: body.accessToken,
+      refreshToken: body.refreshToken,
+      vendor: queryVendor,
+    });
     return NextResponse.json({ success: true });
   }
 
@@ -111,13 +144,11 @@ export async function POST(request: NextRequest) {
 
     try {
       const exchange = await fetch(
-        `${normalized}/api/vendors/auth/refresh`,
+        `${normalized}/api/vendors/refresh-tokens`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${body.refreshToken}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: body.refreshToken }),
         }
       );
       const data = await exchange.json().catch(() => ({}));
@@ -126,8 +157,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error:
-              data?.message || data?.error || 'Google login failed, please try again',
+            error: extractErrorMessage(
+              data,
+              'Google login failed, please try again'
+            ),
           },
           { status: 401 }
         );
@@ -145,11 +178,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Keep the rotated refresh token when the backend returns one,
-      // otherwise keep the one we were given.
+      // otherwise keep the one we were given. Vendor details come from
+      // the exchange payload, falling back to the callback query param.
       setSessionCookies(cookieStore, {
         accessToken,
         refreshToken: refreshToken || body.refreshToken,
-        vendor,
+        vendor: vendor || queryVendor,
       });
       return NextResponse.json({ success: true });
     } catch {
