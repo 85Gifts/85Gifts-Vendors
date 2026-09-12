@@ -8,6 +8,7 @@ export const redirectToLogin = () => {
   // Don't redirect if already on login page or other auth pages
   if (currentPath === "/login" || 
       currentPath === "/register" || 
+      currentPath.startsWith("/auth/") ||
       currentPath.startsWith("/reset-password") || 
       currentPath.startsWith("/verify-email") ||
       currentPath === "/verifyEmail") {
