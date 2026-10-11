@@ -70,6 +70,7 @@ export default function ProductsTab() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
   const [showEditProduct, setShowEditProduct] = useState(false)
+  const [showCreateProduct, setShowCreateProduct] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
   const router = useRouter()
@@ -112,8 +113,8 @@ export default function ProductsTab() {
   }
 
   const onAddProductClick = useCallback(() => {
-    showComingSoon({ featureLabel: "Add new product" })
-  }, [showComingSoon])
+    setShowCreateProduct(true)
+  }, [])
 
   // Carousel state for mobile
   const [currentSlide, setCurrentSlide] = useState<number>(0)
@@ -563,7 +564,7 @@ export default function ProductsTab() {
 
       {/* Products Grid */}
       {!productsLoading && !productsError && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -572,87 +573,71 @@ export default function ProductsTab() {
             </div>
           ) : (
             filteredProducts.map((product) => (
-              <div key={product.id} className="bg-card rounded-xl shadow-sm border dark:border-border hover:shadow-md transition-shadow overflow-hidden">
+              <div key={product.id} className="group bg-card rounded-lg shadow-sm border dark:border-border hover:shadow-lg transition-all overflow-hidden relative">
                 {/* Product Image */}
-                <div className="relative w-full h-48 bg-muted flex items-center justify-center overflow-hidden">
-                  {/* Manage Inventory Button */}
-                  <Button
-                    onClick={() => handleManageInventory(product)}
-                    size="xs"
-                    className="absolute top-2 right-2 z-10 flex items-center gap-1.5"
-                    title="Manage Inventory"
-                  >
-                    <Boxes className="w-3 h-3" />
-                    <span>Manage Inventory</span>
-                  </Button>
-                  
+                <div className="relative w-full aspect-square bg-muted flex items-center justify-center overflow-hidden">
                   {product.image && product.image.startsWith('http') ? (
                     <img 
                       src={product.image} 
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       onError={(e) => {
-                        // Fallback to emoji if image fails to load
                         const target = e.currentTarget as HTMLImageElement;
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent && !parent.querySelector('.fallback-emoji')) {
                           const emoji = document.createElement('span');
-                          emoji.className = 'fallback-emoji text-6xl';
+                          emoji.className = 'fallback-emoji text-4xl';
                           emoji.textContent = '🎁';
                           parent.appendChild(emoji);
                         }
                       }}
                     />
                   ) : (
-                    <span className="text-6xl">{product.image || '🎁'}</span>
+                    <span className="text-4xl">{product.image || '🎁'}</span>
                   )}
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2 dark:text-white">{product.name}</h3>
-                    </div>
-                    <div className="flex gap-2 ml-2">
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                        title="Edit product"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                        title="Delete product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-muted-foreground">{product.category}</span>
-                    <Badge className={getStatusColor(product.status)}>
-                      {product.status.replace("_", " ")}
+                  
+                  {/* Status Badge - Top Right */}
+                  <div className="absolute top-2 right-2">
+                    <Badge className={`${getStatusColor(product.status)} text-xs`}>
+                      {product.status === "out_of_stock" ? "Out" : product.status === "inactive" ? "Inactive" : "Active"}
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-4 mb-3 text-sm text-muted-foreground">
-                    <span>Stock: {product.stock}</span>
-                    <span>Sales: {product.sales}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <span>{product.rating}</span>
-                    </div>
+                  {/* Action Buttons - Visible on Hover */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center gap-2 p-2">
+                    <button
+                      onClick={() => handleEditProduct(product)}
+                      className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-white px-2 py-1 rounded text-xs transition-colors"
+                      title="Edit product"
+                    >
+                      <Edit className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product)}
+                      className="flex items-center gap-1 bg-destructive hover:bg-destructive/90 text-white px-2 py-1 rounded text-xs transition-colors"
+                      title="Delete product"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Product Info */}
+                <div className="p-2">
+                  <h3 className="font-medium text-xs line-clamp-2 mb-1 dark:text-white">{product.name}</h3>
+                  
+                  <div className="flex items-center gap-1 mb-2 text-xs text-muted-foreground">
+                    <span className="truncate">{product.category}</span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-foreground">
+                    <span className="font-bold text-sm text-foreground">
                       {currencyFormatter.format(product.price)}
                     </span>
-                    <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">{product.giftCategory}</span>
+                    <span className="text-xs text-muted-foreground">Stock: {product.stock}</span>
                   </div>
                 </div>
               </div>
@@ -687,6 +672,24 @@ export default function ProductsTab() {
             toast({
               title: "Product updated",
               description: "The product has been successfully updated.",
+              variant: "success",
+            })
+          }}
+        />
+      )}
+
+      {showCreateProduct && (
+        <ProductForm
+          isEdit={false}
+          onclose={() => {
+            setShowCreateProduct(false)
+          }}
+          onSuccess={async () => {
+            await fetchProducts()
+            setShowCreateProduct(false)
+            toast({
+              title: "Product created",
+              description: "The product has been successfully created.",
               variant: "success",
             })
           }}
