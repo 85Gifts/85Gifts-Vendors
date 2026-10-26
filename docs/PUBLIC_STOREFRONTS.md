@@ -55,11 +55,15 @@ repository is not modified by this branch.
 
 ## Local preview
 
-The backend does not implement these endpoints yet, so UI work can be checked
-against any local mock server by pointing the frontend at it:
+The backend does not implement these endpoints yet, so this branch includes a
+small mock API with demo storefronts and sample photos:
 
 ```bash
+pnpm mock:storefronts
 API_URL=http://127.0.0.1:5501 pnpm dev --port 3100
 ```
 
 Then open `http://localhost:3100/storefronts`.
+
+The mock reads its images from `public/storefront-samples/`; attribution and
+source links are in `public/storefront-samples/README.md`.

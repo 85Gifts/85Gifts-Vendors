@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mock:storefronts": "node scripts/storefront-mock.js"
   },
   "dependencies": {
     "@animateicons/react": "^0.13.0",
