@@ -35,6 +35,9 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
                          pathname === '/' ||
                          pathname?.startsWith('/booking-success') ||
                          pathname?.startsWith('/inventory/') ||
+                         pathname?.startsWith('/storefronts') ||
+                         pathname?.startsWith('/store/') ||
+                         pathname?.startsWith('/order/') ||
                          pathname?.startsWith('/reseller-dashboard') ||
                          pathname?.startsWith('/admin');
 
