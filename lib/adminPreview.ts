@@ -8,6 +8,7 @@ import {
   FeeConfig,
   AdminUser,
 } from '@/app/types/admin'
+import type { OperationRequest } from '@/app/types/operationRequest'
 
 export const ADMIN_PREVIEW =
   process.env.NEXT_PUBLIC_ADMIN_PREVIEW === 'true'
@@ -390,6 +391,95 @@ export const previewFeeConfigs: FeeConfig[] = [
     description: '₦5 per bulk SMS (paused)',
     createdAt: '2026-08-02T00:00:00.000Z',
     updatedAt: '2026-08-10T00:00:00.000Z',
+  },
+]
+
+export const previewOperationRequests: OperationRequest[] = [
+  {
+    _id: '665f4c7b89c0a8f7e55da001',
+    type: 'storefront_publish',
+    status: 'pending',
+    requesterId: '665f4c7b89c0a8f7e55d8001',
+    requesterRole: 'vendor',
+    targetId: '665f4c7b89c0a8f7e55dc001',
+    targetType: 'Storefront',
+    payload: {
+      storefrontId: '665f4c7b89c0a8f7e55dc001',
+      name: 'Lagos Tech Summit Store',
+      slug: 'lagos-tech-summit-store',
+    },
+    createdAt: '2026-10-22T09:15:00.000Z',
+    updatedAt: '2026-10-22T09:15:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55da002',
+    type: 'storefront_publish',
+    status: 'pending',
+    requesterId: '665f4c7b89c0a8f7e55d8002',
+    requesterRole: 'vendor',
+    targetId: '665f4c7b89c0a8f7e55dc002',
+    targetType: 'Storefront',
+    payload: {
+      storefrontId: '665f4c7b89c0a8f7e55dc002',
+      name: 'Gift Wrapped',
+      slug: 'gift-wrapped',
+    },
+    createdAt: '2026-10-23T14:40:00.000Z',
+    updatedAt: '2026-10-23T14:40:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55da003',
+    type: 'storefront_publish',
+    status: 'approved',
+    requesterId: '665f4c7b89c0a8f7e55d8003',
+    requesterRole: 'vendor',
+    targetId: '665f4c7b89c0a8f7e55dc003',
+    targetType: 'Storefront',
+    payload: {
+      storefrontId: '665f4c7b89c0a8f7e55dc003',
+      name: 'Luxury Hampers',
+      slug: 'luxury-hampers',
+    },
+    reviewedBy: '665f4c7b89c0a8f7e55d1001',
+    reviewedAt: '2026-10-20T11:05:00.000Z',
+    reviewNote: 'Looks good. Approved for the holiday campaign.',
+    createdAt: '2026-10-19T16:20:00.000Z',
+    updatedAt: '2026-10-20T11:05:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55da004',
+    type: 'storefront_publish',
+    status: 'rejected',
+    requesterId: '665f4c7b89c0a8f7e55d8004',
+    requesterRole: 'vendor',
+    targetId: '665f4c7b89c0a8f7e55dc004',
+    targetType: 'Storefront',
+    payload: {
+      storefrontId: '665f4c7b89c0a8f7e55dc004',
+      name: 'Test Store',
+      slug: 'test-store',
+    },
+    reviewedBy: '665f4c7b89c0a8f7e55d1001',
+    reviewedAt: '2026-10-18T08:30:00.000Z',
+    reviewNote: 'Add a banner and at least three products before resubmitting.',
+    createdAt: '2026-10-17T12:00:00.000Z',
+    updatedAt: '2026-10-18T08:30:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55da005',
+    type: 'storefront_publish',
+    status: 'cancelled',
+    requesterId: '665f4c7b89c0a8f7e55d8005',
+    requesterRole: 'vendor',
+    targetId: '665f4c7b89c0a8f7e55dc005',
+    targetType: 'Storefront',
+    payload: {
+      storefrontId: '665f4c7b89c0a8f7e55dc005',
+      name: 'Draft Gifts',
+      slug: 'draft-gifts',
+    },
+    createdAt: '2026-10-16T10:10:00.000Z',
+    updatedAt: '2026-10-16T10:25:00.000Z',
   },
 ]
 

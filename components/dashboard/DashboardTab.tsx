@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import { redirectToLogin } from "@/lib/authRedirect"
 import { Button } from "@/components/ui/button"
-import { CardSpotlight } from "@/components/ui/card-spotlight"
+import { Card } from "@/components/ui/card"
 import FundWalletModal from "./FundWalletModal"
 import PerformanceMetricsCard from "./PerformanceMetricsCard"
 import RecentTransactions from "./RecentTransactions"
@@ -477,11 +477,10 @@ export default function DashboardTab() {
           {statsCards.map((card) => {
             const Icon = card.icon
             return (
-              <CardSpotlight
+              <Card
                 key={card.id}
                 data-tour-id={card.id === 'available-balance' ? 'dash-wallet' : card.id === 'total-earnings' ? 'dash-withdraw' : undefined}
-                className="p-6"
-                spotColor="rgba(85, 110, 230, 0.18)"
+                className="p-6 gap-0 shadow-sm"
               >
                 <div className={`flex items-start justify-between ${card.hasButton ? 'mb-4' : ''}`}>
                   <div>
@@ -513,7 +512,7 @@ export default function DashboardTab() {
                     </Button>
                   </div>
                 )}
-              </CardSpotlight>
+              </Card>
             )
           })}
         </div>
@@ -535,10 +534,9 @@ export default function DashboardTab() {
                   key={card.id}
                   className="min-w-full snap-center"
                 >
-                  <CardSpotlight
+                  <Card
                     data-tour-id={card.id === 'available-balance' ? 'dash-wallet' : card.id === 'total-earnings' ? 'dash-withdraw' : undefined}
-                    className="p-6 h-full min-h-[160px] flex flex-col justify-between"
-                    spotColor="rgba(85, 110, 230, 0.18)"
+                    className="p-6 h-full min-h-[160px] justify-between gap-0 shadow-sm"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -572,7 +570,7 @@ export default function DashboardTab() {
                         <div></div>
                       )}
                     </div>
-                  </CardSpotlight>
+                  </Card>
                 </div>
               )
             })}

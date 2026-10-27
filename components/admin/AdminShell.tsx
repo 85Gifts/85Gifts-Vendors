@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   CalendarCheck,
+  ClipboardCheck,
   Wallet,
   Landmark,
   Tags,
@@ -32,6 +33,7 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -40,10 +42,17 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { useAdminAuth } from "@/contexts/AdminAuthContext"
+import { adminApi } from "@/lib/adminApi"
+import { subscribeToOperationRequestsChanged } from "@/lib/operationRequestsEvents"
 
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Events", url: "/admin/events", icon: CalendarCheck },
+  {
+    title: "Operation Requests",
+    url: "/admin/operation-requests",
+    icon: ClipboardCheck,
+  },
   { title: "Wallet Transactions", url: "/admin/transactions", icon: Wallet },
   { title: "Settlements", url: "/admin/settlements", icon: Landmark },
   { title: "Fee Settings", url: "/admin/fees", icon: Tags },
@@ -52,6 +61,7 @@ const navItems = [
 const NAV_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/events": "Events",
+  "/admin/operation-requests": "Operation Requests",
   "/admin/transactions": "Wallet Transactions",
   "/admin/settlements": "Settlements",
   "/admin/fees": "Fee Settings",
@@ -61,6 +71,41 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { admin, logout } = useAdminAuth()
+  const [pendingRequestCount, setPendingRequestCount] = React.useState(0)
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    const loadCount = async () => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      ) {
+        return
+      }
+
+      try {
+        const count = await adminApi.pendingOperationRequestCount()
+        if (!cancelled) setPendingRequestCount(count)
+      } catch {
+        // The badge is auxiliary; never block navigation on it.
+      }
+    }
+
+    void loadCount()
+    const unsubscribe = subscribeToOperationRequestsChanged(() => {
+      void loadCount()
+    })
+    const timer = window.setInterval(() => {
+      void loadCount()
+    }, 60_000)
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+      window.clearInterval(timer)
+    }
+  }, [pathname])
 
   const isActive = (url: string) =>
     url === "/admin" ? pathname === url : pathname.startsWith(url)
@@ -130,6 +175,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
+                      {item.url === "/admin/operation-requests" &&
+                        pendingRequestCount > 0 && (
+                          <SidebarMenuBadge className="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                            {pendingRequestCount > 99
+                              ? "99+"
+                              : pendingRequestCount}
+                          </SidebarMenuBadge>
+                        )}
                     </SidebarMenuItem>
                   )
                 })}
@@ -153,7 +206,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
           <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
             <SidebarTrigger className="-ml-1" />

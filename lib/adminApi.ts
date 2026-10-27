@@ -8,6 +8,7 @@ import {
   FeeConfig,
   Pagination,
 } from '@/app/types/admin'
+import type { OperationRequest } from '@/app/types/operationRequest'
 import {
   ADMIN_PREVIEW,
   previewStats,
@@ -17,6 +18,8 @@ import {
   previewSettlementStats,
   previewSettlementTransactions,
   previewFeeConfigs,
+  previewOperationRequests,
+  previewAdminUser,
   previewList,
 } from '@/lib/adminPreview'
 
@@ -58,6 +61,25 @@ function toList<T>(json: any): { items: T[]; pagination: Pagination } {
       page: 1,
       limit: 20,
       total: 0,
+      pages: 1,
+    },
+  }
+}
+
+function toOperationRequestList(json: any): ListResult<OperationRequest> {
+  const payload = inner(json)
+  const requests = Array.isArray(payload?.requests)
+    ? (payload.requests as OperationRequest[])
+    : Array.isArray(payload?.data)
+      ? (payload.data as OperationRequest[])
+      : []
+
+  return {
+    items: requests,
+    pagination: payload?.pagination ?? {
+      page: 1,
+      limit: 20,
+      total: requests.length,
       pages: 1,
     },
   }
@@ -273,5 +295,100 @@ export const adminApi = {
       body: JSON.stringify({ isActive }),
     })
     return inner(json)?.data as FeeConfig
+  },
+
+  listOperationRequests: async (
+    params: Record<string, string | number | undefined>
+  ): Promise<ListResult<OperationRequest>> => {
+    if (ADMIN_PREVIEW) {
+      const { status, type } = params
+      const filtered = previewOperationRequests
+        .filter((r) => {
+          const matchesStatus = !status || r.status === status
+          const matchesType = !type || r.type === type
+          return matchesStatus && matchesType
+        })
+        .slice()
+        .sort(
+          (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+        )
+      return previewList(filtered)
+    }
+    const json = await request(`/api/admin/operation-requests${buildQuery(params)}`)
+    return toOperationRequestList(json)
+  },
+
+  getOperationRequest: async (requestId: string): Promise<OperationRequest> => {
+    if (ADMIN_PREVIEW) {
+      const found = previewOperationRequests.find((r) => r._id === requestId)
+      if (!found) throw new Error('Operation request not found')
+      return found
+    }
+    const json = await request(`/api/admin/operation-requests/${requestId}`)
+    const data = inner(json)
+    return (data?.request ?? data) as OperationRequest
+  },
+
+  approveOperationRequest: async (
+    requestId: string,
+    note?: string
+  ): Promise<OperationRequest> => {
+    if (ADMIN_PREVIEW) {
+      const request = previewOperationRequests.find((r) => r._id === requestId)
+      if (!request) throw new Error('Operation request not found')
+      const now = new Date().toISOString()
+      request.status = 'approved'
+      request.reviewedBy = previewAdminUser._id
+      request.reviewedAt = now
+      request.reviewNote = note?.trim() || undefined
+      request.updatedAt = now
+      return request
+    }
+    const trimmed = note?.trim()
+    const json = await request(
+      `/api/admin/operation-requests/${requestId}/approve`,
+      {
+        method: 'POST',
+        body: JSON.stringify(trimmed ? { note: trimmed } : {}),
+      }
+    )
+    const data = inner(json)
+    return (data?.request ?? data) as OperationRequest
+  },
+
+  rejectOperationRequest: async (
+    requestId: string,
+    note: string
+  ): Promise<OperationRequest> => {
+    if (ADMIN_PREVIEW) {
+      const request = previewOperationRequests.find((r) => r._id === requestId)
+      if (!request) throw new Error('Operation request not found')
+      const now = new Date().toISOString()
+      request.status = 'rejected'
+      request.reviewedBy = previewAdminUser._id
+      request.reviewedAt = now
+      request.reviewNote = note.trim()
+      request.updatedAt = now
+      return request
+    }
+    const json = await request(
+      `/api/admin/operation-requests/${requestId}/reject`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ note: note.trim() }),
+      }
+    )
+    const data = inner(json)
+    return (data?.request ?? data) as OperationRequest
+  },
+
+  pendingOperationRequestCount: async (): Promise<number> => {
+    if (ADMIN_PREVIEW) {
+      return previewOperationRequests.filter((r) => r.status === 'pending').length
+    }
+    const json = await request(
+      '/api/admin/operation-requests?status=pending&limit=1'
+    )
+    return toOperationRequestList(json).pagination.total
   },
 }
