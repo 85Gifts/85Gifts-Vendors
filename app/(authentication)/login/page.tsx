@@ -59,6 +59,14 @@ export default function AuthPage() {
     }
   }, [isAuthenticated, authLoading, router]);
 
+  // Open the signup form when arriving from a "Start Selling" link.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'signup') {
+      setActiveTab('signup');
+    }
+  }, []);
+
   // Surface Google OAuth failures redirected back as ?error=...
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
