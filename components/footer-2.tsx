@@ -1,18 +1,12 @@
 import { cn } from "@/lib/utils";
-import { GithubIcon } from "@/components/icons/github-icon";
-import { InstagramIcon } from "@/components/icons/instagram-icon";
-import { XIcon } from "@/components/icons/x-icon";
-import { Logo } from "@/components/logo";
+import { GithubIcon, InstagramIcon, XIcon } from "@animateicons/react/lucide";
 import { Button } from "@/components/ui/button";
 import { FullWidthDivider } from "@/components/full-width-divider";
 
 export function Footer2() {
 	return (
 		<footer
-			className={cn(
-				"relative mx-auto max-w-5xl lg:border-x",
-				"dark:bg-[radial-gradient(35%_80%_at_15%_0%,--theme(--color-foreground/.1),transparent)]"
-			)}
+			className={cn("relative mx-auto max-w-5xl lg:border-x")}
 		>
 			<FullWidthDivider position="top" />
 			<div className="grid max-w-5xl grid-cols-6 gap-6 p-4">
@@ -125,15 +119,15 @@ const resources = [
 
 const socialLinks = [
 	{
-		icon: <GithubIcon />,
+		icon: <GithubIcon size={18} />,
 		link: "#",
 	},
 	{
-		icon: <InstagramIcon />,
+		icon: <InstagramIcon size={18} />,
 		link: "#",
 	},
 	{
-		icon: <XIcon />,
+		icon: <XIcon size={18} />,
 		link: "#",
 	},
 ];
