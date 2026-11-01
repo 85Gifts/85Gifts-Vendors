@@ -6,6 +6,8 @@ interface SessionBody {
   accessToken?: string;
   refreshToken?: string;
   vendor?: { _id?: string; id?: string; name?: string } | string;
+  vendorId?: string;
+  vendorName?: string;
 }
 
 function parseVendorParam(raw: SessionBody['vendor']): {
@@ -122,7 +124,11 @@ function extractTokens(payload: any): {
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as SessionBody;
   const cookieStore = await cookies();
-  const queryVendor = parseVendorParam(body.vendor);
+  const queryVendor =
+    parseVendorParam(body.vendor) ||
+    (body.vendorId || body.vendorName
+      ? { _id: body.vendorId, name: body.vendorName }
+      : undefined);
 
   // 1. Direct access-token handoff — no exchange needed.
   if (body.accessToken) {

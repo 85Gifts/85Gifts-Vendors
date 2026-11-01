@@ -3,6 +3,7 @@
 import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadMultipleImagesToCloudinary, validateImageFile } from '@/lib/cloudinary';
+import { useVendorAuth } from '@/contexts/VendorAuthContext';
 import { X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 // import { Product } from '@/types/product';
@@ -39,6 +40,44 @@ interface Product {
 
 
 
+function readStoredVendorId(): string {
+  if (typeof window === 'undefined') return '';
+
+  const fromStorage = localStorage.getItem('vendorId');
+  if (fromStorage) return fromStorage;
+
+  const vendorIdCookie = document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('vendorId='));
+
+  if (!vendorIdCookie) return '';
+
+  try {
+    return decodeURIComponent(vendorIdCookie.slice('vendorId='.length));
+  } catch {
+    return vendorIdCookie.slice('vendorId='.length);
+  }
+}
+
+async function fetchVendorIdFromProfile(): Promise<string> {
+  const response = await fetch('/api/profile', { credentials: 'include' });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) return '';
+
+  const profile = data?.data?.data ?? data?.data ?? data;
+  const vendor = profile?.vendor ?? profile;
+  const vendorId = vendor?._id || vendor?.id;
+  if (!vendorId) return '';
+
+  const id = String(vendorId);
+  localStorage.setItem('vendorId', id);
+  if (vendor?.name) {
+    localStorage.setItem('vendorName', vendor.name);
+  }
+  return id;
+}
+
 export default function ProductForm({ product = null, isEdit = false, onclose, onSuccess}: ProductFormProps) {
   const [formData, setFormData] = useState<FormData>({
     vendorId: '',
@@ -57,28 +96,19 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
   const [validationErrors, setValidationErrors] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const { vendor } = useVendorAuth();
 
-  // Fetch vendor ID from localStorage on component mount
+  // Resolve vendor ID from the session, then localStorage / cookies.
   useEffect(() => {
-    const getVendorId = () => {
-      // Try localStorage first
-      const vendorId = localStorage.getItem('vendorId');
-      if (vendorId) {
-        setFormData(prev => ({ ...prev, vendorId }));
-        return;
-      }
-      
-      // Fallback to cookies if localStorage is not available
-      const cookies = document.cookie.split(';');
-      const vendorIdCookie = cookies.find(cookie => cookie.trim().startsWith('vendorId='));
-      if (vendorIdCookie) {
-        const id = vendorIdCookie.split('=')[1];
-        setFormData(prev => ({ ...prev, vendorId: id }));
-      }
-    };
-    
-    getVendorId();
-  }, []);
+    const vendorId =
+      vendor?._id ||
+      vendor?.id ||
+      readStoredVendorId();
+
+    if (vendorId) {
+      setFormData((prev) => ({ ...prev, vendorId: String(vendorId) }));
+    }
+  }, [vendor]);
 
   // Update form data when product prop changes (for editing)
   useEffect(() => {
@@ -178,17 +208,27 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
     setLoading(true);
     setUploadingImages(true);
 
-    // Get vendorId from localStorage or cookies if not in formData
-    let vendorId = formData.vendorId;
+    // Get vendorId from the session first, then storage, then the profile API.
+    // Google-auth users often have a valid session cookie but no localStorage vendorId.
+    let vendorId =
+      formData.vendorId ||
+      vendor?._id ||
+      vendor?.id ||
+      readStoredVendorId();
+
     if (!vendorId) {
-      vendorId = localStorage.getItem('vendorId') || 
-        document.cookie.split(';').find(c => c.trim().startsWith('vendorId='))?.split('=')[1] || '';
-      if (!vendorId) {
-        setError('Vendor ID not found. Please log in again.');
-        setLoading(false);
-        setUploadingImages(false);
-        return;
+      try {
+        vendorId = await fetchVendorIdFromProfile();
+      } catch {
+        vendorId = '';
       }
+    }
+
+    if (!vendorId) {
+      setError('Vendor ID not found. Please log in again.');
+      setLoading(false);
+      setUploadingImages(false);
+      return;
     }
 
     try {

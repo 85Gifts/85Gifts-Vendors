@@ -22,6 +22,10 @@ function GoogleCallbackInner() {
       undefined;
     const refreshToken = searchParams.get('refreshToken') || undefined;
     const vendor = searchParams.get('vendor') || undefined;
+    const vendorId =
+      searchParams.get('vendorId') || searchParams.get('id') || undefined;
+    const vendorName =
+      searchParams.get('vendorName') || searchParams.get('name') || undefined;
 
     if (!accessToken && !refreshToken) {
       setError(
@@ -39,11 +43,33 @@ function GoogleCallbackInner() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ accessToken, refreshToken, vendor }),
+          body: JSON.stringify({
+            accessToken,
+            refreshToken,
+            vendor,
+            vendorId,
+            vendorName,
+          }),
         });
         const data = await response.json().catch(() => ({}));
         if (cancelled) return;
         if (response.ok && data?.success !== false) {
+          let storedVendorId = vendorId;
+          if (!storedVendorId && vendor) {
+            try {
+              const parsed = JSON.parse(vendor);
+              storedVendorId = parsed?._id || parsed?.id || undefined;
+            } catch {
+              // vendor may be a raw id string
+              storedVendorId = vendor;
+            }
+          }
+          if (storedVendorId) {
+            localStorage.setItem('vendorId', String(storedVendorId));
+          }
+          if (vendorName) {
+            localStorage.setItem('vendorName', vendorName);
+          }
           router.replace('/dashboard');
         } else {
           setError(data?.error || 'Google login failed, please try again');

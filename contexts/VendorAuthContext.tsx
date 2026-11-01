@@ -6,6 +6,21 @@ import { apiClient, ApiError } from '../lib/api';
 
 const VendorAuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function unwrapVendor(data: any): any {
+  const payload = data?.data?.data ?? data?.data ?? data;
+  return payload?.vendor ?? payload;
+}
+
+function persistVendorIdentity(vendor: any) {
+  const vendorId = vendor?._id || vendor?.id;
+  if (vendorId) {
+    localStorage.setItem('vendorId', String(vendorId));
+  }
+  if (vendor?.name) {
+    localStorage.setItem('vendorName', vendor.name);
+  }
+}
+
 export function VendorAuthProvider({ children }: { children: ReactNode }) {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -63,16 +78,9 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     try {
       setAuthError("");
       const data = await apiClient('/api/profile');
-      setVendor(data);
-      
-      // Save vendor _id and name to localStorage on auth check
-      const vendorId = data._id || data.id;
-      if (vendorId) {
-        localStorage.setItem('vendorId', vendorId);
-      }
-      if (data.name) {
-        localStorage.setItem('vendorName', data.name);
-      }
+      const vendorData = unwrapVendor(data);
+      setVendor(vendorData);
+      persistVendorIdentity(vendorData);
     } catch (error: any) {
       const apiError = error as ApiError;
       console.error('Auth check failed:', error);
@@ -111,15 +119,7 @@ export function VendorAuthProvider({ children }: { children: ReactNode }) {
     // The API route returns { success: true, vendor: {...}, message: '...' }
     if (data.vendor) {
       setVendor(data.vendor);
-      
-      // Save vendor _id and name to localStorage
-      const vendorId = data.vendor._id || data.vendor.id;
-      if (vendorId) {
-        localStorage.setItem('vendorId', vendorId);
-      }
-      if (data.vendor.name) {
-        localStorage.setItem('vendorName', data.vendor.name);
-      }
+      persistVendorIdentity(data.vendor);
     }
     return data;
   };
