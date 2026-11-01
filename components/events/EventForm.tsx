@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { uploadImageToCloudinary, validateImageFile } from "@/lib/cloudinary"
 import { config } from "../../config"
 import Cookies from "js-cookie"
+import { useCategories } from "@/hooks/useCategories"
 
 type EventFormValues = {
   title: string
@@ -42,25 +43,6 @@ type Tier = {
   capacity: string
   type: "general" | "vip" | "vvip"
 }
-
-const validCategories = [
-  "music",
-  "sports",
-  "arts",
-  "business",
-  "technology",
-  "food",
-  "health",
-  "education",
-  "charity",
-  "comedy",
-  "theater",
-  "festival",
-  "conference",
-  "workshop",
-  "networking",
-  "other",
-]
 
 type EventFormProps = {
   mode?: "create" | "edit"
@@ -117,6 +99,15 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
     return defaultValues
   })
   
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories("event")
+  const categoryOptions = useMemo(() => {
+    const names = categories.map((category) => category.name)
+    if (values.category && !names.includes(values.category)) {
+      return [values.category, ...names]
+    }
+    return names
+  }, [categories, values.category])
+
   const [tiers, setTiers] = useState<Tier[]>(() => {
     if (props.initialTiers && props.initialTiers.length > 0) {
       return props.initialTiers
@@ -456,15 +447,26 @@ export default function EventForm(props: EventFormProps = {}): React.ReactElemen
                     <select
                       value={values.category}
                       onChange={handleChange("category")}
+                      disabled={categoriesLoading}
                       className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     >
-                      <option value="">Select type</option>
-                      {validCategories.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
+                      <option value="">
+                        {categoriesLoading ? "Loading categories..." : "Select type"}
+                      </option>
+                      {categoryOptions.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
                         </option>
                       ))}
                     </select>
+                    {!categoriesLoading && categoryOptions.length === 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        No event categories yet. An admin needs to create them.
+                      </p>
+                    )}
+                    {categoriesError && (
+                      <p className="mt-1 text-xs text-destructive">{categoriesError}</p>
+                    )}
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium mb-2 dark:text-foreground">Event Start</label>

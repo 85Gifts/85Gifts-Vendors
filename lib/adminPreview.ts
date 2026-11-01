@@ -9,6 +9,7 @@ import {
   AdminUser,
 } from '@/app/types/admin'
 import type { OperationRequest } from '@/app/types/operationRequest'
+import type { Category } from '@/app/types/category'
 
 export const ADMIN_PREVIEW =
   process.env.NEXT_PUBLIC_ADMIN_PREVIEW === 'true'
@@ -480,6 +481,41 @@ export const previewOperationRequests: OperationRequest[] = [
     },
     createdAt: '2026-10-16T10:10:00.000Z',
     updatedAt: '2026-10-16T10:25:00.000Z',
+  },
+]
+
+export const previewCategories: Category[] = [
+  {
+    _id: '665f4c7b89c0a8f7e55d9001',
+    name: 'Music',
+    type: 'event',
+    createdBy: previewAdminUser._id,
+    createdAt: '2026-11-01T08:30:00.000Z',
+    updatedAt: '2026-11-01T08:30:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55d9002',
+    name: 'Food',
+    type: 'event',
+    createdBy: previewAdminUser._id,
+    createdAt: '2026-11-01T08:31:00.000Z',
+    updatedAt: '2026-11-01T08:31:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55d9003',
+    name: 'Apparel',
+    type: 'product',
+    createdBy: previewAdminUser._id,
+    createdAt: '2026-11-01T08:32:00.000Z',
+    updatedAt: '2026-11-01T08:32:00.000Z',
+  },
+  {
+    _id: '665f4c7b89c0a8f7e55d9004',
+    name: 'Gift Sets',
+    type: 'product',
+    createdBy: previewAdminUser._id,
+    createdAt: '2026-11-01T08:33:00.000Z',
+    updatedAt: '2026-11-01T08:33:00.000Z',
   },
 ]
 

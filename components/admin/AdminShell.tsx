@@ -11,6 +11,7 @@ import {
   Wallet,
   Landmark,
   Tags,
+  FolderTree,
   LogOut,
   ShieldCheck,
 } from "lucide-react"
@@ -56,6 +57,7 @@ const navItems = [
   { title: "Wallet Transactions", url: "/admin/transactions", icon: Wallet },
   { title: "Settlements", url: "/admin/settlements", icon: Landmark },
   { title: "Fee Settings", url: "/admin/fees", icon: Tags },
+  { title: "Categories", url: "/admin/categories", icon: FolderTree },
 ]
 
 const NAV_TITLES: Record<string, string> = {
@@ -65,6 +67,7 @@ const NAV_TITLES: Record<string, string> = {
   "/admin/transactions": "Wallet Transactions",
   "/admin/settlements": "Settlements",
   "/admin/fees": "Fee Settings",
+  "/admin/categories": "Categories",
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

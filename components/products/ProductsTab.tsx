@@ -20,6 +20,7 @@ import { useToast } from "../ui/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import ProductForm from "@/components/ProductForm"
+import { useCategories } from "@/hooks/useCategories"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -120,7 +121,12 @@ export default function ProductsTab() {
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
 
-  const categories = ["Gift Sets", "Food & Treats", "Personalized", "Electronics", "Home & Garden", "Fashion"]
+  const { categories: productCategories } = useCategories("product")
+  const categories = useMemo(() => {
+    const fromApi = productCategories.map((category) => category.name)
+    const fromProducts = products.map((product) => product.category).filter(Boolean)
+    return Array.from(new Set([...fromApi, ...fromProducts]))
+  }, [productCategories, products])
 
   const currencyFormatter = useMemo(
     () =>

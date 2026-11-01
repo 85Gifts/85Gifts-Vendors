@@ -9,6 +9,12 @@ import {
   Pagination,
 } from '@/app/types/admin'
 import type { OperationRequest } from '@/app/types/operationRequest'
+import type {
+  Category,
+  CategoryType,
+  CreateCategoryBody,
+  UpdateCategoryBody,
+} from '@/app/types/category'
 import {
   ADMIN_PREVIEW,
   previewStats,
@@ -20,6 +26,7 @@ import {
   previewFeeConfigs,
   previewOperationRequests,
   previewAdminUser,
+  previewCategories,
   previewList,
 } from '@/lib/adminPreview'
 
@@ -380,6 +387,106 @@ export const adminApi = {
     )
     const data = inner(json)
     return (data?.request ?? data) as OperationRequest
+  },
+
+  listCategories: async (type?: CategoryType): Promise<Category[]> => {
+    if (ADMIN_PREVIEW) {
+      return previewCategories
+        .filter((category) => !type || category.type === type)
+        .slice()
+        .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name))
+    }
+    // GET /api/admin/categories?type=event|product — payload is { success, data: { message, data: Category[] } }
+    const json = await request(`/api/admin/categories${buildQuery({ type })}`)
+    const payload = inner(json)
+    if (Array.isArray(payload?.data)) return payload.data as Category[]
+    if (Array.isArray(payload)) return payload as Category[]
+    return []
+  },
+
+  createCategory: async (body: CreateCategoryBody): Promise<Category> => {
+    if (ADMIN_PREVIEW) {
+      const name = body.name.trim()
+      const exists = previewCategories.some(
+        (category) =>
+          category.type === body.type &&
+          category.name.toLowerCase() === name.toLowerCase()
+      )
+      if (exists) {
+        throw new Error(`A ${body.type} category named "${name}" already exists`)
+      }
+      const created: Category = {
+        _id: `preview-cat-${Date.now()}`,
+        name,
+        type: body.type,
+        createdBy: previewAdminUser._id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      previewCategories.unshift(created)
+      return created
+    }
+    const json = await request('/api/admin/categories', {
+      method: 'POST',
+      body: JSON.stringify({ name: body.name.trim(), type: body.type }),
+    })
+    return inner(json)?.data as Category
+  },
+
+  updateCategory: async (
+    categoryId: string,
+    body: UpdateCategoryBody
+  ): Promise<Category> => {
+    const payload: UpdateCategoryBody = {}
+    if (body.name !== undefined) payload.name = body.name.trim()
+    if (body.type !== undefined) payload.type = body.type
+
+    if (payload.name === undefined && payload.type === undefined) {
+      throw new Error('Send at least a name or type to update')
+    }
+
+    if (ADMIN_PREVIEW) {
+      const idx = previewCategories.findIndex((category) => category._id === categoryId)
+      if (idx === -1) throw new Error('Category not found')
+
+      const nextName = payload.name ?? previewCategories[idx].name
+      const nextType = payload.type ?? previewCategories[idx].type
+      const conflict = previewCategories.some(
+        (category) =>
+          category._id !== categoryId &&
+          category.type === nextType &&
+          category.name.toLowerCase() === nextName.toLowerCase()
+      )
+      if (conflict) {
+        throw new Error(`A ${nextType} category named "${nextName}" already exists`)
+      }
+
+      previewCategories[idx] = {
+        ...previewCategories[idx],
+        name: nextName,
+        type: nextType,
+        updatedAt: new Date().toISOString(),
+      }
+      return previewCategories[idx]
+    }
+
+    const json = await request(`/api/admin/categories/${encodeURIComponent(categoryId)}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+    return inner(json)?.data as Category
+  },
+
+  deleteCategory: async (categoryId: string): Promise<void> => {
+    if (ADMIN_PREVIEW) {
+      const idx = previewCategories.findIndex((category) => category._id === categoryId)
+      if (idx === -1) throw new Error('Category not found')
+      previewCategories.splice(idx, 1)
+      return
+    }
+    await request(`/api/admin/categories/${encodeURIComponent(categoryId)}`, {
+      method: 'DELETE',
+    })
   },
 
   pendingOperationRequestCount: async (): Promise<number> => {

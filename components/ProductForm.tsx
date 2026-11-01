@@ -4,6 +4,7 @@ import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadMultipleImagesToCloudinary, validateImageFile } from '@/lib/cloudinary';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
+import { useCategories } from '@/hooks/useCategories';
 import { X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 // import { Product } from '@/types/product';
@@ -97,6 +98,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const { vendor } = useVendorAuth();
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories('product');
 
   // Resolve vendor ID from the session, then localStorage / cookies.
   useEffect(() => {
@@ -136,7 +138,7 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
     }
   }, [product, isEdit]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -401,14 +403,35 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
         <div>
           <label className="block text-sm font-medium mb-1 dark:text-foreground">Category</label>
-          <input
-            type="text"
+          <select
             name="category"
             value={formData.category}
             onChange={handleChange}
+            disabled={categoriesLoading}
             className="w-full px-3 py-2 border border-border dark:bg-muted dark:text-white rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
             required
-          />
+          >
+            <option value="">
+              {categoriesLoading ? 'Loading categories...' : 'Select a category'}
+            </option>
+            {formData.category &&
+              !categories.some((category) => category.name === formData.category) && (
+                <option value={formData.category}>{formData.category}</option>
+              )}
+            {categories.map((category) => (
+              <option key={category._id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          {!categoriesLoading && categories.length === 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              No product categories yet. An admin needs to create them.
+            </p>
+          )}
+          {categoriesError && (
+            <p className="mt-1 text-xs text-destructive">{categoriesError}</p>
+          )}
         </div>
 
         <div>
