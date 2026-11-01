@@ -16,7 +16,6 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useComingSoon } from "@/contexts/ComingSoonContext"
 import { useToast } from "../ui/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -72,9 +71,9 @@ export default function ProductsTab() {
   const [showEditProduct, setShowEditProduct] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+  const [showCreateProduct, setShowCreateProduct] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { showComingSoon } = useComingSoon()
 
   const handleEditProduct = (product: Product) => {
     setSelectedProduct(product)
@@ -112,8 +111,8 @@ export default function ProductsTab() {
   }
 
   const onAddProductClick = useCallback(() => {
-    showComingSoon({ featureLabel: "Add new product" })
-  }, [showComingSoon])
+    setShowCreateProduct(true)
+  }, [])
 
   // Carousel state for mobile
   const [currentSlide, setCurrentSlide] = useState<number>(0)
@@ -687,6 +686,24 @@ export default function ProductsTab() {
             toast({
               title: "Product updated",
               description: "The product has been successfully updated.",
+              variant: "success",
+            })
+          }}
+        />
+      )}
+
+      {showCreateProduct && (
+        <ProductForm
+          product={null}
+          isEdit={false}
+          onclose={() => {
+            setShowCreateProduct(false)
+          }}
+          onSuccess={async () => {
+            await fetchProducts()
+            toast({
+              title: "Product created",
+              description: "The product has been successfully created.",
               variant: "success",
             })
           }}
