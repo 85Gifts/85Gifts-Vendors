@@ -6,7 +6,10 @@ import {
   AlertCircle,
   ArrowLeft,
   CalendarDays,
+  Check,
   Clock,
+  Copy,
+  ExternalLink,
   Eye,
   Globe2,
   Loader2,
@@ -148,6 +151,7 @@ export default function StorefrontDetail({
   const [publishAction, setPublishAction] =
     useState<StorefrontPublishAction | null>(null)
   const [publishBusy, setPublishBusy] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
 
   const fetchStorefront = useCallback(async () => {
     setLoading(true)
@@ -482,11 +486,9 @@ export default function StorefrontDetail({
     published: {
       icon: Globe2,
       title: "Published",
-      description: `Live at /${storefront.slug}${
-        storefront.publishedAt
-          ? ` since ${formatDate(storefront.publishedAt)}`
-          : ""
-      }. Unpublishing takes it offline immediately.`,
+      description: storefront.publishedAt
+        ? `Live since ${formatDate(storefront.publishedAt)}. Unpublishing takes it offline immediately.`
+        : "This storefront is live. Unpublishing takes it offline immediately.",
       action: "unpublish" as StorefrontPublishAction,
       label: "Unpublish",
       variant: "outline" as const,
@@ -506,6 +508,27 @@ export default function StorefrontDetail({
     },
   }[uiState]
   const PublishIcon = publishPresentation.icon
+  const publicPath = `/store/${storefront.slug}`
+
+  const copyPublicLink = async () => {
+    const absoluteUrl = `${window.location.origin}${publicPath}`
+    try {
+      await navigator.clipboard.writeText(absoluteUrl)
+      setCopiedLink(true)
+      toast({
+        title: "Link copied",
+        description: "The public storefront link is on your clipboard.",
+        variant: "success",
+      })
+      window.setTimeout(() => setCopiedLink(false), 2000)
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy the link. Try selecting it manually.",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -539,14 +562,36 @@ export default function StorefrontDetail({
                 <CardTitle className="text-xl">{storefront.name}</CardTitle>
                 <StorefrontStatusBadge status={storefront.publishStatus} />
               </div>
-              <code className="text-xs text-muted-foreground">
-                /{storefront.slug}
-              </code>
+              {uiState === "published" ? (
+                <a
+                  href={publicPath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  <code>{publicPath}</code>
+                  <ExternalLink className="size-3" />
+                </a>
+              ) : (
+                <code className="text-xs text-muted-foreground">
+                  {publicPath}
+                </code>
+              )}
             </div>
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="size-3.5" />
-              Edit storefront
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {uiState === "published" && (
+                <Button asChild variant="default" size="sm">
+                  <a href={publicPath} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="size-3.5" />
+                    Preview storefront
+                  </a>
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="size-3.5" />
+                Edit storefront
+              </Button>
+            </div>
           </div>
           <p className="max-w-3xl text-sm text-muted-foreground">
             {storefront.description || "No description yet."}
@@ -591,13 +636,47 @@ export default function StorefrontDetail({
             <PublishIcon
               className={`mt-0.5 size-5 shrink-0 ${publishPresentation.iconClass}`}
             />
-            <div>
-              <p className="font-medium">{publishPresentation.title}</p>
-              <p className="text-sm text-muted-foreground">
-                {publishPresentation.description}
-              </p>
+            <div className="min-w-0 space-y-2">
+              <div>
+                <p className="font-medium">{publishPresentation.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  {publishPresentation.description}
+                </p>
+              </div>
+              {uiState === "published" && (
+                <div className="flex flex-col gap-2 rounded-md border border-green-200 bg-background/80 p-2.5 dark:border-green-900 sm:flex-row sm:items-center">
+                  <code className="min-w-0 flex-1 truncate text-xs sm:text-sm">
+                    {publicPath}
+                  </code>
+                  <div className="flex shrink-0 gap-1.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={copyPublicLink}
+                    >
+                      {copiedLink ? (
+                        <Check className="size-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                      {copiedLink ? "Copied" : "Copy link"}
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <a
+                        href={publicPath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        Open
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              )}
               {uiState === "rejected" && latestRequest?.reviewNote && (
-                <p className="mt-2 rounded-md border border-red-200 bg-background/70 px-2.5 py-1.5 text-sm text-red-700 dark:border-red-900 dark:text-red-300">
+                <p className="rounded-md border border-red-200 bg-background/70 px-2.5 py-1.5 text-sm text-red-700 dark:border-red-900 dark:text-red-300">
                   <span className="font-medium">Admin note:</span>{" "}
                   {latestRequest.reviewNote}
                 </p>
