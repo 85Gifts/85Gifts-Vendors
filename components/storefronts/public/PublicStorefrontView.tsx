@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import Link from 'next/link'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -19,8 +18,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/use-toast'
-import { PublicFooter } from '@/components/public-footer'
-import { PublicNavbar } from '@/components/public-navbar'
 import { StorefrontProductCard } from '@/components/storefronts/public/StorefrontProductCard'
 import { StorefrontProductOptionsDialog } from '@/components/storefronts/public/StorefrontProductOptionsDialog'
 import { StorefrontCartSheet } from '@/components/storefronts/public/StorefrontCartSheet'
@@ -337,7 +334,36 @@ export function PublicStorefrontView({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <PublicNavbar onDark />
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05070d]/95 text-white backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-[11px] font-bold">
+              {storefrontInitials(storefront.name)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold tracking-tight">
+                {storefront.name}
+              </p>
+              <p className="truncate text-[11px] text-white/50">
+                by {vendorName}
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setCartOpen(true)}
+            className="relative shrink-0 bg-blue-600 text-white hover:bg-blue-500"
+          >
+            <ShoppingBagIcon size={16} />
+            <span className="hidden sm:inline">Cart</span>
+            {count > 0 ? (
+              <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-bold leading-none text-blue-700">
+                {count}
+              </span>
+            ) : null}
+          </Button>
+        </div>
+      </header>
 
       <section className="relative overflow-hidden border-b border-white/10 bg-[#05070d] text-white">
         <div
@@ -346,22 +372,15 @@ export function PublicStorefrontView({
           aria-hidden="true"
        />
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-36 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link
-              href="/storefronts"
-              className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur transition-colors hover:border-white/25 hover:text-white"
-            >
-              <ArrowLeftIcon size={14} />
-              All storefronts
-            </Link>
+        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-10 lg:px-8">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium text-emerald-300">
               <BadgeCheckIcon size={14} />
               Verified vendor
             </div>
           </div>
 
-          <div className="mt-6 grid gap-5 lg:grid-cols-[1.12fr_0.88fr] lg:gap-6">
+          <div className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr] lg:gap-6">
             <div className="relative flex flex-col overflow-hidden rounded-[1.8rem] border border-white/10 bg-[#0b1120] p-6 sm:p-8">
               <div
                 className="absolute -right-16 -top-16 size-48 rounded-full border border-white/10"
@@ -615,7 +634,15 @@ export function PublicStorefrontView({
         </div>
       ) : null}
 
-      <PublicFooter />
+      <footer className="border-t bg-background px-4 py-8 text-center sm:px-6">
+        <p className="text-sm font-medium text-foreground">{storefront.name}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Fulfilled by {vendorName}
+        </p>
+        <p className="mt-3 text-[11px] text-muted-foreground/70">
+          Payments secured by Paystack · Store powered by Omniflow85
+        </p>
+      </footer>
 
       <StorefrontProductOptionsDialog
         product={optionsProduct}
