@@ -3,13 +3,14 @@
 import * as React from 'react'
 import { usePathname } from 'next/navigation'
 import { useVendorAuth } from '@/contexts/VendorAuthContext'
-import { TOUR_STEPS } from './tour-config'
+import { TOUR_STEPS, type TourStep } from './tour-config'
 
 type TourStatus = 'idle' | 'welcome' | 'active'
 
 interface TourContextValue {
   status: TourStatus
   stepIndex: number
+  steps: TourStep[]
   startTour: () => void
   acceptWelcome: () => void
   dismissWelcome: () => void
@@ -48,6 +49,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const [tourDone, setTourDone] = React.useState<boolean | null>(null)
   const pathname = usePathname()
   const { isAuthenticated, loading } = useVendorAuth()
+  const steps = TOUR_STEPS
 
   React.useEffect(() => {
     setTourDone(isTourDone())
@@ -87,10 +89,10 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 
   const next = React.useCallback(() => {
     setStepIndex((i) => {
-      if (i >= TOUR_STEPS.length - 1) return i
+      if (i >= steps.length - 1) return i
       return i + 1
     })
-  }, [])
+  }, [steps.length])
 
   const back = React.useCallback(() => {
     setStepIndex((i) => Math.max(0, i - 1))
@@ -100,6 +102,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     () => ({
       status,
       stepIndex,
+      steps,
       startTour,
       acceptWelcome,
       dismissWelcome,
@@ -107,7 +110,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
       back,
       stop,
     }),
-    [status, stepIndex, startTour, acceptWelcome, dismissWelcome, next, back, stop]
+    [status, stepIndex, steps, startTour, acceptWelcome, dismissWelcome, next, back, stop]
   )
 
   return <TourContext.Provider value={value}>{children}</TourContext.Provider>

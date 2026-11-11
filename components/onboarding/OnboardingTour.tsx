@@ -6,15 +6,42 @@ import { driver } from 'driver.js'
 import type { Driver } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import { useTour } from './TourContext'
-import { TOUR_STEPS } from './tour-config'
 
-const ELEMENT_TIMEOUT = 3000
+const ELEMENT_TIMEOUT = 5000
 
-function waitForElement(selector: string): Promise<HTMLElement | null> {
+// Wait for page content before opening the mobile sidebar. The sidebar lives
+// in the dashboard shell, which can remount during a route transition.
+const PAGE_READY_TARGETS: Record<string, string> = {
+  'side-dashboard': '[data-tour-id="dash-wallet"]',
+  'side-events': '[data-tour-id="events-schedule"]',
+  'side-products': '[data-tour-id="products-add"]',
+  'side-inventory': '[data-tour-id="inventory-list"]',
+  'side-ads': '[data-tour-id="ads-create"]',
+  'side-transactions': '[data-tour-id="transactions-table"]',
+}
+
+function isVisible(el: HTMLElement): boolean {
+  const style = window.getComputedStyle(el)
+  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+    return false
+  }
+  const rect = el.getBoundingClientRect()
+  // Elements inside a horizontal carousel can be off-screen horizontally but
+  // are still valid; driver.js scrolls them into view before highlighting.
+  return rect.width > 0 && rect.height > 0
+}
+
+/**
+ * Several tour targets exist twice (desktop + mobile). Pick the first one that
+ * is actually rendered so the popover is never anchored to a hidden duplicate.
+ */
+function waitForVisibleElement(selector: string): Promise<HTMLElement | null> {
   return new Promise((resolve) => {
     const startedAt = Date.now()
     const timer = window.setInterval(() => {
-      const el = document.querySelector(selector) as HTMLElement | null
+      const el = Array.from(
+        document.querySelectorAll<HTMLElement>(selector)
+      ).find(isVisible)
       if (el) {
         window.clearInterval(timer)
         resolve(el)
@@ -26,8 +53,53 @@ function waitForElement(selector: string): Promise<HTMLElement | null> {
   })
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
+
+function isMobileSidebarOpen(): boolean {
+  const sidebar = document.querySelector<HTMLElement>(
+    '[data-slot="sidebar"][data-mobile="true"]'
+  )
+  if (!sidebar) return false
+  // The closed Sheet stays mounted and keeps its width, so only trust state.
+  return sidebar.getAttribute('data-state') === 'open'
+}
+
+async function setMobileSidebar(open: boolean): Promise<void> {
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const trigger = document.querySelector<HTMLButtonElement>(
+      '[data-sidebar="trigger"]'
+    )
+    if (trigger) {
+      if (isMobileSidebarOpen() !== open) {
+        trigger.click()
+        for (let wait = 0; wait < 20; wait += 1) {
+          if (isMobileSidebarOpen() === open) break
+          await delay(60)
+        }
+      }
+      await delay(200)
+      return
+    }
+    await delay(80)
+  }
+}
+
+async function waitForRoute(route: string, isCancelled: () => boolean): Promise<void> {
+  const startedAt = Date.now()
+  while (Date.now() - startedAt < 5000) {
+    if (isCancelled()) return
+    if (window.location.pathname === route) {
+      await delay(300)
+      return
+    }
+    await delay(80)
+  }
+}
+
 export function OnboardingTour() {
-  const { status, stepIndex, next, back, stop } = useTour()
+  const { status, stepIndex, steps, next, back, stop } = useTour()
   const router = useRouter()
   const pathname = usePathname()
   const driverRef = React.useRef<Driver | null>(null)
@@ -35,8 +107,9 @@ export function OnboardingTour() {
 
   React.useEffect(() => {
     if (status !== 'active') return
+    const isMobile = window.matchMedia('(max-width: 767px)').matches
     const driverObj = driver({
-      steps: TOUR_STEPS.map((s) => ({
+      steps: steps.map((s) => ({
         element: s.target,
         popover: { title: s.title, description: s.body },
       })),
@@ -47,10 +120,10 @@ export function OnboardingTour() {
       allowKeyboardControl: false,
       disableActiveInteraction: true,
       overlayColor: '#000000',
-      overlayOpacity: 0.65,
-      stagePadding: 6,
+      overlayOpacity: isMobile ? 0.3 : 0.55,
+      stagePadding: isMobile ? 4 : 6,
       stageRadius: 12,
-      popoverOffset: 12,
+      popoverOffset: isMobile ? 8 : 12,
       popoverClass: 'of85-popover',
       onPopoverRender: (popover, { index }) => {
         const activeIndex = typeof index === 'number' ? index : 0
@@ -63,7 +136,7 @@ export function OnboardingTour() {
         if (nav) top.appendChild(nav)
         const dots = document.createElement('div')
         dots.className = 'of85-dots'
-        TOUR_STEPS.forEach((_, i) => {
+        steps.forEach((_, i) => {
           const dot = document.createElement('span')
           dot.className =
             'of85-dot' +
@@ -98,28 +171,47 @@ export function OnboardingTour() {
       driverRef.current = null
       pendingRef.current = false
     }
-  }, [status, next, back, stop])
+  }, [status, steps, next, back, stop])
 
   React.useEffect(() => {
     if (status !== 'active') return
     const driverObj = driverRef.current
     if (!driverObj) return
-    const step = TOUR_STEPS[stepIndex]
+    const step = steps[stepIndex]
+    if (!step) {
+      stop()
+      return
+    }
     let cancelled = false
 
     const go = async () => {
       if (step.route && pathname !== step.route) {
         router.push(step.route)
+        await waitForRoute(step.route, () => cancelled)
       }
-      const el = await waitForElement(step.target)
+      if (cancelled) return
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        const readyTarget = PAGE_READY_TARGETS[step.id]
+        if (readyTarget) {
+          await waitForVisibleElement(readyTarget)
+        }
+        if (cancelled) return
+        await setMobileSidebar(step.id.startsWith('side-'))
+      }
+      if (cancelled) return
+      const el = await waitForVisibleElement(step.target)
       if (cancelled) return
       if (!el) {
-        if (stepIndex >= TOUR_STEPS.length - 1) {
+        if (stepIndex >= steps.length - 1) {
           stop()
         } else {
           next()
         }
         return
+      }
+      const driverStep = driverObj.getConfig().steps?.[stepIndex]
+      if (driverStep) {
+        driverStep.element = el
       }
       if (!driverObj.isActive()) {
         driverObj.drive(stepIndex)
@@ -135,7 +227,7 @@ export function OnboardingTour() {
     return () => {
       cancelled = true
     }
-  }, [status, stepIndex, pathname, router, next, stop])
+  }, [status, stepIndex, steps, pathname, router, next, stop])
 
   React.useEffect(() => {
     if (status !== 'active') return
