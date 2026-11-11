@@ -17,7 +17,7 @@ export function WelcomeModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
@@ -27,7 +27,7 @@ export function WelcomeModal() {
             role="dialog"
             aria-modal="true"
             aria-label="Welcome to OmniFlow85"
-            className="w-full max-w-md rounded-2xl border bg-card p-8 text-center text-card-foreground shadow-2xl"
+            className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border bg-card p-6 text-center text-card-foreground shadow-2xl sm:p-8"
           >
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
               <Compass className="h-7 w-7 text-primary" />

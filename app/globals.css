@@ -373,6 +373,12 @@ body::-webkit-scrollbar-thumb {
   background: var(--accent);
 }
 
+.driver-popover.of85-popover .driver-popover-navigation-btns button:first-child,
+.driver-popover.of85-popover .driver-popover-navigation-btns button:last-child {
+  min-width: 76px;
+  text-align: center;
+}
+
 .driver-popover.of85-popover .driver-popover-close-btn {
   top: 14px;
   right: 14px;
@@ -382,4 +388,33 @@ body::-webkit-scrollbar-thumb {
 .driver-popover.of85-popover .driver-popover-close-btn:hover,
 .driver-popover.of85-popover .driver-popover-close-btn:focus {
   color: var(--foreground);
+}
+
+@media (max-width: 640px) {
+  .driver-popover.of85-popover {
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    max-width: none;
+    padding: 16px;
+  }
+
+  .driver-popover.of85-popover .of85-footer-top {
+    gap: 8px;
+  }
+
+  .driver-popover.of85-popover .driver-popover-navigation-btns {
+    gap: 6px;
+  }
+
+  .driver-popover.of85-popover button.driver-popover-footer-btn,
+  .driver-popover.of85-popover .driver-popover-navigation-btns button {
+    min-width: 56px;
+    padding: 0 10px;
+  }
+
+  .driver-popover.of85-popover .driver-popover-navigation-btns button:first-child,
+  .driver-popover.of85-popover .driver-popover-navigation-btns button:last-child {
+    min-width: 64px;
+  }
 }
