@@ -3,21 +3,36 @@
 import { useState, useEffect } from 'react';
 import { Package, AlertTriangle, CheckCircle, XCircle, Edit, RefreshCw, ChevronLeft, ChevronRight, MoreVertical, ShoppingCart } from 'lucide-react';
 import { useCheckout } from '@/contexts/CheckoutContext';
+import { productPrice as catalogPrice, unwrapProductList } from '@/lib/productInventory';
 
 interface InventoryProduct {
   _id: string;
   name: string;
   description: string;
   category: string;
-  price: number;
-  inventory: {
-    totalQuantity: number;
-    reservedQuantity: number;
-    availableQuantity: number;
-    itemCount: number;
-    hasVariants: boolean;
-    status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'discontinued';
+  price?: number;
+  inventory?: {
+    totalQuantity?: number;
+    reservedQuantity?: number;
+    availableQuantity?: number;
+    sellingPrice?: number;
+    itemCount?: number;
+    hasVariants?: boolean;
+    status?: 'in_stock' | 'low_stock' | 'out_of_stock' | 'discontinued';
   };
+}
+
+function productPrice(product: InventoryProduct): number | null {
+  const value = catalogPrice(product)
+  return value > 0 ? value : null
+}
+
+function formatNaira(value: number | null): string {
+  if (value === null) return '—'
+  return `₦${value.toLocaleString('en-NG', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
 }
 
 interface Pagination {
@@ -69,9 +84,12 @@ export default function InventoryList({ onEdit, refreshKey = 0 }: InventoryListP
         params.append('search', searchTerm);
       }
 
-      const response = await fetch(`/api/inventory/products?${params.toString()}`, {
-        credentials: 'include',
-      });
+      const [response, catalogResponse] = await Promise.all([
+        fetch(`/api/inventory/products?${params.toString()}`, {
+          credentials: 'include',
+        }),
+        fetch('/api/products', { credentials: 'include' }),
+      ]);
       const data = await response.json();
 
       if (!response.ok) {
@@ -82,7 +100,32 @@ export default function InventoryList({ onEdit, refreshKey = 0 }: InventoryListP
       const productsData = data?.data?.data?.products || data?.data?.products || [];
       const paginationData = data?.data?.data?.pagination || data?.data?.pagination;
 
-      setProducts(productsData);
+      let priceById = new Map<string, number>();
+      if (catalogResponse.ok) {
+        const catalogJson = await catalogResponse.json().catch(() => ({}));
+        unwrapProductList(catalogJson).forEach((product: any) => {
+          const id = product?._id || product?.id;
+          const price = catalogPrice(product);
+          if (id && price > 0) priceById.set(String(id), price);
+        });
+      }
+
+      const withPrices = productsData.map((product: InventoryProduct) => {
+        const sellingPrice =
+          product.inventory?.sellingPrice ??
+          priceById.get(product._id) ??
+          product.price;
+        return {
+          ...product,
+          price: sellingPrice,
+          inventory: {
+            ...product.inventory,
+            sellingPrice,
+          },
+        };
+      });
+
+      setProducts(withPrices);
       setPagination(paginationData);
 
       // Extract unique categories
@@ -245,7 +288,10 @@ export default function InventoryList({ onEdit, refreshKey = 0 }: InventoryListP
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
                   {products.map((product) => {
-                    const { status, label, icon: StatusIcon } = getStockStatus(product.inventory.status);
+                    const inventory = product.inventory
+                    const { status, label, icon: StatusIcon } = getStockStatus(
+                      inventory?.status || 'in_stock'
+                    );
                     return (
                       <tr key={product._id} className="hover:bg-muted">
                         <td className="px-6 py-4">
@@ -257,21 +303,21 @@ export default function InventoryList({ onEdit, refreshKey = 0 }: InventoryListP
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-medium text-foreground">
-                            ₦{product.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {formatNaira(productPrice(product))}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium text-foreground">{product.inventory.totalQuantity}</span>
+                          <span className="text-sm font-medium text-foreground">{inventory?.totalQuantity ?? 0}</span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {product.inventory.reservedQuantity}
+                          {inventory?.reservedQuantity ?? 0}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          {product.inventory.availableQuantity}
+                          {inventory?.availableQuantity ?? 0}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {product.inventory.itemCount}
-                          {product.inventory.hasVariants && (
+                          {inventory?.itemCount ?? 0}
+                          {inventory?.hasVariants && (
                             <span className="ml-1 text-xs text-blue-600 dark:text-blue-400">(variants)</span>
                           )}
                         </td>

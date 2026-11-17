@@ -37,12 +37,16 @@ export function unwrapProductList(data: any): any[] {
 }
 
 export function productPrice(raw: any): number {
-  const sellingPrice = raw?.inventory?.sellingPrice
-  if (typeof sellingPrice === 'number' && Number.isFinite(sellingPrice)) {
-    return sellingPrice
+  const candidates = [
+    raw?.inventory?.sellingPrice,
+    Array.isArray(raw?.inventories) ? raw.inventories[0]?.sellingPrice : undefined,
+    raw?.price,
+  ]
+  for (const value of candidates) {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) return parsed
   }
-  const price = Number(raw?.price)
-  return Number.isFinite(price) ? price : 0
+  return 0
 }
 
 export function productStock(raw: any): number {

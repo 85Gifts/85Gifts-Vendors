@@ -51,19 +51,26 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addToCheckout = (item: Omit<CheckoutItem, 'quantity'>) => {
+    const inventoryPrice = Number(
+      (item as { inventory?: { sellingPrice?: number } }).inventory?.sellingPrice
+    )
+    const price =
+      typeof item.price === 'number' && Number.isFinite(item.price) && item.price > 0
+        ? item.price
+        : Number.isFinite(inventoryPrice)
+          ? inventoryPrice
+          : 0
+
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i._id === item._id);
       if (existingItem) {
-        // If item already exists, increment quantity
         return prevItems.map((i) =>
           i._id === item._id
-            ? { ...i, quantity: i.quantity + 1 }
+            ? { ...i, quantity: i.quantity + 1, price: i.price || price }
             : i
         );
-      } else {
-        // Add new item with quantity 1
-        return [...prevItems, { ...item, quantity: 1 }];
       }
+      return [...prevItems, { ...item, price, quantity: 1 }];
     });
   };
 

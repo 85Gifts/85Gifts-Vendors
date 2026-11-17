@@ -35,7 +35,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   if (!isOpen) return null;
 
   // Calculate subtotal
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = items.reduce((sum, item) => sum + ((Number(item.price) || 0) * item.quantity), 0);
 
   const handleGenerateInvoice = () => {
     if (items.length === 0) {
@@ -375,7 +375,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                         {item.category}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                        ₦{item.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₦{(Number(item.price) || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {item.inventory.availableQuantity}
@@ -403,7 +403,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-right">
                         <span className="text-sm font-semibold text-foreground">
-                          ₦{(item.price * item.quantity).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ₦{((Number(item.price) || 0) * item.quantity).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-right">
