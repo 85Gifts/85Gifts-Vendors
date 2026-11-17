@@ -30,10 +30,11 @@ interface Pagination {
 }
 
 interface InventoryListProps {
-  onEdit?: (item: any) => void;
+  onEdit?: (item: InventoryProduct) => void;
+  refreshKey?: number;
 }
 
-export default function InventoryList({ onEdit }: InventoryListProps) {
+export default function InventoryList({ onEdit, refreshKey = 0 }: InventoryListProps) {
   const { addToCheckout } = useCheckout();
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,7 @@ export default function InventoryList({ onEdit }: InventoryListProps) {
 
   useEffect(() => {
     fetchInventory();
-  }, [filter, categoryFilter, currentPage, searchTerm]);
+  }, [filter, categoryFilter, currentPage, searchTerm, refreshKey]);
 
   const fetchInventory = async () => {
     try {

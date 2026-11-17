@@ -3,26 +3,23 @@
 import { useState } from 'react';
 import InventoryDashboard from '@/components/InventoryDashboard';
 import InventoryList from '@/components/InventoryList';
-import StockAdjustmentModal from '@/components/StockAdjustmentModal';
+import StockAdjustmentModal, {
+  type StockAdjustmentProduct,
+} from '@/components/StockAdjustmentModal';
 import CheckoutModal from '@/components/CheckoutModal';
 import { Package, BarChart3, ShoppingCart } from 'lucide-react';
 import { useCheckout } from '@/contexts/CheckoutContext';
-
-interface InventoryItem {
-  id: string;
-  productId: string;
-  quantity: number;
-}
 
 export default function InventoryPage() {
   const { getTotalItems } = useCheckout();
   const [activeView, setActiveView] = useState<'dashboard' | 'list'>('dashboard');
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<StockAdjustmentProduct | null>(null);
+  const [listRefreshKey, setListRefreshKey] = useState(0);
   const checkoutCount = getTotalItems();
 
-  const handleEditItem = (item: InventoryItem) => {
+  const handleEditItem = (item: StockAdjustmentProduct) => {
     setSelectedItem(item);
     setShowAdjustmentModal(true);
   };
@@ -30,6 +27,7 @@ export default function InventoryPage() {
   const handleAdjustmentComplete = () => {
     setShowAdjustmentModal(false);
     setSelectedItem(null);
+    setListRefreshKey((key) => key + 1);
   };
 
   return (
@@ -91,7 +89,7 @@ export default function InventoryPage() {
         {activeView === 'dashboard' ? (
           <InventoryDashboard />
         ) : (
-          <InventoryList onEdit={handleEditItem} />
+          <InventoryList onEdit={handleEditItem} refreshKey={listRefreshKey} />
         )}
 
         {showAdjustmentModal && selectedItem && (
