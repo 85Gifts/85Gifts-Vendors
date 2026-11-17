@@ -19,6 +19,12 @@ import { Button } from "@/components/ui/button"
 import ProductForm from "@/components/ProductForm"
 import { useCategories } from "@/hooks/useCategories"
 import {
+  productPrice,
+  productStatus,
+  productStock,
+  unwrapProductList,
+} from "@/lib/productInventory"
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -58,6 +64,19 @@ interface BackendProduct {
   vendorId?: string
   createdAt?: string
   updatedAt?: string
+  inventory?: {
+    totalQuantity?: number
+    reservedQuantity?: number
+    availableQuantity?: number
+    sellingPrice?: number
+    status?: string
+    itemCount?: number
+  }
+  inventories?: Array<{
+    quantity?: number
+    sellingPrice?: number
+    variantIndex?: number
+  }>
 }
 
 export default function ProductsTab() {
@@ -147,25 +166,10 @@ export default function ProductsTab() {
         throw new Error(data.error || 'Failed to fetch products')
       }
 
-      // Handle different API response formats
-      let productsData = data
-      if (data.data) {
-        productsData = Array.isArray(data.data) ? data.data : data.data.products || []
-      } else if (!Array.isArray(data)) {
-        productsData = []
-      }
+      const productsData = unwrapProductList(data)
 
       // Transform backend products to display format
-      const transformedProducts: Product[] = (Array.isArray(productsData) ? productsData : []).map((product: BackendProduct) => {
-        // Determine status based on stock
-        let status: "active" | "out_of_stock" | "inactive" = "active"
-        if (product.stock === 0) {
-          status = "out_of_stock"
-        } else if (product.stock < 0) {
-          status = "inactive"
-        }
-
-        // Get first image or use default emoji based on category
+      const transformedProducts: Product[] = productsData.map((product: BackendProduct) => {
         const getDefaultImage = (category: string): string => {
           const categoryImages: Record<string, string> = {
             "Gift Sets": "🎁",
@@ -188,14 +192,14 @@ export default function ProductsTab() {
           id: product._id || product.id || "",
           name: product.name,
           category: product.category,
-          price: product.price,
-          stock: product.stock || 0,
-          status: status,
+          price: productPrice(product),
+          stock: productStock(product),
+          status: productStatus(product),
           image: imageUrl,
-          images: product.images || [], // Store all images for editing
-          sales: 0, // Default value - can be updated if backend provides this
-          rating: 0, // Default value - can be updated if backend provides this
-          giftCategory: product.category, // Using category as giftCategory for now
+          images: product.images || [],
+          sales: 0,
+          rating: 0,
+          giftCategory: product.category,
           description: product.description,
         }
       })

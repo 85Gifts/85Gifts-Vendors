@@ -125,7 +125,7 @@ export const productApi = {
     }).then(async (res) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      // Create now returns { success, data: { product, inventories } }
+      // Create/update return { success, data: { product, inventories, inventory } }
       return data?.data?.product ?? data?.product ?? data;
     }),
 
@@ -136,7 +136,7 @@ export const productApi = {
     }).then(async (res) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      return data;
+      return data?.data?.product ?? data?.product ?? data;
     }),
 
   delete: (id: string) =>

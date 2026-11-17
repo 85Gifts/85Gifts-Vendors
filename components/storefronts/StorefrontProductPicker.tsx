@@ -22,6 +22,11 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { apiClient } from "@/lib/api"
 import { storefrontApi } from "@/lib/storefrontApi"
+import {
+  productPrice,
+  productStock,
+  unwrapProductList,
+} from "@/lib/productInventory"
 
 interface VendorProduct {
   id: string
@@ -40,13 +45,6 @@ interface StorefrontProductPickerProps {
   onAdded: () => void
 }
 
-function unwrapProducts(json: any): any[] {
-  const payload = json?.data?.data ?? json?.data ?? json
-  if (Array.isArray(payload)) return payload
-  if (Array.isArray(payload?.products)) return payload.products
-  return []
-}
-
 function toVendorProduct(raw: any): VendorProduct | null {
   const id = raw?._id ?? raw?.id
   if (!id) return null
@@ -61,8 +59,8 @@ function toVendorProduct(raw: any): VendorProduct | null {
     id: String(id),
     name: String(raw?.name ?? "Untitled product"),
     category: String(raw?.category ?? "Uncategorised"),
-    price: Number(raw?.price ?? 0),
-    stock: Number(raw?.stock ?? 0),
+    price: productPrice(raw),
+    stock: productStock(raw),
     image,
   }
 }
@@ -99,7 +97,7 @@ export function StorefrontProductPicker({
     setError("")
     try {
       const json = await apiClient("/api/products", { requiresAuth: true })
-      const next = unwrapProducts(json)
+      const next = unwrapProductList(json)
         .map(toVendorProduct)
         .filter((product): product is VendorProduct => Boolean(product))
       setProducts(next)
