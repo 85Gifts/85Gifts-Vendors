@@ -9,13 +9,10 @@ import {
   Search,
   CheckCircle,
   XCircle,
-  Star,
   DollarSign,
-  Boxes,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useToast } from "../ui/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,7 +70,6 @@ export default function ProductsTab() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
   const [showCreateProduct, setShowCreateProduct] = useState(false)
-  const router = useRouter()
   const { toast } = useToast()
 
   const handleEditProduct = (product: Product) => {
@@ -217,55 +213,6 @@ export default function ProductsTab() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
-
-  const handleManageInventory = async (product: Product) => {
-    if (!product.id) {
-      toast({
-        title: "Error",
-        description: "Product ID is required",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      const response = await fetch('/api/inventory', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          productId: product.id.toString(),
-          sellingPrice: product.price,
-          quantity: product.stock,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create inventory')
-      }
-
-      toast({
-        title: "Inventory created",
-        description: "Inventory has been created successfully. Redirecting to inventory page...",
-        variant: "success",
-      })
-
-      // Navigate to inventory page after a short delay
-      setTimeout(() => {
-        router.push('/inventory')
-      }, 1000)
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to create inventory',
-        variant: "destructive",
-      })
-    }
-  }
 
   const handleDeleteProduct = (product: Product) => {
     setProductToDelete(product)
@@ -568,7 +515,7 @@ export default function ProductsTab() {
 
       {/* Products Grid */}
       {!productsLoading && !productsError && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -576,92 +523,74 @@ export default function ProductsTab() {
               <p className="text-muted-foreground dark:text-muted-foreground text-sm mt-2">Add your first product to get started</p>
             </div>
           ) : (
-            filteredProducts.map((product) => (
-              <div key={product.id} className="bg-card rounded-xl shadow-sm border dark:border-border hover:shadow-md transition-shadow overflow-hidden">
-                {/* Product Image */}
-                <div className="relative w-full h-48 bg-muted flex items-center justify-center overflow-hidden">
-                  {/* Manage Inventory Button */}
-                  <Button
-                    onClick={() => handleManageInventory(product)}
-                    size="xs"
-                    className="absolute top-2 right-2 z-10 flex items-center gap-1.5"
-                    title="Manage Inventory"
-                  >
-                    <Boxes className="w-3 h-3" />
-                    <span>Manage Inventory</span>
-                  </Button>
-                  
-                  {product.image && product.image.startsWith('http') ? (
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to emoji if image fails to load
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent && !parent.querySelector('.fallback-emoji')) {
-                          const emoji = document.createElement('span');
-                          emoji.className = 'fallback-emoji text-6xl';
-                          emoji.textContent = '🎁';
-                          parent.appendChild(emoji);
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span className="text-6xl">{product.image || '🎁'}</span>
-                  )}
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2 dark:text-white">{product.name}</h3>
-                    </div>
-                    <div className="flex gap-2 ml-2">
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                        title="Edit product"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                        title="Delete product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+            filteredProducts.map((product) => {
+              const hasImage = Boolean(product.image && product.image.startsWith("http"))
+              return (
+                <article
+                  key={product.id}
+                  className="group flex flex-col overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_16px_40px_-28px_rgba(37,99,235,0.55)]"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-muted">
+                    {hasImage ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                        }}
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-4xl">
+                        {product.image || "🎁"}
+                      </div>
+                    )}
 
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-muted-foreground">{product.category}</span>
-                    <Badge className={getStatusColor(product.status)}>
+                    <Badge className={`absolute left-2 top-2 capitalize ${getStatusColor(product.status)}`}>
                       {product.status.replace("_", " ")}
                     </Badge>
-                  </div>
 
-                  <div className="flex items-center gap-4 mb-3 text-sm text-muted-foreground">
-                    <span>Stock: {product.stock}</span>
-                    <span>Sales: {product.sales}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <span>{product.rating}</span>
+                    <div className="absolute right-2 top-2 flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      <button
+                        type="button"
+                        onClick={() => handleEditProduct(product)}
+                        className="flex size-7 items-center justify-center rounded-full border bg-background/90 text-muted-foreground shadow-sm backdrop-blur hover:text-primary"
+                        title="Edit product"
+                      >
+                        <Edit className="size-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProduct(product)}
+                        className="flex size-7 items-center justify-center rounded-full border bg-background/90 text-muted-foreground shadow-sm backdrop-blur hover:text-destructive"
+                        title="Delete product"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-foreground">
-                      {currencyFormatter.format(product.price)}
-                    </span>
-                    <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">{product.giftCategory}</span>
+                  <div className="flex flex-1 flex-col gap-1.5 p-3">
+                    {product.category ? (
+                      <p className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {product.category}
+                      </p>
+                    ) : null}
+                    <h3 className="line-clamp-2 text-sm font-semibold leading-snug">
+                      {product.name}
+                    </h3>
+                    <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+                      <p className="text-sm font-bold text-foreground">
+                        {currencyFormatter.format(product.price)}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
+                </article>
+              )
+            })
           )}
         </div>
       )}
@@ -709,7 +638,7 @@ export default function ProductsTab() {
             await fetchProducts()
             toast({
               title: "Product created",
-              description: "The product has been successfully created.",
+              description: "The product and its inventory have been created.",
               variant: "success",
             })
           }}

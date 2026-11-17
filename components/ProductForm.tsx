@@ -260,17 +260,30 @@ export default function ProductForm({ product = null, isEdit = false, onclose, o
 
       setUploadingImages(false);
 
-      // Prepare JSON payload matching the backend API format
-      const payload = {
-        id: product?.id,
-        vendorId: vendorId,
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        price: parseFloat(formData.price), // Convert to number
-        stock: parseInt(formData.stock, 10), // Convert to number
-        images: finalImageUrls, // Array of Cloudinary image URLs
-      };
+      const price = Number(formData.price)
+      const stock = Number.parseInt(formData.stock, 10)
+
+      // JSON numbers: price is required (> 0); stock defaults to 0 and
+      // becomes the inventory quantity on create.
+      const payload = isEdit
+        ? {
+            id: product?.id,
+            vendorId: vendorId,
+            name: formData.name,
+            description: formData.description,
+            category: formData.category,
+            price,
+            stock: Number.isFinite(stock) ? stock : 0,
+            images: finalImageUrls,
+          }
+        : {
+            name: formData.name,
+            description: formData.description || undefined,
+            category: formData.category || undefined,
+            price,
+            stock: Number.isFinite(stock) ? stock : 0,
+            images: finalImageUrls,
+          }
 
       const url = isEdit 
         ? `/api/productId` 

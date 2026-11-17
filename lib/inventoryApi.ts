@@ -49,22 +49,6 @@ export async function getInventoryById(id: string): Promise<{ success: boolean; 
   return response.json();
 }
 
-export async function createInventory(data: any): Promise<{ success: boolean; data: any }> {
-  const response = await fetch('/api/inventory', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create inventory');
-  }
-
-  return response.json();
-}
-
 export async function updateInventory(id: string, data: any): Promise<{ success: boolean; data: any }> {
   const response = await fetch(`/api/inventory/${id}`, {
     method: 'PUT',
