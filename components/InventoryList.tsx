@@ -189,7 +189,21 @@ export default function InventoryList({ onEdit, refreshKey = 0 }: InventoryListP
     // Handle different actions
     switch (action) {
       case 'add-to-checkout':
-        addToCheckout(selectedProduct);
+        addToCheckout({
+          _id: selectedProduct._id,
+          name: selectedProduct.name,
+          description: selectedProduct.description,
+          category: selectedProduct.category,
+          price: catalogPrice(selectedProduct),
+          inventory: {
+            totalQuantity: selectedProduct.inventory?.totalQuantity ?? 0,
+            reservedQuantity: selectedProduct.inventory?.reservedQuantity ?? 0,
+            availableQuantity: selectedProduct.inventory?.availableQuantity ?? 0,
+            itemCount: selectedProduct.inventory?.itemCount ?? 1,
+            hasVariants: selectedProduct.inventory?.hasVariants ?? false,
+            status: selectedProduct.inventory?.status ?? 'in_stock',
+          },
+        });
         handleCloseModal();
         break;
       case 'edit-inventory':
